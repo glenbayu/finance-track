@@ -1,4 +1,4 @@
-import { ChevronDown } from "lucide-react";
+﻿import { ChevronDown } from "lucide-react";
 
 type TopSpendingTransaction = {
   id: string;
@@ -33,12 +33,11 @@ function formatDate(date: string | null) {
     day: "2-digit",
     month: "short",
     year: "numeric",
+    timeZone: "UTC",
   }).format(new Date(date));
 }
 
-export default function TopSpendingInsight({
-  data,
-}: TopSpendingInsightProps) {
+export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
   return (
     <div className="section-card">
       <div className="mb-4 flex items-center justify-between">
@@ -57,35 +56,30 @@ export default function TopSpendingInsight({
       ) : (
         <div className="space-y-3">
           {data.map((item, index) => (
-            <details
-              key={`${item.category_name}-${index}`}
-              className="soft-inset group"
-            >
+            <details key={`${item.category_name}-${index}`} className="soft-inset group">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
-                <div className="flex min-w-0 items-start gap-3">
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-semibold text-red-600">
+                <span className="flex min-w-0 items-start gap-3">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-semibold text-red-600">
                     {index + 1}
-                  </div>
+                  </span>
 
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900 dark:text-slate-100">
+                  <span className="min-w-0">
+                    <span className="block truncate font-medium text-slate-900 dark:text-slate-100">
                       {item.category_name}
-                    </p>
-                    <p className="truncate text-sm text-slate-500 dark:text-slate-400">
-                      {item.transaction_count} transaksi • klik untuk lihat detail
-                    </p>
-                  </div>
-                </div>
+                    </span>
+                    <span className="block truncate text-sm text-slate-500 dark:text-slate-400">
+                      {item.transaction_count} transaksi - klik untuk lihat detail
+                    </span>
+                  </span>
+                </span>
 
-                <div className="ml-4 flex shrink-0 items-center gap-2">
-                  <p className="font-semibold text-red-600">
-                    {formatRupiah(item.amount)}
-                  </p>
+                <span className="ml-4 flex shrink-0 items-center gap-2">
+                  <span className="font-semibold text-red-600">{formatRupiah(item.amount)}</span>
                   <ChevronDown
                     size={16}
                     className="text-slate-400 transition group-open:rotate-180"
                   />
-                </div>
+                </span>
               </summary>
 
               <div className="mt-3 space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">

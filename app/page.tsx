@@ -1,65 +1,449 @@
-import Image from "next/image";
+import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import MonthlyExpenseTrend from "@/components/monthly-expense-trend";
+import QuickAddTransaction from "@/components/quick-add-transaction";
+import TopSpendingInsight from "@/components/top-spending-insight";
+import ExpenseChart from "@/components/expense-chart";
+import MonthlyHistory from "@/components/monthly-history";
+import LogoutButton from "@/components/logout-button";
+import MonthFilter from "@/components/month-filter";
+import { requireUser } from "@/lib/supabase/auth";
+import { ArrowUpRight, ReceiptText, Wallet } from "lucide-react";
 
-export default function Home() {
+function formatRupiah(amount: number) {
+  return new Intl.NumberFormat("id-ID", {
+    style: "currency",
+    currency: "IDR",
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+function formatDate(date: string) {
+  return new Intl.DateTimeFormat("id-ID", {
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).format(new Date(date));
+}
+
+function getMonthRange(month: string) {
+  const [year, monthNum] = month.split("-").map(Number);
+
+  const start = new Date(year, monthNum - 1, 1);
+  const end = new Date(year, monthNum, 1);
+
+  return {
+    start: start.toISOString().split("T")[0],
+    end: end.toISOString().split("T")[0],
+  };
+}
+
+type HomeProps = {
+  searchParams?: Promise<{
+    month?: string;
+  }>;
+};
+
+async function quickAddTransaction(formData: FormData) {
+  "use server";
+
+  const { supabase, user } = await requireUser();
+
+  const type = formData.get("type") as "income" | "expense";
+  const amount = Number(formData.get("amount"));
+  const categoryId = formData.get("category_id") as string;
+
+  if (!type || !amount || !categoryId) {
+    throw new Error("Data quick add belum lengkap.");
+  }
+
+  const { data: category, error: categoryError } = await supabase
+    .from("categories")
+    .select("id")
+    .eq("id", categoryId)
+    .eq("user_id", user.id)
+    .single();
+
+  if (categoryError || !category) {
+    throw new Error("Kategori tidak valid.");
+  }
+
+  const today = new Date().toISOString().split("T")[0];
+
+  const { error } = await supabase.from("transactions").insert({
+    user_id: user.id,
+    type,
+    amount,
+    category_id: categoryId,
+    note: "Quick Add",
+    transaction_date: today,
+  });
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/transactions");
+}
+
+export default async function Home({ searchParams }: HomeProps) {
+  const { supabase, user } = await requireUser();
+  const params = await searchParams;
+  const selectedMonth =
+    params?.month ?? new Date().toISOString().slice(0, 7);
+
+  const { data: categories } = await supabase
+    .from("categories")
+    .select("id, name, type")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+
+  const { start, end } = getMonthRange(selectedMonth);
+
+  const { data: transactions, error } = await supabase
+    .from("transactions")
+    .select(`
+      id,
+      type,
+      amount,
+      note,
+      transaction_date,
+      created_at,
+      categories (
+        id,
+        name
+      )
+    `)
+    .eq("user_id", user.id)
+    .gte("transaction_date", start)
+    .lt("transaction_date", end)
+    .order("transaction_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(5);
+
+  const { data: allTransactions } = await supabase
+    .from("transactions")
+    .select(`
+      id,
+      type,
+      amount,
+      note,
+      transaction_date,
+      categories (
+        name
+      )
+    `)
+    .eq("user_id", user.id)
+    .gte("transaction_date", start)
+    .lt("transaction_date", end);
+
+  const { data: historyTransactions } = await supabase
+    .from("transactions")
+    .select("type, amount, transaction_date")
+    .eq("user_id", user.id)
+    .order("transaction_date", { ascending: false });
+
+  const totalIncome =
+    allTransactions
+      ?.filter((item) => item.type === "income")
+      .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
+
+  const totalExpense =
+    allTransactions
+      ?.filter((item) => item.type === "expense")
+      .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
+
+  const balance = totalIncome - totalExpense;
+
+  const expenseMap = new Map<
+    string,
+    {
+      amount: number;
+      count: number;
+      transactions: {
+        id: string;
+        amount: number;
+        note: string | null;
+        transaction_date: string | null;
+      }[];
+    }
+  >();
+
+  allTransactions
+    ?.filter((item) => item.type === "expense")
+    .forEach((item) => {
+      const category = Array.isArray(item.categories)
+        ? item.categories[0]
+        : item.categories;
+
+      const categoryName = category?.name ?? "Tanpa kategori";
+      const current = expenseMap.get(categoryName) ?? {
+        amount: 0,
+        count: 0,
+        transactions: [],
+      };
+
+      current.amount += Number(item.amount);
+      current.count += 1;
+      current.transactions.push({
+        id: item.id,
+        amount: Number(item.amount),
+        note: item.note,
+        transaction_date: item.transaction_date,
+      });
+      expenseMap.set(categoryName, current);
+    });
+
+  const expenseChartData = Array.from(expenseMap.entries())
+    .map(([name, value]) => ({
+      name,
+      value: value.amount,
+    }))
+    .sort((a, b) => b.value - a.value);
+
+  const monthlyMap = new Map<
+    string,
+    { month: string; income: number; expense: number; balance: number }
+  >();
+
+  historyTransactions?.forEach((item) => {
+    if (!item.transaction_date) return;
+
+    const monthKey = item.transaction_date.slice(0, 7);
+
+    const current = monthlyMap.get(monthKey) ?? {
+      month: monthKey,
+      income: 0,
+      expense: 0,
+      balance: 0,
+    };
+
+    if (item.type === "income") {
+      current.income += Number(item.amount);
+    } else {
+      current.expense += Number(item.amount);
+    }
+
+    current.balance = current.income - current.expense;
+
+    monthlyMap.set(monthKey, current);
+  });
+
+  const monthlyHistoryData = Array.from(monthlyMap.values())
+    .sort((a, b) => b.month.localeCompare(a.month))
+    .slice(0, 6);
+
+  const monthlyExpenseTrendData = Array.from(monthlyMap.values())
+    .map((item) => ({
+      month: item.month,
+      expense: item.expense,
+    }))
+    .sort((a, b) => a.month.localeCompare(b.month))
+    .slice(-6);
+
+  const topSpendingData =
+    Array.from(expenseMap.entries())
+      .map(([category_name, value]) => ({
+        category_name,
+        amount: value.amount,
+        transaction_count: value.count,
+        transactions: [...value.transactions].sort((a, b) => {
+          const amountDiff = b.amount - a.amount;
+          if (amountDiff !== 0) return amountDiff;
+          return (b.transaction_date ?? "").localeCompare(a.transaction_date ?? "");
+        }),
+      }))
+      .sort((a, b) => b.amount - a.amount)
+      .slice(0, 3) ?? [];
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+    <main className="page-shell">
+      <div className="page-container">
+        <section className="hero-panel lg:p-7">
+          <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+            <div>
+              <p className="text-sm font-semibold uppercase tracking-[0.18em] text-slate-600 dark:text-slate-300">
+                Personal Finance
+              </p>
+              <h1 className="mt-2 text-3xl font-bold md:text-4xl">Finance Tracker</h1>
+              <p className="mt-2 max-w-xl text-slate-600 dark:text-slate-300">
+                Dashboard untuk memantau arus kas dan pola pengeluaran bulanan.
+              </p>
+            </div>
+
+            <div className="hidden lg:flex lg:flex-wrap lg:items-center lg:justify-end lg:gap-2">
+              <MonthFilter selectedMonth={selectedMonth} />
+
+              <div className="mx-1 h-8 w-px bg-slate-200 dark:bg-slate-700" />
+
+              <Link
+                href={`/transactions?month=${selectedMonth}`}
+                aria-label="Lihat transaksi"
+                title="Lihat transaksi"
+                className="btn-secondary h-10 w-10 px-0"
+              >
+                <ReceiptText size={16} />
+                <span className="sr-only">Lihat Transaksi</span>
+              </Link>
+
+              <Link href="/transactions/new" className="btn-primary h-10 px-5">
+                + Transaksi
+              </Link>
+
+              <Link href="/categories" className="btn-secondary h-10 px-4">
+                Kategori
+              </Link>
+
+              <LogoutButton className="btn-secondary h-10 gap-2 px-3.5 text-slate-500 dark:text-slate-300" />
+            </div>
+          </div>
+
+          <div className="mt-5 grid gap-3 lg:hidden">
+            <div className="flex w-full min-w-0 items-center gap-2">
+              <MonthFilter selectedMonth={selectedMonth} className="flex-1" />
+              <LogoutButton className="btn-secondary h-10 w-[70px] shrink-0 justify-center gap-2" />
+            </div>
+
+            <div className="flex w-full items-center gap-2">
+              <Link
+                href={`/transactions?month=${selectedMonth}`}
+                aria-label="Lihat transaksi"
+                title="Lihat transaksi"
+                className="btn-secondary h-10 w-[50px] shrink-0"
+              >
+                <ReceiptText size={16} />
+                <span className="sr-only">Lihat Transaksi</span>
+              </Link>
+              <Link
+                href="/transactions/new"
+                className="btn-primary h-10 flex-1"
+              >
+                + Transaksi
+              </Link>
+            </div>
+            <div className="mt-6">
+              <QuickAddTransaction
+                categories={categories ?? []}
+                action={quickAddTransaction}
+              />
+            </div>
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-3 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
+          <article className="stat-card">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Saldo Bulan Ini</p>
+              <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                <Wallet size={14} />
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{formatRupiah(balance)}</p>
+          </article>
+
+          <article className="stat-card">
+            <div className="mb-3 flex items-center justify-between">
+              <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
+              <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+                <ArrowUpRight size={14} />
+              </span>
+            </div>
+            <p className="text-2xl font-bold text-emerald-600">
+              {formatRupiah(totalIncome)}
+            </p>
+          </article>
+
+          <div className="hidden lg:block">
+            <QuickAddTransaction
+              categories={categories ?? []}
+              action={quickAddTransaction}
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-5 md:mt-6 lg:grid-cols-12 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
+          <div className="min-w-0 w-full lg:col-span-7">
+            <ExpenseChart data={expenseChartData} />
+          </div>
+
+          <div className="min-w-0 w-full lg:col-span-5">
+            <TopSpendingInsight data={topSpendingData} />
+          </div>
+
+          <div className="min-w-0 w-full space-y-5 lg:col-span-7">
+            <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
+            <div className="lg:hidden">
+              <MonthlyHistory data={monthlyHistoryData} />
+            </div>
+          </div>
+
+          <div className="hidden min-w-0 w-full lg:col-span-5 lg:block">
+            <MonthlyHistory data={monthlyHistoryData} />
+          </div>
+
+          <section className="section-card min-w-0 w-full lg:hidden">
+            <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <h2 className="text-xl font-semibold">5 Transaksi Terbaru</h2>
+              <Link
+                href={`/transactions?month=${selectedMonth}`}
+                className="text-sm font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
+              >
+                Lihat semua
+              </Link>
+            </div>
+
+            {error ? (
+              <p className="text-rose-600">Error: {error.message}</p>
+            ) : !transactions || transactions.length === 0 ? (
+              <p className="text-slate-600 dark:text-slate-300">Belum ada transaksi di bulan ini.</p>
+            ) : (
+              <div className="space-y-3">
+                {transactions.map((transaction) => {
+                  const category = Array.isArray(transaction.categories)
+                    ? transaction.categories[0]
+                    : transaction.categories;
+
+                  return (
+                    <div
+                      key={transaction.id}
+                      className="soft-inset flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"
+                    >
+                      <div className="min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <p className="truncate font-semibold text-slate-900 dark:text-slate-100">
+                            {category?.name ?? "Tanpa kategori"}
+                          </p>
+                          <span className={transaction.type === "income" ? "chip-income" : "chip-expense"}>
+                            {transaction.type === "income" ? "Pemasukan" : "Pengeluaran"}
+                          </span>
+                        </div>
+                        <p className="text-sm text-slate-500 break-words dark:text-slate-300">
+                          {transaction.note || "Tidak ada catatan"}
+                        </p>
+                        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                          {formatDate(transaction.transaction_date)}
+                        </p>
+                      </div>
+
+                      <p
+                        className={`text-lg font-semibold sm:text-base ${
+                          transaction.type === "income"
+                            ? "text-emerald-600"
+                            : "text-rose-600"
+                        }`}
+                      >
+                        {transaction.type === "income" ? "+" : "-"}
+                        {formatRupiah(Number(transaction.amount))}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </section>
+        </section>
+      </div>
+    </main>
   );
 }

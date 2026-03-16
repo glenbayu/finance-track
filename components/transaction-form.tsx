@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import FormSelect from "@/components/form-select";
+import SubmitButton from "@/components/submit-button";
 
 type Category = {
   id: string;
@@ -119,9 +120,12 @@ export default function TransactionForm({
         />
       </div>
 
-      <button type="submit" className="btn-primary w-full py-3 text-base">
+      <SubmitButton
+        className="btn-primary w-full py-3 text-base"
+        pendingText="Menyimpan..."
+      >
         Simpan Transaksi
-      </button>
+      </SubmitButton>
     </form>
   );
 }

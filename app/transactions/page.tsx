@@ -7,6 +7,15 @@ import MonthFilter from "@/components/month-filter";
 import { requireUser } from "@/lib/supabase/auth";
 import { CalendarDays, LayoutDashboard } from "lucide-react";
 
+function pad2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function getCurrentMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
+}
+
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat("id-ID", {
     style: "currency",
@@ -26,12 +35,14 @@ function formatDate(date: string) {
 function getMonthRange(month: string) {
   const [year, monthNum] = month.split("-").map(Number);
 
-  const start = new Date(year, monthNum - 1, 1);
-  const end = new Date(year, monthNum, 1);
+  const startYear = year;
+  const startMonth = monthNum;
+  const endYear = monthNum === 12 ? year + 1 : year;
+  const endMonth = monthNum === 12 ? 1 : monthNum + 1;
 
   return {
-    start: start.toISOString().split("T")[0],
-    end: end.toISOString().split("T")[0],
+    start: `${startYear}-${pad2(startMonth)}-01`,
+    end: `${endYear}-${pad2(endMonth)}-01`,
   };
 }
 
@@ -68,7 +79,7 @@ export default async function TransactionsPage({
   const { supabase, user } = await requireUser();
   const params = await searchParams;
   const selectedMonth =
-    params?.month ?? new Date().toISOString().slice(0, 7);
+    params?.month ?? getCurrentMonth();
 
   const { start, end } = getMonthRange(selectedMonth);
   const searchQuery = params?.search?.toLowerCase() ?? "";

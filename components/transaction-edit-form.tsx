@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import FormSelect from "@/components/form-select";
+import SubmitButton from "@/components/submit-button";
 
 type Category = {
   id: string;
@@ -136,12 +137,12 @@ export default function TransactionEditForm({
       </div>
 
       <div className="flex flex-col-reverse gap-3 sm:flex-row">
-        <button
-          type="submit"
+        <SubmitButton
           className="btn-primary flex-1 py-3 text-base"
+          pendingText="Mengupdate..."
         >
           Update Transaksi
-        </button>
+        </SubmitButton>
 
         <Link
           href="/transactions"

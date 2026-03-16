@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import SubmitButton from "@/components/submit-button";
 
 type SignupPageProps = {
   searchParams?: Promise<{
@@ -85,9 +86,9 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
               />
             </div>
 
-            <button type="submit" className="btn-primary w-full py-3">
+            <SubmitButton className="btn-primary w-full py-3" pendingText="Membuat akun...">
               Buat Akun
-            </button>
+            </SubmitButton>
           </form>
 
           <p className="mt-4 text-sm text-slate-600 dark:text-slate-300">

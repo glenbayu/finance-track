@@ -6,9 +6,23 @@ import TopSpendingInsight from "@/components/top-spending-insight";
 import ExpenseChart from "@/components/expense-chart";
 import MonthlyHistory from "@/components/monthly-history";
 import LogoutButton from "@/components/logout-button";
+import MaskedAmount, { MaskedAmountProvider } from "@/components/masked-amount";
 import MonthFilter from "@/components/month-filter";
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowUpRight, ReceiptText, Wallet } from "lucide-react";
+
+function pad2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function formatDateOnly(date: Date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
+function getCurrentMonth() {
+  const now = new Date();
+  return `${now.getFullYear()}-${pad2(now.getMonth() + 1)}`;
+}
 
 function formatRupiah(amount: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -29,12 +43,14 @@ function formatDate(date: string) {
 function getMonthRange(month: string) {
   const [year, monthNum] = month.split("-").map(Number);
 
-  const start = new Date(year, monthNum - 1, 1);
-  const end = new Date(year, monthNum, 1);
+  const startYear = year;
+  const startMonth = monthNum;
+  const endYear = monthNum === 12 ? year + 1 : year;
+  const endMonth = monthNum === 12 ? 1 : monthNum + 1;
 
   return {
-    start: start.toISOString().split("T")[0],
-    end: end.toISOString().split("T")[0],
+    start: `${startYear}-${pad2(startMonth)}-01`,
+    end: `${endYear}-${pad2(endMonth)}-01`,
   };
 }
 
@@ -61,14 +77,14 @@ async function quickAddTransaction(formData: FormData) {
     .from("categories")
     .select("id")
     .eq("id", categoryId)
-    .eq("user_id", user.id)
+    .or(`user_id.eq.${user.id},user_id.is.null`)
     .single();
 
   if (categoryError || !category) {
     throw new Error("Kategori tidak valid.");
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatDateOnly(new Date());
 
   const { error } = await supabase.from("transactions").insert({
     user_id: user.id,
@@ -91,12 +107,12 @@ export default async function Home({ searchParams }: HomeProps) {
   const { supabase, user } = await requireUser();
   const params = await searchParams;
   const selectedMonth =
-    params?.month ?? new Date().toISOString().slice(0, 7);
+    params?.month ?? getCurrentMonth();
 
   const { data: categories } = await supabase
     .from("categories")
     .select("id, name, type")
-    .eq("user_id", user.id)
+    .or(`user_id.eq.${user.id},user_id.is.null`)
     .order("name", { ascending: true });
 
   const { start, end } = getMonthRange(selectedMonth);
@@ -279,12 +295,10 @@ export default async function Home({ searchParams }: HomeProps) {
 
               <Link
                 href={`/transactions?month=${selectedMonth}`}
-                aria-label="Lihat transaksi"
-                title="Lihat transaksi"
-                className="btn-secondary h-10 w-10 px-0"
+                className="btn-secondary h-10 gap-2"
               >
                 <ReceiptText size={16} />
-                <span className="sr-only">Lihat Transaksi</span>
+                Transaksi
               </Link>
 
               <Link href="/transactions/new" className="btn-primary h-10 px-5">
@@ -295,14 +309,20 @@ export default async function Home({ searchParams }: HomeProps) {
                 Kategori
               </Link>
 
-              <LogoutButton className="btn-secondary h-10 gap-2 px-3.5 text-slate-500 dark:text-slate-300" />
+              <LogoutButton
+                iconOnly
+                className="btn-secondary h-10 w-10 px-0 text-slate-500 dark:text-slate-300"
+              />
             </div>
           </div>
 
           <div className="mt-5 grid gap-3 lg:hidden">
             <div className="flex w-full min-w-0 items-center gap-2">
               <MonthFilter selectedMonth={selectedMonth} className="flex-1" />
-              <LogoutButton className="btn-secondary h-10 w-[70px] shrink-0 justify-center gap-2" />
+              <LogoutButton
+                iconOnly
+                className="btn-secondary h-10 w-10 shrink-0 justify-center px-0"
+              />
             </div>
 
             <div className="flex w-full items-center gap-2">
@@ -331,67 +351,77 @@ export default async function Home({ searchParams }: HomeProps) {
           </div>
         </section>
 
-        <section className="mt-8 grid gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-3 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
-          <article className="stat-card">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Saldo Bulan Ini</p>
-              <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                <Wallet size={14} />
-              </span>
+        <MaskedAmountProvider storageKey="ft_hide_amounts">
+          <section className="mt-8 grid gap-4 md:mt-6 md:grid-cols-2 lg:grid-cols-3 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
+            <article className="stat-card">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">Saldo Bulan Ini</p>
+                <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                  <Wallet size={14} />
+                </span>
+              </div>
+              <MaskedAmount
+                value={formatRupiah(balance)}
+                valueClassName="text-2xl font-bold text-slate-900 dark:text-slate-100"
+                maskedText="***"
+                showLabel="Tampilkan saldo"
+                hideLabel="Sembunyikan saldo"
+              />
+            </article>
+
+            <article className="stat-card">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
+                <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+                  <ArrowUpRight size={14} />
+                </span>
+              </div>
+              <MaskedAmount
+                value={formatRupiah(totalIncome)}
+                valueClassName="text-2xl font-bold text-emerald-600"
+                maskedText="***"
+                showToggle={false}
+              />
+            </article>
+
+            <div className="hidden lg:block">
+              <QuickAddTransaction
+                categories={categories ?? []}
+                action={quickAddTransaction}
+              />
             </div>
-            <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{formatRupiah(balance)}</p>
-          </article>
+          </section>
 
-          <article className="stat-card">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
-              <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
-                <ArrowUpRight size={14} />
-              </span>
+          <section className="mt-8 grid gap-5 md:mt-6 lg:grid-cols-12 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
+            <div className="min-w-0 w-full lg:col-span-7">
+              <ExpenseChart data={expenseChartData} />
             </div>
-            <p className="text-2xl font-bold text-emerald-600">
-              {formatRupiah(totalIncome)}
-            </p>
-          </article>
 
-          <div className="hidden lg:block">
-            <QuickAddTransaction
-              categories={categories ?? []}
-              action={quickAddTransaction}
-            />
-          </div>
-        </section>
+            <div className="min-w-0 w-full lg:col-span-5">
+              <TopSpendingInsight data={topSpendingData} />
+            </div>
 
-        <section className="mt-8 grid gap-5 md:mt-6 lg:grid-cols-12 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
-          <div className="min-w-0 w-full lg:col-span-7">
-            <ExpenseChart data={expenseChartData} />
-          </div>
+            <div className="min-w-0 w-full space-y-5 lg:col-span-7">
+              <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
+              <div className="lg:hidden">
+                <MonthlyHistory data={monthlyHistoryData} />
+              </div>
+            </div>
 
-          <div className="min-w-0 w-full lg:col-span-5">
-            <TopSpendingInsight data={topSpendingData} />
-          </div>
-
-          <div className="min-w-0 w-full space-y-5 lg:col-span-7">
-            <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
-            <div className="lg:hidden">
+            <div className="hidden min-w-0 w-full lg:col-span-5 lg:block">
               <MonthlyHistory data={monthlyHistoryData} />
             </div>
-          </div>
 
-          <div className="hidden min-w-0 w-full lg:col-span-5 lg:block">
-            <MonthlyHistory data={monthlyHistoryData} />
-          </div>
-
-          <section className="section-card min-w-0 w-full lg:hidden">
-            <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-xl font-semibold">5 Transaksi Terbaru</h2>
-              <Link
-                href={`/transactions?month=${selectedMonth}`}
-                className="text-sm font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
-              >
-                Lihat semua
-              </Link>
-            </div>
+            <section className="section-card min-w-0 w-full lg:hidden">
+              <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+                <h2 className="text-xl font-semibold">5 Transaksi Terbaru</h2>
+                <Link
+                  href={`/transactions?month=${selectedMonth}`}
+                  className="text-sm font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
+                >
+                  Lihat semua
+                </Link>
+              </div>
 
             {error ? (
               <p className="text-rose-600">Error: {error.message}</p>
@@ -441,8 +471,9 @@ export default async function Home({ searchParams }: HomeProps) {
                 })}
               </div>
             )}
+            </section>
           </section>
-        </section>
+        </MaskedAmountProvider>
       </div>
     </main>
   );

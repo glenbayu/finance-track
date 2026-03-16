@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { LoaderCircle, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import SubmitButton from "@/components/submit-button";
 
 type LogoutButtonProps = {
   className?: string;
@@ -21,15 +22,27 @@ export default function LogoutButton({
 }: LogoutButtonProps) {
   return (
     <form action={logout}>
-      <button
-        type="submit"
+      <SubmitButton
         className={className}
-        aria-label={iconOnly ? "Logout" : undefined}
-        title={iconOnly ? "Logout" : undefined}
+        pendingContent={
+          iconOnly ? (
+            <span className="inline-flex items-center justify-center">
+              <LoaderCircle size={16} className="animate-spin" />
+              <span className="sr-only">Logout...</span>
+            </span>
+          ) : (
+            <span className="inline-flex items-center gap-2">
+              <LoaderCircle size={16} className="animate-spin" />
+              Logout...
+            </span>
+          )
+        }
       >
-        <LogOut size={16} />
-        {iconOnly ? <span className="sr-only">Logout</span> : <span></span>}
-      </button>
+        <span className="inline-flex items-center gap-2">
+          <LogOut size={16} />
+          {iconOnly ? <span className="sr-only">Logout</span> : <span>Logout</span>}
+        </span>
+      </SubmitButton>
     </form>
   );
 }

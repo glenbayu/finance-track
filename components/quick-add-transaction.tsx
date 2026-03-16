@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import FormSelect from "@/components/form-select";
+import SubmitButton from "@/components/submit-button";
 import { ChevronDown } from "lucide-react";
 
 type Category = {
@@ -116,12 +117,12 @@ export default function QuickAddTransaction({
           />
         </div>
 
-        <button
-          type="submit"
+        <SubmitButton
           className="btn-primary w-full py-3 text-base"
+          pendingText="Menyimpan..."
         >
           Simpan Cepat
-        </button>
+        </SubmitButton>
         </form>
       ) : (
         <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">

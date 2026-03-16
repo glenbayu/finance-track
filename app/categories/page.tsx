@@ -1,6 +1,7 @@
 import { revalidatePath } from "next/cache";
 import Link from "next/link";
 import LogoutButton from "@/components/logout-button";
+import SubmitButton from "@/components/submit-button";
 import { requireUser } from "@/lib/supabase/auth";
 import { LayoutDashboard } from "lucide-react";
 
@@ -63,8 +64,8 @@ export default async function CategoriesPage() {
 
   const { data: categories, error } = await supabase
     .from("categories")
-    .select("id, name, type, created_at")
-    .eq("user_id", user.id)
+    .select("id, user_id, name, type, created_at")
+    .or(`user_id.eq.${user.id},user_id.is.null`)
     .order("type", { ascending: true })
     .order("name", { ascending: true });
 
@@ -130,12 +131,9 @@ export default async function CategoriesPage() {
                 </select>
               </div>
 
-              <button
-                type="submit"
-                className="btn-primary w-full py-3"
-              >
+              <SubmitButton className="btn-primary w-full py-3" pendingText="Menyimpan...">
                 Simpan Kategori
-              </button>
+              </SubmitButton>
             </form>
           </div>
 
@@ -170,6 +168,15 @@ export default async function CategoriesPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                      {category.user_id ? (
+                        <span className="rounded-full bg-slate-200 px-3 py-1 text-xs font-medium text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                          Punya kamu
+                        </span>
+                      ) : (
+                        <span className="rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600 dark:bg-slate-900 dark:text-slate-300">
+                          Default
+                        </span>
+                      )}
                       <span
                         className={`rounded-full px-3 py-1 text-xs font-medium ${
                           category.type === "income"
@@ -180,15 +187,17 @@ export default async function CategoriesPage() {
                         {category.type === "income" ? "Pemasukan" : "Pengeluaran"}
                       </span>
 
-                      <form action={deleteCategory}>
-                        <input type="hidden" name="id" value={category.id} />
-                        <button
-                          type="submit"
-                          className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 dark:hover:bg-red-600"
-                        >
-                          Hapus
-                        </button>
-                      </form>
+                      {category.user_id === user.id ? (
+                        <form action={deleteCategory}>
+                          <input type="hidden" name="id" value={category.id} />
+                          <SubmitButton
+                            className="inline-flex items-center justify-center rounded-lg bg-red-600 px-3 py-2 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 dark:hover:bg-red-600"
+                            pendingText="Menghapus..."
+                          >
+                            Hapus
+                          </SubmitButton>
+                        </form>
+                      ) : null}
                     </div>
                   </div>
                 ))}

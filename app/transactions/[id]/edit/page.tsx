@@ -30,7 +30,7 @@ async function updateTransaction(formData: FormData) {
     .from("categories")
     .select("id")
     .eq("id", categoryId)
-    .eq("user_id", user.id)
+    .or(`user_id.eq.${user.id},user_id.is.null`)
     .single();
 
   if (categoryError || !category) {
@@ -71,7 +71,7 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
       supabase
         .from("categories")
         .select("id, name, type")
-        .eq("user_id", user.id)
+        .or(`user_id.eq.${user.id},user_id.is.null`)
         .order("name", { ascending: true }),
     ]);
 

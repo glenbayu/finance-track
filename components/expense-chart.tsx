@@ -7,6 +7,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { useMaskedAmounts } from "@/components/masked-amount";
 
 type ExpenseChartItem = {
   name: string;
@@ -31,6 +32,9 @@ function formatRupiah(value: number) {
 }
 
 export default function ExpenseChart({ data }: ExpenseChartProps) {
+  const masked = useMaskedAmounts();
+  const isHidden = masked?.isHidden ?? false;
+
   const totalExpense = data.reduce((sum, item) => sum + item.value, 0);
   const breakdown = data.map((item, index) => ({
     ...item,
@@ -95,7 +99,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                         }}
                       >
                         <p className="text-sm font-semibold">{point.name}</p>
-                        <p className="text-sm">{formatRupiah(point.value)}</p>
+                        <p className="text-sm">{isHidden ? "***" : formatRupiah(point.value)}</p>
                         <p className="text-xs text-slate-500 dark:text-slate-400">
                           {percentage}% dari total
                         </p>
@@ -109,7 +113,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
             <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
               <div className="text-center leading-tight">
                 <p className="text-base font-semibold text-slate-900 dark:text-slate-100 sm:text-lg">
-                  {formatRupiah(totalExpense)}
+                  {isHidden ? "***" : formatRupiah(totalExpense)}
                 </p>
                 <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
                   Total Pengeluaran
@@ -129,7 +133,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                       {item.name}
                     </p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                      {formatRupiah(item.value)}
+                      {isHidden ? "***" : formatRupiah(item.value)}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

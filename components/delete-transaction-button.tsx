@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
-import { AlertTriangle, Trash2 } from "lucide-react";
+import { AlertTriangle, LoaderCircle, Trash2 } from "lucide-react";
 import ConfirmationModal from "@/components/confirmation-modal";
 
 type DeleteTransactionButtonProps = {
@@ -9,14 +9,28 @@ type DeleteTransactionButtonProps = {
   action: (formData: FormData) => void | Promise<void>;
 };
 
-function ConfirmDeleteButton({ formId }: { formId: string }) {
+function ConfirmDeleteButton({
+  formId,
+  isSubmitting,
+}: {
+  formId: string;
+  isSubmitting: boolean;
+}) {
   return (
     <button
       type="submit"
       form={formId}
       className="inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:w-auto"
+      disabled={isSubmitting}
     >
-      Hapus
+      {isSubmitting ? (
+        <span className="inline-flex items-center gap-2">
+          <LoaderCircle size={16} className="animate-spin" />
+          Menghapus...
+        </span>
+      ) : (
+        "Hapus"
+      )}
     </button>
   );
 }
@@ -26,6 +40,7 @@ export default function DeleteTransactionButton({
   action,
 }: DeleteTransactionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const formId = useId();
 
@@ -34,8 +49,20 @@ export default function DeleteTransactionButton({
     cancelButtonRef.current?.focus();
   }, [isOpen]);
 
+  useEffect(() => {
+    if (isOpen) return;
+    setIsSubmitting(false);
+  }, [isOpen]);
+
   return (
-    <form id={formId} action={action} className="contents">
+    <form
+      id={formId}
+      action={action}
+      className="contents"
+      onSubmit={() => {
+        Promise.resolve().then(() => setIsSubmitting(true));
+      }}
+    >
       <input type="hidden" name="id" value={id} />
 
       <button
@@ -44,6 +71,7 @@ export default function DeleteTransactionButton({
         title="Hapus transaksi"
         className="btn-danger-icon"
         onClick={() => setIsOpen(true)}
+        disabled={isSubmitting}
       >
         <Trash2 size={14} />
       </button>
@@ -65,10 +93,14 @@ export default function DeleteTransactionButton({
             type="button"
             className="btn-secondary w-full sm:w-auto"
             onClick={() => setIsOpen(false)}
+            disabled={isSubmitting}
           >
-            Cancel
+            Batal
           </button>
-          <ConfirmDeleteButton formId={formId} />
+          <ConfirmDeleteButton
+            formId={formId}
+            isSubmitting={isSubmitting}
+          />
         </div>
       </ConfirmationModal>
     </form>

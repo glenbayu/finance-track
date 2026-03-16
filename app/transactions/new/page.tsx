@@ -6,6 +6,14 @@ import LogoutButton from "@/components/logout-button";
 import { requireUser } from "@/lib/supabase/auth";
 import { ReceiptText } from "lucide-react";
 
+function pad2(value: number) {
+  return String(value).padStart(2, "0");
+}
+
+function formatDateOnly(date: Date) {
+  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+}
+
 async function createTransaction(formData: FormData) {
   "use server";
 
@@ -25,7 +33,7 @@ async function createTransaction(formData: FormData) {
     .from("categories")
     .select("id")
     .eq("id", categoryId)
-    .eq("user_id", user.id)
+    .or(`user_id.eq.${user.id},user_id.is.null`)
     .single();
 
   if (categoryError || !category) {
@@ -57,7 +65,7 @@ export default async function NewTransactionPage() {
   const { data: categories, error } = await supabase
     .from("categories")
     .select("id, name, type")
-    .eq("user_id", user.id)
+    .or(`user_id.eq.${user.id},user_id.is.null`)
     .order("name", { ascending: true });
 
   if (error) {
@@ -70,7 +78,7 @@ export default async function NewTransactionPage() {
     );
   }
 
-  const today = new Date().toISOString().split("T")[0];
+  const today = formatDateOnly(new Date());
 
   return (
     <main className="page-shell">

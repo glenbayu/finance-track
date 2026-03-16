@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
@@ -67,6 +67,10 @@ export default function ThemeProvider({
           type="button"
           onClick={handleThemeToggle}
           className="fixed bottom-4 right-4 z-50 inline-flex items-center gap-2 rounded-full border border-gray-300 bg-white px-4 py-2 text-sm shadow-lg dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
+          style={{
+            bottom: "calc(1rem + env(safe-area-inset-bottom))",
+            right: "calc(1rem + env(safe-area-inset-right))",
+          }}
           aria-label="Toggle theme"
         >
           {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}

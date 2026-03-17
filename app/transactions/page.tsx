@@ -7,7 +7,7 @@ import LogoutButton from "@/components/logout-button";
 import MonthFilter from "@/components/month-filter";
 import TransactionsSearch from "@/components/transactions-search";
 import { requireUser } from "@/lib/supabase/auth";
-import { CalendarDays, LayoutDashboard } from "lucide-react";
+import { CalendarDays, House } from "lucide-react";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -214,7 +214,7 @@ export default async function TransactionsPage({
                 title="Dashboard"
                 className="btn-secondary h-10 w-10 px-0"
               >
-                <LayoutDashboard size={16} />
+                <House size={16} />
                 <span className="sr-only">Dashboard</span>
               </Link>
               <Link href="/transactions/new" className="btn-primary h-10 px-5">
@@ -263,7 +263,7 @@ export default async function TransactionsPage({
                 title="Dashboard"
                 className="btn-secondary h-10 w-[50px] shrink-0"
               >
-                <LayoutDashboard size={16} />
+                <House size={16} />
                 <span className="sr-only">Dashboard</span>
               </Link>
               <Link

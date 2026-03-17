@@ -345,7 +345,6 @@ export default async function Home({ searchParams }: HomeProps) {
                 className="btn-secondary h-10 gap-2"
               >
                 <ReceiptText size={16} />
-                Transaksi
               </Link>
 
               <Link href="/transactions/new" className="btn-primary h-10 px-5">

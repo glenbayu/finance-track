@@ -3,7 +3,7 @@ import Link from "next/link";
 import LogoutButton from "@/components/logout-button";
 import SubmitButton from "@/components/submit-button";
 import { requireUser } from "@/lib/supabase/auth";
-import { LayoutDashboard } from "lucide-react";
+import { House } from "lucide-react";
 
 async function createCategory(formData: FormData) {
   "use server";
@@ -87,7 +87,7 @@ export default async function CategoriesPage() {
               title="Dashboard"
               className="btn-secondary h-10 w-[50px] shrink-0"
             >
-              <LayoutDashboard size={16} />
+              <House size={16} />
               <span className="sr-only">Dashboard</span>
             </Link>
             <Link href="/transactions/new" className="btn-primary">

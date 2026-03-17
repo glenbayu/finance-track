@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { House, ReceiptText } from "lucide-react";
 
 export default function NotFoundPage() {
   return (
@@ -11,10 +12,12 @@ export default function NotFoundPage() {
           </p>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row">
-            <Link href="/" className="btn-primary">
-              Ke Dashboard
+            <Link href="/" className="btn-primary gap-2">
+              <House size={16} />
+              Dashboard
             </Link>
-            <Link href="/transactions" className="btn-secondary">
+            <Link href="/transactions" className="btn-secondary gap-2">
+              <ReceiptText size={16} />
               Lihat Transaksi
             </Link>
           </div>

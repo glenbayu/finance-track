@@ -61,6 +61,7 @@ export default function QuickAddTransaction({
 
       {isExpanded ? (
         <form action={action} className="mt-4 space-y-4">
+        <input type="hidden" name="note" value="Quick Add" />
         <div>
           <label className="mb-2 block text-sm font-medium">Tipe</label>
           <FormSelect

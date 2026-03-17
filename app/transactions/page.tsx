@@ -1,9 +1,11 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import DeleteTransactionButton from "@/components/delete-transaction-button";
 import EditTransactionButton from "@/components/edit-transaction-button";
 import LogoutButton from "@/components/logout-button";
 import MonthFilter from "@/components/month-filter";
+import TransactionsSearch from "@/components/transactions-search";
 import { requireUser } from "@/lib/supabase/auth";
 import { CalendarDays, LayoutDashboard } from "lucide-react";
 
@@ -46,6 +48,38 @@ function getMonthRange(month: string) {
   };
 }
 
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function highlightText(text: string, query: string) {
+  const tokens = query
+    .split(/\s+/)
+    .map((token) => token.trim())
+    .filter(Boolean)
+    .slice(0, 6);
+
+  if (!tokens.length) return text;
+
+  const regex = new RegExp(`(${tokens.map(escapeRegex).join("|")})`, "gi");
+  const parts = text.split(regex);
+
+  if (parts.length === 1) return text;
+
+  return parts.map((part, index) =>
+    index % 2 === 1 ? (
+      <mark
+        key={`${index}-${part}`}
+        className="rounded bg-yellow-200/70 px-1 py-0.5 text-slate-900 dark:bg-yellow-500/25 dark:text-slate-100"
+      >
+        {part}
+      </mark>
+    ) : (
+      <span key={`${index}-${part}`}>{part}</span>
+    ),
+  );
+}
+
 async function deleteTransaction(formData: FormData) {
   "use server";
 
@@ -70,6 +104,7 @@ type TransactionsPageProps = {
   searchParams?: Promise<{
     month?: string;
     search?: string;
+    page?: string;
   }>;
 };
 
@@ -82,9 +117,31 @@ export default async function TransactionsPage({
     params?.month ?? getCurrentMonth();
 
   const { start, end } = getMonthRange(selectedMonth);
-  const searchQuery = params?.search?.toLowerCase() ?? "";
+  const searchValue = params?.search ?? "";
+  const searchQuery = searchValue.trim();
 
-  const { data: transactions, error } = await supabase
+  const ITEMS_PER_PAGE = 10;
+  const parsedPage = Number(params?.page);
+  const currentPage = Number.isFinite(parsedPage) && parsedPage > 0
+    ? Math.floor(parsedPage)
+    : 1;
+  const from = (currentPage - 1) * ITEMS_PER_PAGE;
+  const to = from + ITEMS_PER_PAGE - 1;
+
+  const keyword = searchQuery.replaceAll(",", " ").trim();
+  const loweredKeyword = keyword.toLowerCase();
+  const inferredType =
+    loweredKeyword === "income" ||
+    loweredKeyword === "pemasukan" ||
+    loweredKeyword === "masuk"
+      ? "income"
+      : loweredKeyword === "expense" ||
+          loweredKeyword === "pengeluaran" ||
+          loweredKeyword === "keluar"
+        ? "expense"
+        : null;
+
+  let queryBuilder = supabase
     .from("transactions")
     .select(`
     id,
@@ -98,35 +155,44 @@ export default async function TransactionsPage({
       name,
       type
     )
-  `)
+  `, { count: "exact" })
     .eq("user_id", user.id)
     .gte("transaction_date", start)
     .lt("transaction_date", end)
     .order("transaction_date", { ascending: false })
     .order("created_at", { ascending: false });
 
-  const filteredTransactions =
-    transactions?.filter((transaction) => {
-      if (!searchQuery) return true;
+  if (inferredType) {
+    queryBuilder = queryBuilder.eq("type", inferredType);
+  } else if (keyword) {
+    queryBuilder = queryBuilder.or(
+      `note.ilike.%${keyword}%,type.ilike.%${keyword}%,categories.name.ilike.%${keyword}%`,
+    );
+  }
 
-      const category = Array.isArray(transaction.categories)
-        ? transaction.categories[0]
-        : transaction.categories;
+  const { data: transactions, error, count } = await queryBuilder.range(from, to);
+  const totalCount = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
+  const highlightQuery = inferredType ? "" : keyword;
 
-      const note = transaction.note?.toLowerCase() ?? "";
-      const type = transaction.type?.toLowerCase() ?? "";
-      const categoryName = category?.name?.toLowerCase() ?? "";
-      const keyword = searchQuery.toLowerCase();
+  if (currentPage > totalPages) {
+    const searchParams = new URLSearchParams();
+    searchParams.set("month", selectedMonth);
+    if (searchQuery) searchParams.set("search", searchQuery);
+    searchParams.set("page", String(totalPages));
+    redirect(`/transactions?${searchParams.toString()}`);
+  }
 
-      return (
-        note.includes(keyword) ||
-        type.includes(keyword) ||
-        categoryName.includes(keyword)
-      );
-    }) ?? [];
+  const buildPageHref = (page: number) => {
+    const params = new URLSearchParams();
+    params.set("month", selectedMonth);
+    if (searchQuery) params.set("search", searchQuery);
+    params.set("page", String(page));
+    return `/transactions?${params.toString()}`;
+  };
 
   return (
-    <main className="page-shell">
+    <main className="page-shell transactions-page">
       <div className="page-container max-w-6xl">
         <section className="hero-panel lg:p-7">
           <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -161,16 +227,10 @@ export default async function TransactionsPage({
             </div>
           </div>
 
-          <form className="mt-4 hidden lg:block">
-            <input type="hidden" name="month" value={selectedMonth} />
-            <input
-              type="text"
-              name="search"
-              defaultValue={searchQuery}
-              placeholder="Cari catatan, kategori, atau tipe..."
-              className="input-base h-10 w-full sm:w-72"
-            />
-          </form>
+          <TransactionsSearch
+            defaultValue={searchValue}
+            className="mt-4 hidden lg:block sm:w-72"
+          />
 
           <div className="mt-5 grid gap-3 lg:hidden">
             <form className="flex w-full min-w-0 items-center gap-2">
@@ -186,7 +246,8 @@ export default async function TransactionsPage({
                   className="input-base h-10 w-full max-w-[190px] min-w-0 py-2 pl-9"
                 />
               </div>
-              <input type="hidden" name="search" value={searchQuery} />
+              <input type="hidden" name="search" value={searchValue} />
+              <input type="hidden" name="page" value="1" />
               <button
                 type="submit"
                 className="btn-secondary h-10 w-[110px] shrink-0"
@@ -213,30 +274,35 @@ export default async function TransactionsPage({
               </Link>
             </div>
 
-            <form>
-              <input type="hidden" name="month" value={selectedMonth} />
-              <input
-                type="text"
-                name="search"
-                defaultValue={searchQuery}
-                placeholder="Cari catatan, kategori, atau tipe..."
-                className="input-base h-10 w-full"
-              />
-            </form>
+            <TransactionsSearch defaultValue={searchValue} />
           </div>
         </section>
 
         <section className="table-shell mt-6">
           {error ? (
             <div className="p-6 text-rose-600">Error: {error.message}</div>
-          ) : !filteredTransactions || filteredTransactions.length === 0 ? (
-            <div className="p-6 text-slate-600 dark:text-slate-300">
-              Belum ada transaksi di bulan ini.
+          ) : !transactions || transactions.length === 0 ? (
+            <div className="p-6">
+              <p className="text-slate-600 dark:text-slate-300">
+                {searchQuery
+                  ? "Tidak ada transaksi yang cocok dengan pencarian kamu."
+                  : "Belum ada transaksi di bulan ini."}
+              </p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <Link href="/transactions/new" className="btn-primary">
+                  + Tambah Transaksi
+                </Link>
+                {searchQuery ? (
+                  <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary">
+                    Reset filter
+                  </Link>
+                ) : null}
+              </div>
             </div>
           ) : (
             <>
               <div className="space-y-3 p-3 md:hidden">
-                {filteredTransactions.map((transaction) => {
+                {transactions.map((transaction) => {
                   const category = Array.isArray(transaction.categories)
                     ? transaction.categories[0]
                     : transaction.categories;
@@ -249,10 +315,14 @@ export default async function TransactionsPage({
                             {formatDate(transaction.transaction_date)}
                           </p>
                           <p className="mt-1 truncate font-semibold text-slate-900 dark:text-slate-100">
-                            {category?.name ?? "-"}
+                            {category?.name
+                              ? highlightText(category.name, highlightQuery)
+                              : "-"}
                           </p>
                           <p className="mt-1 text-sm text-slate-500 break-words dark:text-slate-300">
-                            {transaction.note || "-"}
+                            {transaction.note
+                              ? highlightText(transaction.note, highlightQuery)
+                              : "-"}
                           </p>
                         </div>
 
@@ -300,7 +370,7 @@ export default async function TransactionsPage({
                     </tr>
                   </thead>
                   <tbody>
-                    {filteredTransactions.map((transaction) => {
+                    {transactions.map((transaction) => {
                       const category = Array.isArray(transaction.categories)
                         ? transaction.categories[0]
                         : transaction.categories;
@@ -317,9 +387,15 @@ export default async function TransactionsPage({
                               {transaction.type === "income" ? "Pemasukan" : "Pengeluaran"}
                             </span>
                           </td>
-                          <td className="px-4 py-3 text-slate-700 dark:text-slate-200">{category?.name ?? "-"}</td>
+                          <td className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                            {category?.name
+                              ? highlightText(category.name, highlightQuery)
+                              : "-"}
+                          </td>
                           <td className="px-4 py-3 text-slate-500 dark:text-slate-300">
-                            {transaction.note || "-"}
+                            {transaction.note
+                              ? highlightText(transaction.note, highlightQuery)
+                              : "-"}
                           </td>
                           <td
                             className={`px-4 py-3 text-right font-semibold ${transaction.type === "income"
@@ -344,6 +420,32 @@ export default async function TransactionsPage({
                     })}
                   </tbody>
                 </table>
+              </div>
+
+              <div className="flex flex-col gap-3 border-t border-slate-200 p-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+                <p className="text-sm text-slate-600 dark:text-slate-300">
+                  Halaman {currentPage} dari {totalPages} • {totalCount} transaksi
+                </p>
+                <div className="flex items-center gap-2">
+                  {currentPage > 1 ? (
+                    <Link href={buildPageHref(currentPage - 1)} className="btn-secondary h-10 px-4">
+                      Sebelumnya
+                    </Link>
+                  ) : (
+                    <span className="btn-secondary h-10 px-4 pointer-events-none opacity-50">
+                      Sebelumnya
+                    </span>
+                  )}
+                  {currentPage < totalPages ? (
+                    <Link href={buildPageHref(currentPage + 1)} className="btn-secondary h-10 px-4">
+                      Berikutnya
+                    </Link>
+                  ) : (
+                    <span className="btn-secondary h-10 px-4 pointer-events-none opacity-50">
+                      Berikutnya
+                    </span>
+                  )}
+                </div>
               </div>
             </>
           )}

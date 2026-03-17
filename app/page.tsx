@@ -54,6 +54,15 @@ function getMonthRange(month: string) {
   };
 }
 
+function getPreviousMonth(month: string) {
+  const [year, monthNum] = month.split("-").map(Number);
+  if (!year || !monthNum) return getCurrentMonth();
+
+  const prevYear = monthNum === 1 ? year - 1 : year;
+  const prevMonth = monthNum === 1 ? 12 : monthNum - 1;
+  return `${prevYear}-${pad2(prevMonth)}`;
+}
+
 type HomeProps = {
   searchParams?: Promise<{
     month?: string;
@@ -69,8 +78,12 @@ async function quickAddTransaction(formData: FormData) {
   const amount = Number(formData.get("amount"));
   const categoryId = formData.get("category_id") as string;
 
-  if (!type || !amount || !categoryId) {
+  if (!type || !categoryId) {
     throw new Error("Data quick add belum lengkap.");
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("Jumlah transaksi harus lebih dari 0.");
   }
 
   const { data: category, error: categoryError } = await supabase
@@ -116,6 +129,8 @@ export default async function Home({ searchParams }: HomeProps) {
     .order("name", { ascending: true });
 
   const { start, end } = getMonthRange(selectedMonth);
+  const previousMonth = getPreviousMonth(selectedMonth);
+  const { start: previousStart, end: previousEnd } = getMonthRange(previousMonth);
 
   const { data: transactions, error } = await supabase
     .from("transactions")
@@ -153,6 +168,19 @@ export default async function Home({ searchParams }: HomeProps) {
     .eq("user_id", user.id)
     .gte("transaction_date", start)
     .lt("transaction_date", end);
+
+  const { data: previousExpenses } = await supabase
+    .from("transactions")
+    .select(`
+      amount,
+      categories (
+        name
+      )
+    `)
+    .eq("user_id", user.id)
+    .eq("type", "expense")
+    .gte("transaction_date", previousStart)
+    .lt("transaction_date", previousEnd);
 
   const { data: historyTransactions } = await supabase
     .from("transactions")
@@ -218,6 +246,18 @@ export default async function Home({ searchParams }: HomeProps) {
     }))
     .sort((a, b) => b.value - a.value);
 
+  const previousExpenseMap = new Map<string, number>();
+  previousExpenses?.forEach((item) => {
+    const category = Array.isArray(item.categories)
+      ? item.categories[0]
+      : item.categories;
+    const categoryName = category?.name ?? "Tanpa kategori";
+    previousExpenseMap.set(
+      categoryName,
+      (previousExpenseMap.get(categoryName) ?? 0) + Number(item.amount),
+    );
+  });
+
   const monthlyMap = new Map<
     string,
     { month: string; income: number; expense: number; balance: number }
@@ -261,6 +301,13 @@ export default async function Home({ searchParams }: HomeProps) {
   const topSpendingData =
     Array.from(expenseMap.entries())
       .map(([category_name, value]) => ({
+        previous_amount: previousExpenseMap.get(category_name) ?? 0,
+        change_pct:
+          (previousExpenseMap.get(category_name) ?? 0) > 0
+            ? ((value.amount - (previousExpenseMap.get(category_name) ?? 0)) /
+                (previousExpenseMap.get(category_name) ?? 0)) *
+              100
+            : null,
         category_name,
         amount: value.amount,
         transaction_count: value.count,
@@ -426,7 +473,19 @@ export default async function Home({ searchParams }: HomeProps) {
             {error ? (
               <p className="text-rose-600">Error: {error.message}</p>
             ) : !transactions || transactions.length === 0 ? (
-              <p className="text-slate-600 dark:text-slate-300">Belum ada transaksi di bulan ini.</p>
+              <div>
+                <p className="text-slate-600 dark:text-slate-300">
+                  Belum ada transaksi di bulan ini.
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Link href="/transactions/new" className="btn-primary">
+                    + Tambah Transaksi
+                  </Link>
+                  <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary">
+                    Lihat daftar
+                  </Link>
+                </div>
+              </div>
             ) : (
               <div className="space-y-3">
                 {transactions.map((transaction) => {

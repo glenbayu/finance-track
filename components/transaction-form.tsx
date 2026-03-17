@@ -16,6 +16,8 @@ type TransactionFormProps = {
   action: (formData: FormData) => void | Promise<void>;
 };
 
+const NOTE_MAX_LENGTH = 140;
+
 function formatRupiahInput(value: string) {
   const numeric = value.replace(/\D/g, "");
 
@@ -116,6 +118,7 @@ export default function TransactionForm({
           name="note"
           rows={4}
           placeholder="Contoh: makan siang, gaji bulanan, dll"
+          maxLength={NOTE_MAX_LENGTH}
           className="input-base textarea-base resize-none"
         />
       </div>

@@ -26,6 +26,8 @@ type TransactionEditFormProps = {
   action: (formData: FormData) => void;
 };
 
+const NOTE_MAX_LENGTH = 140;
+
 function formatRupiahInput(value: string) {
   const numeric = value.replace(/\D/g, "");
 
@@ -132,6 +134,7 @@ export default function TransactionEditForm({
           name="note"
           rows={4}
           defaultValue={transaction.note ?? ""}
+          maxLength={NOTE_MAX_LENGTH}
           className="input-base textarea-base resize-none"
         />
       </div>

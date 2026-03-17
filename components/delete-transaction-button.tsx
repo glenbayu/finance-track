@@ -44,14 +44,14 @@ export default function DeleteTransactionButton({
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
   const formId = useId();
 
+  const closeModal = () => {
+    setIsOpen(false);
+    setIsSubmitting(false);
+  };
+
   useEffect(() => {
     if (!isOpen) return;
     cancelButtonRef.current?.focus();
-  }, [isOpen]);
-
-  useEffect(() => {
-    if (isOpen) return;
-    setIsSubmitting(false);
   }, [isOpen]);
 
   return (
@@ -78,7 +78,7 @@ export default function DeleteTransactionButton({
 
       <ConfirmationModal
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={closeModal}
         title="Hapus transaksi?"
         description="Tindakan ini tidak bisa dibatalkan."
         icon={
@@ -92,7 +92,7 @@ export default function DeleteTransactionButton({
             ref={cancelButtonRef}
             type="button"
             className="btn-secondary w-full sm:w-auto"
-            onClick={() => setIsOpen(false)}
+            onClick={closeModal}
             disabled={isSubmitting}
           >
             Batal

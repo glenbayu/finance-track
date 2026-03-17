@@ -1,7 +1,7 @@
 "use client";
 
 import { Eye, EyeOff } from "lucide-react";
-import { createContext, useContext, useEffect, useMemo, useState } from "react";
+import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
 
 type MaskedAmountContextValue = {
   isHidden: boolean;
@@ -23,32 +23,42 @@ export function MaskedAmountProvider({
   children,
   storageKey = "ft_hide_amounts",
 }: MaskedAmountProviderProps) {
-  const [isHidden, setIsHidden] = useState(false);
-  const [hasLoaded, setHasLoaded] = useState(false);
+  const subscribe = useCallback((callback: () => void) => {
+    if (typeof window === "undefined") return () => {};
 
-  useEffect(() => {
+    const handler = () => callback();
+    window.addEventListener("storage", handler);
+    window.addEventListener("ft_masked_amounts", handler);
+
+    return () => {
+      window.removeEventListener("storage", handler);
+      window.removeEventListener("ft_masked_amounts", handler);
+    };
+  }, []);
+
+  const getSnapshot = useCallback(() => {
     try {
-      const stored = window.localStorage.getItem(storageKey);
-      setIsHidden(stored === "1");
+      return window.localStorage.getItem(storageKey) === "1";
     } catch {
-      setIsHidden(false);
+      return false;
     }
-    setHasLoaded(true);
   }, [storageKey]);
 
-  useEffect(() => {
-    if (!hasLoaded) return;
+  const isHidden = useSyncExternalStore(subscribe, getSnapshot, () => false);
+  const toggle = useCallback(() => {
+    const nextHidden = !getSnapshot();
     try {
-      window.localStorage.setItem(storageKey, isHidden ? "1" : "0");
+      window.localStorage.setItem(storageKey, nextHidden ? "1" : "0");
     } catch {}
-  }, [hasLoaded, isHidden, storageKey]);
+    window.dispatchEvent(new Event("ft_masked_amounts"));
+  }, [getSnapshot, storageKey]);
 
   const value = useMemo<MaskedAmountContextValue>(
     () => ({
       isHidden,
-      toggle: () => setIsHidden((prev) => !prev),
+      toggle,
     }),
-    [isHidden],
+    [isHidden, toggle],
   );
 
   return (

@@ -4,11 +4,25 @@ import LogoutButton from "@/components/logout-button";
 import { requireUser } from "@/lib/supabase/auth";
 import Link from "next/link";
 
+const NOTE_MAX_LENGTH = 140;
+
 type EditPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
+
+function isValidISODate(value: string) {
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
+  const [y, m, d] = value.split("-").map(Number);
+  if (!y || !m || !d) return false;
+  const date = new Date(Date.UTC(y, m - 1, d));
+  return (
+    date.getUTCFullYear() === y &&
+    date.getUTCMonth() === m - 1 &&
+    date.getUTCDate() === d
+  );
+}
 
 async function updateTransaction(formData: FormData) {
   "use server";
@@ -19,11 +33,20 @@ async function updateTransaction(formData: FormData) {
   const type = formData.get("type") as "income" | "expense";
   const amount = Number(formData.get("amount"));
   const categoryId = formData.get("category_id") as string;
-  const note = (formData.get("note") as string) || null;
+  const rawNote = String(formData.get("note") || "").trim();
+  const note = rawNote ? rawNote.slice(0, NOTE_MAX_LENGTH) : null;
   const transactionDate = formData.get("transaction_date") as string;
 
-  if (!id || !type || !amount || !categoryId || !transactionDate) {
+  if (!id || !type || !categoryId || !transactionDate) {
     throw new Error("Data transaksi belum lengkap.");
+  }
+
+  if (!Number.isFinite(amount) || amount <= 0) {
+    throw new Error("Jumlah transaksi harus lebih dari 0.");
+  }
+
+  if (!isValidISODate(transactionDate)) {
+    throw new Error("Tanggal transaksi tidak valid.");
   }
 
   const { data: category, error: categoryError } = await supabase

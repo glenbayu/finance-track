@@ -150,7 +150,20 @@ export default async function CategoriesPage() {
             {error ? (
               <p className="text-red-600">Error: {error.message}</p>
             ) : !categories || categories.length === 0 ? (
-              <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada kategori.</p>
+              <div className="text-sm text-slate-500 dark:text-slate-400">
+                <p>Belum ada kategori.</p>
+                <p className="mt-1">
+                  Tambah kategori pertama di panel “Tambah Kategori”.
+                </p>
+                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                  <Link href="/transactions/new" className="btn-primary">
+                    + Tambah Transaksi
+                  </Link>
+                  <Link href="/" className="btn-secondary">
+                    Ke Dashboard
+                  </Link>
+                </div>
+              </div>
             ) : (
               <div className="space-y-3">
                 {categories.map((category) => (

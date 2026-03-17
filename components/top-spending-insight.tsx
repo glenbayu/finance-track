@@ -1,4 +1,4 @@
-﻿import { ChevronDown } from "lucide-react";
+import { ChevronDown } from "lucide-react";
 
 type TopSpendingTransaction = {
   id: string;
@@ -10,6 +10,8 @@ type TopSpendingTransaction = {
 type TopSpendingItem = {
   category_name: string;
   amount: number;
+  previous_amount: number;
+  change_pct: number | null;
   transaction_count: number;
   transactions: TopSpendingTransaction[];
 };
@@ -35,6 +37,36 @@ function formatDate(date: string | null) {
     year: "numeric",
     timeZone: "UTC",
   }).format(new Date(date));
+}
+
+function formatChangeText(currentAmount: number, previousAmount: number, changePct: number | null) {
+  if (previousAmount <= 0 && currentAmount > 0) {
+    return {
+      text: "Baru bulan ini",
+      className: "text-slate-500 dark:text-slate-400",
+    };
+  }
+
+  if (previousAmount <= 0) {
+    return {
+      text: "0% vs bulan lalu",
+      className: "text-slate-500 dark:text-slate-400",
+    };
+  }
+
+  const rounded = Math.round(changePct ?? 0);
+  if (rounded === 0) {
+    return {
+      text: "0% vs bulan lalu",
+      className: "text-slate-500 dark:text-slate-400",
+    };
+  }
+
+  const sign = rounded > 0 ? "+" : "";
+  return {
+    text: `${sign}${rounded}% vs bulan lalu`,
+    className: rounded > 0 ? "text-rose-600" : "text-emerald-600",
+  };
 }
 
 export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
@@ -74,7 +106,21 @@ export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
                 </span>
 
                 <span className="ml-4 flex shrink-0 items-center gap-2">
-                  <span className="font-semibold text-red-600">{formatRupiah(item.amount)}</span>
+                  <span className="flex flex-col items-end leading-tight">
+                    <span className="font-semibold text-red-600">{formatRupiah(item.amount)}</span>
+                    {(() => {
+                      const change = formatChangeText(
+                        item.amount,
+                        item.previous_amount,
+                        item.change_pct,
+                      );
+                      return (
+                        <span className={`text-xs font-semibold ${change.className}`}>
+                          {change.text}
+                        </span>
+                      );
+                    })()}
+                  </span>
                   <ChevronDown
                     size={16}
                     className="text-slate-400 transition group-open:rotate-180"

@@ -7,7 +7,7 @@ import LogoutButton from "@/components/logout-button";
 import MonthFilter from "@/components/month-filter";
 import TransactionsSearch from "@/components/transactions-search";
 import { requireUser } from "@/lib/supabase/auth";
-import { CalendarDays, House } from "lucide-react";
+import { CalendarDays, ChevronLeft, ChevronRight, House } from "lucide-react";
 
 function pad2(value: number) {
   return String(value).padStart(2, "0");
@@ -78,6 +78,38 @@ function highlightText(text: string, query: string) {
       <span key={`${index}-${part}`}>{part}</span>
     ),
   );
+}
+
+function getPaginationItems(currentPage: number, totalPages: number) {
+  if (totalPages <= 7) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1).map(
+      (page) => page as number | null,
+    );
+  }
+
+  const includedPages = new Set<number>([
+    1,
+    totalPages,
+    currentPage - 1,
+    currentPage,
+    currentPage + 1,
+  ]);
+
+  const sortedPages = Array.from(includedPages)
+    .filter((page) => page >= 1 && page <= totalPages)
+    .sort((a, b) => a - b);
+
+  const paginationItems: Array<number | null> = [];
+
+  sortedPages.forEach((page, index) => {
+    const previousPage = sortedPages[index - 1];
+    if (previousPage && page - previousPage > 1) {
+      paginationItems.push(null);
+    }
+    paginationItems.push(page);
+  });
+
+  return paginationItems;
 }
 
 async function deleteTransaction(formData: FormData) {
@@ -187,9 +219,12 @@ export default async function TransactionsPage({
     const params = new URLSearchParams();
     params.set("month", selectedMonth);
     if (searchQuery) params.set("search", searchQuery);
-    params.set("page", String(page));
+    if (page > 1) {
+      params.set("page", String(page));
+    }
     return `/transactions?${params.toString()}`;
   };
+  const paginationItems = getPaginationItems(currentPage, totalPages);
 
   return (
     <main className="page-shell transactions-page">
@@ -422,30 +457,73 @@ export default async function TransactionsPage({
                 </table>
               </div>
 
-              <div className="flex flex-col gap-3 border-t border-slate-200 p-4 dark:border-slate-800 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-4 dark:border-slate-800">
                 <p className="text-sm text-slate-600 dark:text-slate-300">
-                  Halaman {currentPage} dari {totalPages} • {totalCount} transaksi
+                  Halaman {currentPage} dari {totalPages} - {totalCount} transaksi
                 </p>
-                <div className="flex items-center gap-2">
+
+                <nav
+                  aria-label="Pagination transaksi"
+                  className="flex items-center gap-1.5"
+                >
                   {currentPage > 1 ? (
-                    <Link href={buildPageHref(currentPage - 1)} className="btn-secondary h-10 px-4">
-                      Sebelumnya
+                    <Link
+                      href={buildPageHref(currentPage - 1)}
+                      aria-label="Halaman sebelumnya"
+                      className="btn-secondary h-9 w-9 px-0"
+                    >
+                      <ChevronLeft size={16} />
                     </Link>
                   ) : (
-                    <span className="btn-secondary h-10 px-4 pointer-events-none opacity-50">
-                      Sebelumnya
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-300 dark:border-slate-700 dark:text-slate-600"
+                    >
+                      <ChevronLeft size={16} />
                     </span>
                   )}
+
+                  {paginationItems.map((item, index) =>
+                    item ? (
+                      <Link
+                        key={`page-${item}`}
+                        href={buildPageHref(item)}
+                        aria-current={item === currentPage ? "page" : undefined}
+                        className={
+                          item === currentPage
+                            ? "inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
+                            : "btn-secondary h-9 min-w-9 px-3"
+                        }
+                      >
+                        {item}
+                      </Link>
+                    ) : (
+                      <span
+                        key={`ellipsis-${index}`}
+                        className="inline-flex h-9 min-w-9 items-center justify-center px-1 text-sm text-slate-500 dark:text-slate-400"
+                      >
+                        ...
+                      </span>
+                    ),
+                  )}
+
                   {currentPage < totalPages ? (
-                    <Link href={buildPageHref(currentPage + 1)} className="btn-secondary h-10 px-4">
-                      Berikutnya
+                    <Link
+                      href={buildPageHref(currentPage + 1)}
+                      aria-label="Halaman berikutnya"
+                      className="btn-secondary h-9 w-9 px-0"
+                    >
+                      <ChevronRight size={16} />
                     </Link>
                   ) : (
-                    <span className="btn-secondary h-10 px-4 pointer-events-none opacity-50">
-                      Berikutnya
+                    <span
+                      aria-hidden="true"
+                      className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-300 dark:border-slate-700 dark:text-slate-600"
+                    >
+                      <ChevronRight size={16} />
                     </span>
                   )}
-                </div>
+                </nav>
               </div>
             </>
           )}

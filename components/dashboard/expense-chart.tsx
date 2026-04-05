@@ -124,7 +124,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         </div>
 
         <div>
-          <div className="space-y-2">
+          <div className="max-h-80 space-y-2 overflow-y-auto pr-1">
             {breakdown.map((item) => (
               <div key={item.name} className="soft-inset p-3">
                 <div className="flex items-start justify-between gap-3">

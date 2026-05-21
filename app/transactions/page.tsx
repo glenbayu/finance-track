@@ -48,6 +48,23 @@ function getMonthRange(month: string) {
   };
 }
 
+function inferTransactionType(keyword: string): "income" | "expense" | null {
+  const normalized = keyword.trim().toLowerCase();
+  if (!normalized) return null;
+
+  const expenseTerms = ["expense", "pengeluaran", "pengelua", "keluar", "exp"];
+  if (expenseTerms.some((term) => normalized.includes(term))) {
+    return "expense";
+  }
+
+  const incomeTerms = ["income", "pemasukan", "pemasuka", "masuk", "inc"];
+  if (incomeTerms.some((term) => normalized.includes(term))) {
+    return "income";
+  }
+
+  return null;
+}
+
 function escapeRegex(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
@@ -161,17 +178,7 @@ export default async function TransactionsPage({
   const to = from + ITEMS_PER_PAGE - 1;
 
   const keyword = searchQuery.replaceAll(",", " ").trim();
-  const loweredKeyword = keyword.toLowerCase();
-  const inferredType =
-    loweredKeyword === "income" ||
-    loweredKeyword === "pemasukan" ||
-    loweredKeyword === "masuk"
-      ? "income"
-      : loweredKeyword === "expense" ||
-          loweredKeyword === "pengeluaran" ||
-          loweredKeyword === "keluar"
-        ? "expense"
-        : null;
+  const inferredType = inferTransactionType(keyword);
 
   let queryBuilder = supabase
     .from("transactions")
@@ -194,15 +201,70 @@ export default async function TransactionsPage({
     .order("transaction_date", { ascending: false })
     .order("created_at", { ascending: false });
 
+  let transactions: Awaited<ReturnType<typeof queryBuilder.range>>["data"] = null;
+  let error: Awaited<ReturnType<typeof queryBuilder.range>>["error"] = null;
+  let count = 0;
+
   if (inferredType) {
     queryBuilder = queryBuilder.eq("type", inferredType);
-  } else if (keyword) {
-    queryBuilder = queryBuilder.or(
-      `note.ilike.%${keyword}%,type.ilike.%${keyword}%,categories.name.ilike.%${keyword}%`,
-    );
   }
 
-  const { data: transactions, error, count } = await queryBuilder.range(from, to);
+  if (!inferredType && keyword) {
+    const likePattern = `%${keyword}%`;
+    const scopedIdQuery = () =>
+      supabase
+        .from("transactions")
+        .select("id")
+        .eq("user_id", user.id)
+        .gte("transaction_date", start)
+        .lt("transaction_date", end);
+
+    const [
+      noteMatchResult,
+      typeMatchResult,
+      categoryMatchResult,
+    ] = await Promise.all([
+      scopedIdQuery().ilike("note", likePattern),
+      scopedIdQuery().ilike("type", likePattern),
+      supabase
+        .from("transactions")
+        .select("id, categories!inner(name)")
+        .eq("user_id", user.id)
+        .gte("transaction_date", start)
+        .lt("transaction_date", end)
+        .ilike("categories.name", likePattern),
+    ]);
+
+    error =
+      noteMatchResult.error ??
+      typeMatchResult.error ??
+      categoryMatchResult.error;
+
+    if (!error) {
+      const matchedIds = Array.from(
+        new Set([
+          ...(noteMatchResult.data ?? []).map((row) => row.id),
+          ...(typeMatchResult.data ?? []).map((row) => row.id),
+          ...(categoryMatchResult.data ?? []).map((row) => row.id),
+        ]),
+      );
+
+      if (matchedIds.length > 0) {
+        const result = await queryBuilder.in("id", matchedIds).range(from, to);
+        transactions = result.data;
+        error = result.error;
+        count = result.count ?? 0;
+      } else {
+        transactions = [];
+        count = 0;
+      }
+    }
+  } else {
+    const result = await queryBuilder.range(from, to);
+    transactions = result.data;
+    error = result.error;
+    count = result.count ?? 0;
+  }
   const totalCount = count ?? 0;
   const totalPages = Math.max(1, Math.ceil(totalCount / ITEMS_PER_PAGE));
   const highlightQuery = inferredType ? "" : keyword;

@@ -5,32 +5,56 @@ import { formatTemplateTypeLabel, type QuickAddTemplate } from "@/lib/quick-add"
 
 type QuickAddTemplateCardProps = {
   template: QuickAddTemplate;
-  compact?: boolean;
+  variant?: "compact" | "default" | "detail";
   onSelect?: (template: QuickAddTemplate) => void;
+  className?: string;
 };
 
 export default function QuickAddTemplateCard({
   template,
-  compact = false,
+  variant = "default",
   onSelect,
+  className = "",
 }: QuickAddTemplateCardProps) {
+  const isCompact = variant === "compact";
   const href = `/transactions/new?templateId=${encodeURIComponent(template.id)}`;
-  const className = `soft-inset transition hover:brightness-[0.99] ${
-    compact ? "p-3" : "p-3.5"
-  }`;
+  const cardClassName = `soft-inset min-w-0 overflow-hidden transition hover:brightness-[0.99] ${
+    isCompact ? "h-[84px] p-3" : "p-3.5"
+  } ${className}`.trim();
   const content = (
-    <div className="flex items-start gap-2.5">
-      <TemplateIcon icon={template.icon} color={template.color} />
-      <div className="min-w-0">
-        <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+    <div className="flex min-w-0 items-start gap-2">
+      <TemplateIcon
+        icon={template.icon}
+        color={template.color}
+        size={isCompact ? 14 : 16}
+        className={isCompact ? "h-8 w-8 rounded-lg" : ""}
+      />
+      <div className="min-w-0 w-full">
+        <p className={`truncate font-semibold text-slate-900 dark:text-slate-100 ${isCompact ? "text-[13px]" : "text-sm"}`}>
           {template.name}
         </p>
-        <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
-          {template.category_name ?? "Tanpa kategori"} - {formatTemplateTypeLabel(template.type)}
-        </p>
+        {isCompact ? (
+          <>
+            <p className="mt-0.5 hidden truncate text-[11px] text-slate-500 dark:text-slate-400 sm:block">
+              {template.category_name ?? "Tanpa kategori"}
+            </p>
+            <p className="mt-0.5 hidden truncate text-[10px] text-slate-500 dark:text-slate-400 sm:block">
+              {formatTemplateTypeLabel(template.type)}
+            </p>
+          </>
+        ) : (
+          <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+            {template.category_name ?? "Tanpa kategori"} - {formatTemplateTypeLabel(template.type)}
+          </p>
+        )}
+        {!isCompact && template.note ? (
+          <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+            {template.note}
+          </p>
+        ) : null}
         {template.amount ? (
-          <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
-            <CurrencyAmount amountIDR={template.amount} />
+          <p className={`mt-1 block max-w-full truncate font-semibold leading-tight text-slate-700 dark:text-slate-200 ${isCompact ? "text-[13px]" : "text-sm"}`}>
+            <CurrencyAmount amountIDR={template.amount} compact={isCompact} />
           </p>
         ) : null}
       </div>
@@ -42,7 +66,7 @@ export default function QuickAddTemplateCard({
       <button
         type="button"
         onClick={() => onSelect(template)}
-        className={`${className} w-full text-left`}
+        className={`${cardClassName} w-full text-left`}
       >
         {content}
       </button>
@@ -52,7 +76,7 @@ export default function QuickAddTemplateCard({
   return (
     <Link
       href={href}
-      className={className}
+      className={cardClassName}
     >
       {content}
     </Link>

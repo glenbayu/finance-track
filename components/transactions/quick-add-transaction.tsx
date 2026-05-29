@@ -167,12 +167,13 @@ export default function QuickAddTransaction({
           </div>
         ) : (
           <>
-            <div className="grid grid-cols-2 gap-2 lg:hidden">
+            <div className="grid grid-cols-2 gap-3 lg:hidden">
               {mobileTemplates.map((template) => (
                 <QuickAddTemplateCard
                   key={template.id}
                   template={template}
-                  compact
+                  variant="compact"
+                  className="min-w-0"
                   onSelect={openConfirmation}
                 />
               ))}
@@ -182,7 +183,7 @@ export default function QuickAddTransaction({
                 <QuickAddTemplateCard
                   key={template.id}
                   template={template}
-                  compact
+                  variant="default"
                   onSelect={openConfirmation}
                 />
               ))}

@@ -119,7 +119,7 @@ export default function AppShell({
     },
     {
       key: "transactions" as const,
-      label: "Transactions",
+      label: "Transaksi",
       href: withMonth("/transactions", month),
       icon: ReceiptText,
       primary: false,
@@ -135,7 +135,7 @@ export default function AppShell({
     },
     {
       key: "reports" as const,
-      label: "Reports",
+      label: "Laporan",
       href: withMonth("/reports", month),
       icon: BarChart3,
       primary: false,

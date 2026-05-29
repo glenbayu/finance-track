@@ -246,7 +246,7 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
           </div>
           <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {activeTemplates.map((template) => (
-              <QuickAddTemplateCard key={template.id} template={template} compact />
+              <QuickAddTemplateCard key={template.id} template={template} variant="default" />
             ))}
           </div>
           <div className="mt-3">

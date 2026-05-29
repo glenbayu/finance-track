@@ -608,47 +608,65 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </article>
       </section>
 
-      <section className="mt-6 grid gap-5 xl:grid-cols-2">
-        <article className="section-card">
+      <section className="mt-6 grid gap-5 xl:grid-cols-2 [&>*]:min-w-0 [&>*]:max-w-full">
+        <article className="section-card min-w-0 w-full max-w-full overflow-hidden">
           <h3 className="text-lg font-semibold">Category Forecast (Top)</h3>
           {!categoryForecast.length ? (
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Forecast kategori belum tersedia.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {categoryForecast.map((item) => (
-                <div key={item.category} className="soft-inset flex items-start justify-between gap-3">
-                  <div className="min-w-0">
+                <div key={item.category} className="soft-inset flex min-w-0 items-start justify-between gap-2 overflow-hidden">
+                  <div className="min-w-0 flex-1">
                     <p className="truncate font-semibold text-slate-900 dark:text-slate-100">{item.category}</p>
                     <p className="text-xs text-slate-500 dark:text-slate-400">
                       {(item.share * 100).toFixed(1)}% kontribusi - {confidenceLabel(item.confidence)}
                     </p>
                   </div>
-                  <p className="shrink-0 font-semibold text-rose-600">
-                    <CurrencyAmount amountIDR={item.forecastAmount} />
-                  </p>
+                  <div className="shrink-0 text-right">
+                    <p className="font-semibold text-rose-600 sm:hidden">
+                      <CurrencyAmount amountIDR={item.forecastAmount} compact />
+                    </p>
+                    <p className="hidden font-semibold text-rose-600 sm:block">
+                      <CurrencyAmount amountIDR={item.forecastAmount} />
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
           )}
         </article>
 
-        <article className="section-card">
+        <article className="section-card min-w-0 w-full max-w-full overflow-hidden">
           <h3 className="text-lg font-semibold">Aktivitas Terkini</h3>
           {!currentTransactions.length ? (
             <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Belum ada transaksi pada bulan ini.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {currentTransactions.slice(0, 5).map((item) => (
-                <div key={item.id} className="soft-inset flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="truncate font-medium text-slate-900 dark:text-slate-100">{getCategoryName(item.categories)}</p>
-                    <p className="truncate text-sm text-slate-500 dark:text-slate-400">{item.note || "Tanpa catatan"}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">{formatDate(item.transaction_date)}</p>
+                <div key={item.id} className="soft-inset min-w-0 overflow-hidden">
+                  <div className="flex min-w-0 items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate font-medium text-slate-900 dark:text-slate-100">{getCategoryName(item.categories)}</p>
+                      <p className="truncate text-sm text-slate-500 dark:text-slate-400">{item.note || "Tanpa catatan"}</p>
+                    </div>
+                    <div className="shrink-0 text-right">
+                      <p className={`font-semibold ${item.type === "income" ? "text-emerald-600" : "text-rose-600"} sm:hidden`}>
+                        {item.type === "income" ? "+" : "-"}
+                        <CurrencyAmount amountIDR={Number(item.amount)} absolute compact />
+                      </p>
+                      <p className={`hidden font-semibold ${item.type === "income" ? "text-emerald-600" : "text-rose-600"} sm:block`}>
+                        {item.type === "income" ? "+" : "-"}
+                        <CurrencyAmount amountIDR={Number(item.amount)} absolute />
+                      </p>
+                    </div>
                   </div>
-                  <p className={`shrink-0 font-semibold ${item.type === "income" ? "text-emerald-600" : "text-rose-600"}`}>
-                    {item.type === "income" ? "+" : "-"}
-                    <CurrencyAmount amountIDR={Number(item.amount)} absolute />
-                  </p>
+                  <div className="mt-1 flex min-w-0 items-center justify-between gap-2">
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{formatDate(item.transaction_date)}</p>
+                    <p className="shrink-0 text-[11px] text-slate-500 dark:text-slate-400">
+                      {item.type === "income" ? "Pemasukan" : "Pengeluaran"}
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>

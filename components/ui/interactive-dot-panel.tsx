@@ -7,6 +7,7 @@ type InteractiveDotPanelProps = {
   children: ReactNode;
   className?: string;
   style?: CSSProperties;
+  interactive?: boolean;
   onMouseMove?: MouseEventHandler<HTMLDivElement>;
   onMouseEnter?: MouseEventHandler<HTMLDivElement>;
   onMouseLeave?: MouseEventHandler<HTMLDivElement>;
@@ -16,6 +17,7 @@ export default function InteractiveDotPanel({
   children,
   className = "",
   style,
+  interactive = false,
   onMouseMove,
   onMouseEnter,
   onMouseLeave,
@@ -70,6 +72,18 @@ export default function InteractiveDotPanel({
     onMouseLeave?.(event);
   };
 
+  if (!interactive) {
+    return (
+      <div
+        ref={panelRef}
+        style={style}
+        className={`interactive-dot-panel ${className}`}
+      >
+        {children}
+      </div>
+    );
+  }
+
   const mergedStyle = {
     ...style,
     "--mx": "50%",
@@ -90,4 +104,3 @@ export default function InteractiveDotPanel({
     </div>
   );
 }
-

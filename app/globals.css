@@ -555,7 +555,7 @@ button,
   }
 
   .app-shell-nav-link {
-    @apply flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition hover:bg-[color:var(--surface-soft)] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100;
+    @apply flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium text-slate-600 transition-colors duration-200 hover:bg-[color:var(--surface-soft)] hover:text-slate-900 dark:text-slate-300 dark:hover:bg-slate-800 dark:hover:text-slate-100;
   }
 
   .app-shell-nav-link.is-active {
@@ -563,14 +563,14 @@ button,
   }
 
   .app-shell-mobile-dock {
-    @apply fixed inset-x-4 bottom-4 z-40 grid items-end gap-2 rounded-2xl border border-[color:var(--stroke)] bg-[color:var(--surface)]/96 p-2 shadow-[0_16px_38px_-22px_rgba(29,22,12,0.5)] backdrop-blur dark:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.8)];
+    @apply fixed inset-x-4 bottom-4 z-40 grid items-end gap-2 rounded-2xl border border-[color:var(--stroke)] bg-[color:var(--surface)]/96 p-2 shadow-[0_16px_38px_-22px_rgba(29,22,12,0.45)] dark:shadow-[0_20px_40px_-20px_rgba(0,0,0,0.75)];
     grid-template-columns: repeat(5, minmax(0, 1fr));
     grid-auto-flow: column;
     padding-bottom: max(0.5rem, calc(0.5rem + env(safe-area-inset-bottom)));
   }
 
   .app-shell-dock-link {
-    @apply inline-flex h-12 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold text-slate-600 transition hover:bg-[color:var(--surface-soft)] dark:text-slate-300 dark:hover:bg-slate-800;
+    @apply inline-flex h-12 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold text-slate-600 transition-colors duration-200 hover:bg-[color:var(--surface-soft)] dark:text-slate-300 dark:hover:bg-slate-800;
   }
 
   .app-shell-dock-link span {
@@ -596,5 +596,22 @@ button,
   .interactive-dot-panel::before,
   .interactive-dot-panel::after {
     content: none;
+  }
+
+  .scroll-optimized {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+    contain: layout paint;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
   }
 }

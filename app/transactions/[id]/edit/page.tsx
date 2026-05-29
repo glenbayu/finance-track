@@ -131,7 +131,6 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
       activeNav="transactions"
       title="Edit Transaksi"
       description="Ubah data transaksi yang sudah ada."
-      showMobileDock={false}
       headerActions={
         <>
           <Link

@@ -94,7 +94,7 @@ export default function TopSpendingInsight({ data, totalExpense }: TopSpendingIn
           Belum ada kategori pengeluaran di bulan ini.
         </p>
       ) : (
-        <div className="max-h-[13rem] space-y-3 overflow-y-auto pr-1 md:max-h-[17rem]">
+        <div className="scroll-optimized max-h-[13rem] space-y-3 overflow-y-auto pr-1 md:max-h-[17rem]">
           {data.map((item, index) => (
             <details key={`${item.category_name}-${index}`} className="soft-inset group">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
@@ -156,7 +156,7 @@ export default function TopSpendingInsight({ data, totalExpense }: TopSpendingIn
               </div>
 
               <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
-                <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                <div className="scroll-optimized max-h-64 space-y-2 overflow-y-auto pr-1">
                   {item.transactions.map((transaction) => (
                     <div
                       key={transaction.id}

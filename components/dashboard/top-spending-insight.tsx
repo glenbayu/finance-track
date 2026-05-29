@@ -1,4 +1,9 @@
+"use client";
+
 import { ChevronDown } from "lucide-react";
+import { useMaskedAmounts } from "@/components/ui/masked-amount";
+import InteractiveDotPanel from "@/components/ui/interactive-dot-panel";
+import { useDisplayCurrency } from "@/hooks/use-display-currency";
 
 type TopSpendingTransaction = {
   id: string;
@@ -18,15 +23,8 @@ type TopSpendingItem = {
 
 type TopSpendingInsightProps = {
   data: TopSpendingItem[];
+  totalExpense: number;
 };
-
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function formatDate(date: string | null) {
   if (!date) return "Tanggal tidak tersedia";
@@ -69,9 +67,19 @@ function formatChangeText(currentAmount: number, previousAmount: number, changeP
   };
 }
 
-export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
+function formatContribution(percentage: number) {
+  if (!Number.isFinite(percentage)) return "0%";
+  if (percentage >= 10) return `${Math.round(percentage)}%`;
+  return `${percentage.toFixed(1)}%`;
+}
+
+export default function TopSpendingInsight({ data, totalExpense }: TopSpendingInsightProps) {
+  const masked = useMaskedAmounts();
+  const isHidden = masked?.isHidden ?? false;
+  const { formatFromIDR } = useDisplayCurrency();
+
   return (
-    <div className="section-card">
+    <InteractiveDotPanel className="section-card">
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Top Kategori Pengeluaran Bulan Ini</h2>
@@ -86,7 +94,7 @@ export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
           Belum ada kategori pengeluaran di bulan ini.
         </p>
       ) : (
-        <div className="space-y-3">
+        <div className="max-h-[13rem] space-y-3 overflow-y-auto pr-1 md:max-h-[17rem]">
           {data.map((item, index) => (
             <details key={`${item.category_name}-${index}`} className="soft-inset group">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
@@ -100,26 +108,28 @@ export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
                       {item.category_name}
                     </span>
                     <span className="block truncate text-sm text-slate-500 dark:text-slate-400">
-                      {item.transaction_count} transaksi - klik untuk lihat detail
+                      {item.transaction_count} transaksi
                     </span>
                   </span>
                 </span>
 
                 <span className="ml-4 flex shrink-0 items-center gap-2">
                   <span className="flex flex-col items-end leading-tight">
-                    <span className="font-semibold text-red-600">{formatRupiah(item.amount)}</span>
-                    {(() => {
-                      const change = formatChangeText(
-                        item.amount,
-                        item.previous_amount,
-                        item.change_pct,
-                      );
-                      return (
-                        <span className={`text-xs font-semibold ${change.className}`}>
-                          {change.text}
-                        </span>
-                      );
-                    })()}
+                    <span className="font-semibold text-red-600">
+                      {isHidden ? "***" : formatFromIDR(item.amount)}
+                    </span>
+                    {isHidden ? (
+                      <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                        Kontribusi{" "}
+                        {formatContribution(totalExpense > 0 ? (item.amount / totalExpense) * 100 : 0)}
+                      </span>
+                    ) : (
+                      <ChangeBadge
+                        amount={item.amount}
+                        previousAmount={item.previous_amount}
+                        changePct={item.change_pct}
+                      />
+                    )}
                   </span>
                   <ChevronDown
                     size={16}
@@ -128,31 +138,67 @@ export default function TopSpendingInsight({ data }: TopSpendingInsightProps) {
                 </span>
               </summary>
 
-              <div className="mt-3 space-y-2 border-t border-slate-200 pt-3 dark:border-slate-700">
-                {item.transactions.map((transaction) => (
+              <div className="mt-3">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                   <div
-                    key={transaction.id}
-                    className="flex items-start justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/50"
-                  >
-                    <div className="min-w-0">
-                      <p className="truncate text-sm text-slate-700 dark:text-slate-200">
-                        {transaction.note || "Tanpa catatan"}
-                      </p>
-                      <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                        {formatDate(transaction.transaction_date)}
+                    className="h-full rounded-full bg-rose-500 transition-all duration-300"
+                    style={{
+                      width: `${Math.min(100, Math.max(0, (item.amount / Math.max(totalExpense, 1)) * 100))}%`,
+                    }}
+                  />
+                </div>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Kontribusi kategori ini:{" "}
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">
+                    {formatContribution(totalExpense > 0 ? (item.amount / totalExpense) * 100 : 0)}
+                  </span>
+                </p>
+              </div>
+
+              <div className="mt-3 border-t border-slate-200 pt-3 dark:border-slate-700">
+                <div className="max-h-64 space-y-2 overflow-y-auto pr-1">
+                  {item.transactions.map((transaction) => (
+                    <div
+                      key={transaction.id}
+                      className="flex items-start justify-between gap-3 rounded-xl border border-slate-200/80 bg-white/70 px-3 py-2 dark:border-slate-700 dark:bg-slate-900/50"
+                    >
+                      <div className="min-w-0">
+                        <p className="truncate text-sm text-slate-700 dark:text-slate-200">
+                          {transaction.note || "Tanpa catatan"}
+                        </p>
+                        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                          {formatDate(transaction.transaction_date)}
+                        </p>
+                      </div>
+
+                      <p className="shrink-0 text-sm font-semibold text-rose-600">
+                        {isHidden ? "***" : formatFromIDR(transaction.amount)}
                       </p>
                     </div>
-
-                    <p className="shrink-0 text-sm font-semibold text-rose-600">
-                      {formatRupiah(transaction.amount)}
-                    </p>
-                  </div>
-                ))}
+                  ))}
+                </div>
               </div>
             </details>
           ))}
         </div>
       )}
-    </div>
+    </InteractiveDotPanel>
+  );
+}
+
+function ChangeBadge({ amount, previousAmount, changePct }: {
+  amount: number;
+  previousAmount: number;
+  changePct: number | null
+}) {
+  const change = formatChangeText(
+    amount,
+    previousAmount,
+    changePct,
+  );
+  return (
+    <span className={`text-xs font-semibold ${change.className}`}>
+      {change.text}
+    </span>
   );
 }

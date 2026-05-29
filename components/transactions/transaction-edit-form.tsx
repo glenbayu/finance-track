@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import Link from "next/link";
 import FormSelect from "@/components/ui/form-select";
+import DateInput from "@/components/ui/date-input";
 import SubmitButton from "@/components/ui/submit-button";
 
 type Category = {
@@ -96,12 +97,14 @@ export default function TransactionEditForm({
             name="amount"
             value={amountDisplay.replace(/\D/g, "")}
           />
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+            Nominal disimpan dalam Rupiah (IDR).
+          </p>
         </div>
 
         <div>
           <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Tanggal</label>
-          <input
-            type="date"
+          <DateInput
             name="transaction_date"
             defaultValue={transaction.transaction_date}
             className="input-base"

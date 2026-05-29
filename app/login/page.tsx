@@ -46,22 +46,25 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   const nextPath = sanitizeNext(params?.next);
 
   return (
-    <main className="page-shell">
+    <main className="page-shell journal-auth">
       <div className="page-container max-w-md">
         <section className="hero-panel">
-          <h1 className="text-3xl font-bold">Login</h1>
+          <p className="text-xs font-semibold uppercase tracking-[0.17em] text-slate-500 dark:text-slate-400">
+            Finance Journal
+          </p>
+          <h1 className="mt-2 text-3xl font-bold">Login</h1>
           <p className="mt-2 text-slate-600 dark:text-slate-300">
-            Masuk untuk mengakses finance tracker kamu.
+            Masuk untuk melanjutkan catatan keuangan kamu.
           </p>
 
           {params?.message ? (
-            <p className="mt-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
+            <p className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm text-emerald-700 dark:border-emerald-900 dark:bg-emerald-950/40 dark:text-emerald-300">
               {params.message}
             </p>
           ) : null}
 
           {params?.error ? (
-            <p className="mt-4 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
+            <p className="mt-4 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-sm text-rose-700 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-300">
               {params.error}
             </p>
           ) : null}
@@ -89,7 +92,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
               <input
                 type="password"
                 name="password"
-                placeholder="••••••••"
+                placeholder="********"
                 className="input-base"
                 required
               />

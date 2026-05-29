@@ -1,3 +1,7 @@
+"use client";
+
+import { useDisplayCurrency } from "@/hooks/use-display-currency";
+
 type MonthlyHistoryItem = {
   month: string;
   income: number;
@@ -8,14 +12,6 @@ type MonthlyHistoryItem = {
 type MonthlyHistoryProps = {
   data: MonthlyHistoryItem[];
 };
-
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function formatMonthLabel(month: string) {
   const [year, monthNum] = month.split("-").map(Number);
@@ -28,6 +24,8 @@ function formatMonthLabel(month: string) {
 }
 
 export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
+  const { formatFromIDR } = useDisplayCurrency();
+
   return (
     <div className="section-card">
       <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
@@ -38,7 +36,7 @@ export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
       {!data.length ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada riwayat transaksi.</p>
       ) : (
-        <div className="space-y-3">
+        <div className="max-h-[420px] space-y-3 overflow-y-auto pr-1">
           {data.map((item) => (
             <div
               key={item.month}
@@ -56,14 +54,14 @@ export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">Pemasukan</p>
                     <p className="font-semibold text-emerald-600">
-                      {formatRupiah(item.income)}
+                      {formatFromIDR(item.income)}
                     </p>
                   </div>
 
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">Pengeluaran</p>
                     <p className="font-semibold text-rose-600">
-                      {formatRupiah(item.expense)}
+                      {formatFromIDR(item.expense)}
                     </p>
                   </div>
 
@@ -74,7 +72,7 @@ export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
                         item.balance >= 0 ? "text-emerald-600" : "text-rose-600"
                       }`}
                     >
-                      {formatRupiah(item.balance)}
+                      {formatFromIDR(item.balance)}
                     </p>
                   </div>
                 </div>

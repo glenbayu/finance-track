@@ -1,31 +1,15 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import TransactionForm from "@/components/transactions/transaction-form";
 import { revalidatePath } from "next/cache";
-import Link from "next/link";
+import AppShell from "@/components/layout/app-shell";
+import QuickAddTemplateCard from "@/components/quick-add/quick-add-template-card";
+import type { QuickAddTemplateType } from "@/lib/quick-add";
+import { byTemplateSort, mapQuickAddTemplateRow } from "@/lib/quick-add";
+import { getCurrentDate, isDateValue } from "@/lib/date";
 import { requireUser } from "@/lib/supabase/auth";
-import { ReceiptText } from "lucide-react";
 
 const NOTE_MAX_LENGTH = 140;
-
-function pad2(value: number) {
-  return String(value).padStart(2, "0");
-}
-
-function formatDateOnly(date: Date) {
-  return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
-}
-
-function isValidISODate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [y, m, d] = value.split("-").map(Number);
-  if (!y || !m || !d) return false;
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return (
-    date.getUTCFullYear() === y &&
-    date.getUTCMonth() === m - 1 &&
-    date.getUTCDate() === d
-  );
-}
 
 async function createTransaction(formData: FormData) {
   "use server";
@@ -47,7 +31,7 @@ async function createTransaction(formData: FormData) {
     throw new Error("Jumlah transaksi harus lebih dari 0.");
   }
 
-  if (!isValidISODate(transactionDate)) {
+  if (!isDateValue(transactionDate)) {
     throw new Error("Tanggal transaksi tidak valid.");
   }
 
@@ -56,6 +40,7 @@ async function createTransaction(formData: FormData) {
     .select("id")
     .eq("id", categoryId)
     .or(`user_id.eq.${user.id},user_id.is.null`)
+    .is("archived_at", null)
     .single();
 
   if (categoryError || !category) {
@@ -81,13 +66,24 @@ async function createTransaction(formData: FormData) {
   redirect("/transactions");
 }
 
-export default async function NewTransactionPage() {
+type NewTransactionPageProps = {
+  searchParams?: Promise<{
+    templateId?: string;
+    duplicateId?: string;
+  }>;
+};
+
+export default async function NewTransactionPage({ searchParams }: NewTransactionPageProps) {
   const { supabase, user } = await requireUser();
+  const params = await searchParams;
+  const templateId = String(params?.templateId ?? "").trim();
+  const duplicateId = String(params?.duplicateId ?? "").trim();
 
   const { data: categories, error } = await supabase
     .from("categories")
     .select("id, name, type")
     .or(`user_id.eq.${user.id},user_id.is.null`)
+    .is("archived_at", null)
     .order("name", { ascending: true });
 
   if (error) {
@@ -100,33 +96,176 @@ export default async function NewTransactionPage() {
     );
   }
 
-  const today = formatDateOnly(new Date());
+  const today = getCurrentDate();
+  const recentCategoryMap = new Map<
+    string,
+    { id: string; name: string; type: "income" | "expense"; count: number }
+  >();
+
+  const { data: recentTransactions } = await supabase
+    .from("transactions")
+    .select(
+      `
+      category_id,
+      categories (
+        id,
+        name,
+        type,
+        archived_at
+      )
+    `,
+    )
+    .eq("user_id", user.id)
+    .order("transaction_date", { ascending: false })
+    .order("created_at", { ascending: false })
+    .limit(20);
+
+  (recentTransactions ?? []).forEach((row) => {
+    const relation = Array.isArray(row.categories) ? row.categories[0] : row.categories;
+    if (!relation?.id || !relation?.name || !relation?.type) return;
+    if (relation.archived_at) return;
+    const current = recentCategoryMap.get(relation.id) ?? {
+      id: relation.id,
+      name: relation.name,
+      type: relation.type === "income" ? "income" : "expense",
+      count: 0,
+    };
+    current.count += 1;
+    recentCategoryMap.set(relation.id, current);
+  });
+  const recentCategories = Array.from(recentCategoryMap.values())
+    .sort((a, b) => b.count - a.count)
+    .slice(0, 5);
+
+  let infoMessage: string | null = null;
+  let initialValues: {
+    type?: QuickAddTemplateType;
+    categoryId?: string | null;
+    amountIDR?: number | null;
+    note?: string | null;
+  } = {};
+
+  if (duplicateId) {
+    const { data: sourceTransaction, error: sourceError } = await supabase
+      .from("transactions")
+      .select("id, type, category_id, amount, note")
+      .eq("id", duplicateId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!sourceError && sourceTransaction) {
+      const safeType = sourceTransaction.type === "income" ? "income" : "expense";
+      const categoryStillValid = categories?.some(
+        (category) => category.id === sourceTransaction.category_id && category.type === safeType,
+      );
+      initialValues = {
+        type: safeType,
+        categoryId: categoryStillValid ? sourceTransaction.category_id : null,
+        amountIDR: Number.isFinite(Number(sourceTransaction.amount))
+          ? Number(sourceTransaction.amount)
+          : null,
+        note: typeof sourceTransaction.note === "string" ? sourceTransaction.note : null,
+      };
+      infoMessage = "Form sudah diisi dari transaksi sebelumnya. Tanggal otomatis di-set ke hari ini.";
+    } else if (!sourceError) {
+      infoMessage = "Transaksi sumber tidak ditemukan. Form dibuka dengan mode manual.";
+    }
+  } else if (templateId) {
+    const { data: template, error: templateError } = await supabase
+      .from("quick_add_templates")
+      .select("id, type, category_id, amount, note, is_active")
+      .eq("id", templateId)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (!templateError && template?.is_active) {
+      const safeType = template.type === "income" ? "income" : "expense";
+      const categoryStillValid = categories?.some(
+        (category) => category.id === template.category_id && category.type === safeType,
+      );
+      initialValues = {
+        type: safeType,
+        categoryId: categoryStillValid ? template.category_id : null,
+        amountIDR: Number.isFinite(Number(template.amount)) ? Number(template.amount) : null,
+        note: typeof template.note === "string" ? template.note : null,
+      };
+      infoMessage = "Form sudah diisi dari template. Silakan cek lagi lalu simpan transaksi.";
+    } else if (!templateError) {
+      infoMessage = "Template tidak aktif atau tidak ditemukan. Form dibuka dengan mode manual.";
+    }
+  }
+
+  const { data: activeTemplateRows } = await supabase
+    .from("quick_add_templates")
+    .select(`
+      id,
+      user_id,
+      name,
+      type,
+      category_id,
+      amount,
+      note,
+      icon,
+      color,
+      is_active,
+      sort_order,
+      created_at,
+      categories (
+        name
+      )
+    `)
+    .eq("user_id", user.id)
+    .eq("is_active", true)
+    .order("sort_order", { ascending: true })
+    .order("created_at", { ascending: true })
+    .limit(6);
+
+  const activeTemplates = ((activeTemplateRows ?? []) as Record<string, unknown>[])
+    .map(mapQuickAddTemplateRow)
+    .sort(byTemplateSort);
 
   return (
-    <main className="page-shell">
-      <div className="page-container max-w-3xl">
-        <div className="hero-panel">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">Tambah Transaksi</h1>
-              <p className="mt-2 text-slate-600 dark:text-slate-300">
-                Catat pemasukan atau pengeluaran baru.
-              </p>
-            </div>
-
-            <Link href="/transactions" className="btn-secondary gap-2">
-              <ReceiptText size={16} />
-              Kembali ke daftar
+    <AppShell
+      className="journal-entry"
+      containerClassName="max-w-6xl"
+      contentClassName="max-w-3xl"
+      activeNav="add"
+      title="Tambah Transaksi"
+      description="Catat pemasukan atau pengeluaran baru."
+    >
+      {activeTemplates.length ? (
+        <section className="section-card mt-6">
+          <div className="mb-3 flex items-center justify-between gap-2">
+            <h2 className="text-base font-semibold">Pilih Template Cepat</h2>
+            <Link
+              href="/settings/templates"
+              className="text-xs font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
+            >
+              Kelola
             </Link>
           </div>
-        </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {activeTemplates.map((template) => (
+              <QuickAddTemplateCard key={template.id} template={template} compact />
+            ))}
+          </div>
+          <div className="mt-3">
+            <Link href="/transactions/new" className="btn-secondary h-10 px-4">
+              Tambah Manual
+            </Link>
+          </div>
+        </section>
+      ) : null}
 
-        <TransactionForm
-          categories={categories ?? []}
-          defaultDate={today}
-          action={createTransaction}
-        />
-      </div>
-    </main>
+      <TransactionForm
+        key={`tx-form-${templateId || "manual"}`}
+        categories={categories ?? []}
+        recentCategories={recentCategories}
+        defaultDate={today}
+        action={createTransaction}
+        initialValues={initialValues}
+        infoMessage={infoMessage}
+      />
+    </AppShell>
   );
 }

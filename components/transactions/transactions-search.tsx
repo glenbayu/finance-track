@@ -8,22 +8,42 @@ type TransactionsSearchProps = {
   defaultValue?: string;
   className?: string;
   placeholder?: string;
+  smallScreenPlaceholder?: string;
+  useSmallScreenPlaceholder?: boolean;
 };
 
 export default function TransactionsSearch({
   defaultValue = "",
   className = "",
   placeholder = "Cari catatan, kategori, atau tipe...",
+  smallScreenPlaceholder = "Cari transaksi...",
+  useSmallScreenPlaceholder = false,
 }: TransactionsSearchProps) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [value, setValue] = useState(defaultValue);
+  const [isSmallScreen, setIsSmallScreen] = useState(false);
 
   useEffect(() => {
     setValue(defaultValue);
   }, [defaultValue]);
+
+  useEffect(() => {
+    if (!useSmallScreenPlaceholder) return;
+    const media = window.matchMedia("(max-width: 390px)");
+    const update = () => setIsSmallScreen(media.matches);
+    update();
+
+    if (typeof media.addEventListener === "function") {
+      media.addEventListener("change", update);
+      return () => media.removeEventListener("change", update);
+    }
+
+    media.addListener(update);
+    return () => media.removeListener(update);
+  }, [useSmallScreenPlaceholder]);
 
   const normalized = useMemo(() => value.trim(), [value]);
   const currentSearchInUrl = (searchParams.get("search") ?? "").trim();
@@ -44,7 +64,7 @@ export default function TransactionsSearch({
       const nextUrl = query ? `${pathname}?${query}` : pathname;
 
       startTransition(() => {
-        router.replace(nextUrl);
+        router.replace(nextUrl, { scroll: false });
       });
     },
     [pathname, router, searchParams, startTransition],
@@ -77,7 +97,7 @@ export default function TransactionsSearch({
         onBlur={() => {
           applySearchToUrl(value.trim());
         }}
-        placeholder={placeholder}
+        placeholder={useSmallScreenPlaceholder && isSmallScreen ? smallScreenPlaceholder : placeholder}
         className="input-base h-10 w-full py-2 pl-9 pr-10"
       />
       {isPending ? (

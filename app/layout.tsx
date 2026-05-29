@@ -3,12 +3,27 @@ import "./globals.css";
 import ThemeProvider from "@/components/ui/theme-provider";
 
 export const metadata: Metadata = {
+  applicationName: "Finance Tracker",
   title: "Finance Tracker",
-  description: "Dashboard untuk memantau pemasukan dan pengeluaran bulanan",
+  description:
+    "Personal finance tracker for monitoring income, expenses, budgets, and analytics.",
+  manifest: "/manifest.webmanifest",
+  formatDetection: {
+    telephone: false,
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "Finance Tracker",
+  },
   icons: {
-    icon: [{ url: "/icon.svg", type: "image/svg+xml" }],
-    shortcut: ["/icon.svg"],
-    apple: ["/icon.svg"],
+    icon: [
+      { url: "/icon-192.png", sizes: "192x192", type: "image/png" },
+      { url: "/icon-512.png", sizes: "512x512", type: "image/png" },
+      { url: "/icon.svg", type: "image/svg+xml" },
+    ],
+    shortcut: ["/icon-192.png"],
+    apple: [{ url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" }],
   },
 };
 
@@ -16,6 +31,7 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
+  themeColor: "#2c5c50",
 };
 
 export default function RootLayout({
@@ -24,7 +40,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="id" suppressHydrationWarning>
       <head>
         <script
           dangerouslySetInnerHTML={{
@@ -32,9 +48,7 @@ export default function RootLayout({
               (function () {
                 try {
                   var stored = localStorage.getItem("theme");
-                  var isDark = stored
-                    ? stored === "dark"
-                    : window.matchMedia("(prefers-color-scheme: dark)").matches;
+                  var isDark = stored === "dark";
                   document.documentElement.classList.toggle("dark", isDark);
                   document.documentElement.style.colorScheme = isDark ? "dark" : "light";
                 } catch (e) {}
@@ -43,7 +57,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="antialiased">
+      <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>

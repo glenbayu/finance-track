@@ -73,7 +73,7 @@ export default function DeleteTransactionButton({
         onClick={() => setIsOpen(true)}
         disabled={isSubmitting}
       >
-        <Trash2 size={14} />
+        <Trash2 size={14} className="text-white" />
       </button>
 
       <ConfirmationModal

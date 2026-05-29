@@ -1,6 +1,8 @@
 import { notFound, redirect } from "next/navigation";
 import TransactionEditForm from "@/components/transactions/transaction-edit-form";
 import LogoutButton from "@/components/auth/logout-button";
+import AppShell from "@/components/layout/app-shell";
+import { isDateValue } from "@/lib/date";
 import { requireUser } from "@/lib/supabase/auth";
 import Link from "next/link";
 
@@ -11,18 +13,6 @@ type EditPageProps = {
     id: string;
   }>;
 };
-
-function isValidISODate(value: string) {
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(value)) return false;
-  const [y, m, d] = value.split("-").map(Number);
-  if (!y || !m || !d) return false;
-  const date = new Date(Date.UTC(y, m - 1, d));
-  return (
-    date.getUTCFullYear() === y &&
-    date.getUTCMonth() === m - 1 &&
-    date.getUTCDate() === d
-  );
-}
 
 async function updateTransaction(formData: FormData) {
   "use server";
@@ -45,7 +35,7 @@ async function updateTransaction(formData: FormData) {
     throw new Error("Jumlah transaksi harus lebih dari 0.");
   }
 
-  if (!isValidISODate(transactionDate)) {
+  if (!isDateValue(transactionDate)) {
     throw new Error("Tanggal transaksi tidak valid.");
   }
 
@@ -54,6 +44,7 @@ async function updateTransaction(formData: FormData) {
     .select("id")
     .eq("id", categoryId)
     .or(`user_id.eq.${user.id},user_id.is.null`)
+    .is("archived_at", null)
     .single();
 
   if (categoryError || !category) {
@@ -95,6 +86,7 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
         .from("categories")
         .select("id, name, type")
         .or(`user_id.eq.${user.id},user_id.is.null`)
+        .is("archived_at", null)
         .order("name", { ascending: true }),
     ]);
 
@@ -114,32 +106,69 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
     );
   }
 
+  let categoryOptions = categories ?? [];
+  if (
+    transaction.category_id &&
+    !categoryOptions.some((category) => category.id === transaction.category_id)
+  ) {
+    const { data: archivedCategory } = await supabase
+      .from("categories")
+      .select("id, name, type")
+      .eq("id", transaction.category_id)
+      .or(`user_id.eq.${user.id},user_id.is.null`)
+      .maybeSingle();
+
+    if (archivedCategory) {
+      categoryOptions = [archivedCategory, ...categoryOptions];
+    }
+  }
+
   return (
-    <main className="page-shell">
-      <div className="page-container max-w-3xl">
-        <div className="hero-panel">
-          <div className="flex flex-wrap items-start justify-between gap-4">
-            <div>
-              <h1 className="text-3xl font-bold">Edit Transaksi</h1>
-              <p className="mt-2 text-slate-600 dark:text-slate-300">
-                Ubah data transaksi yang sudah ada.
-              </p>
-            </div>
-
-            <Link href="/transactions" className="btn-secondary">
-              Kembali ke daftar
-            </Link>
-
-            <LogoutButton className="btn-secondary gap-2" />
-          </div>
+    <AppShell
+      className="journal-entry"
+      containerClassName="max-w-6xl"
+      contentClassName="max-w-3xl"
+      activeNav="transactions"
+      title="Edit Transaksi"
+      description="Ubah data transaksi yang sudah ada."
+      showMobileDock={false}
+      headerActions={
+        <>
+          <Link
+            href={`/transactions/new?duplicateId=${encodeURIComponent(id)}`}
+            className="btn-secondary"
+          >
+            Duplikat
+          </Link>
+          <Link href="/transactions" className="btn-secondary">
+            Kembali ke daftar
+          </Link>
+          <LogoutButton className="btn-secondary gap-2" />
+        </>
+      }
+      mobileActions={
+        <div className="flex w-full items-center gap-2">
+          <Link
+            href={`/transactions/new?duplicateId=${encodeURIComponent(id)}`}
+            className="btn-secondary h-10 flex-1"
+          >
+            Duplikat
+          </Link>
+          <Link href="/transactions" className="btn-secondary h-10 flex-1">
+            Kembali ke daftar
+          </Link>
+          <LogoutButton
+            iconOnly
+            className="btn-secondary h-10 w-10 shrink-0 justify-center px-0"
+          />
         </div>
-
-        <TransactionEditForm
-          transaction={transaction}
-          categories={categories ?? []}
-          action={updateTransaction}
-        />
-      </div>
-    </main>
+      }
+    >
+      <TransactionEditForm
+        transaction={transaction}
+        categories={categoryOptions}
+        action={updateTransaction}
+      />
+    </AppShell>
   );
 }

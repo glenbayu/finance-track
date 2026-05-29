@@ -2,6 +2,7 @@
 
 import { Eye, EyeOff } from "lucide-react";
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
+import { AMOUNT_PRIVACY_STORAGE_KEY, MASKED_AMOUNTS_EVENT } from "@/lib/preferences";
 
 type MaskedAmountContextValue = {
   isHidden: boolean;
@@ -21,24 +22,25 @@ type MaskedAmountProviderProps = {
 
 export function MaskedAmountProvider({
   children,
-  storageKey = "ft_hide_amounts",
+  storageKey = AMOUNT_PRIVACY_STORAGE_KEY,
 }: MaskedAmountProviderProps) {
   const subscribe = useCallback((callback: () => void) => {
     if (typeof window === "undefined") return () => {};
 
     const handler = () => callback();
     window.addEventListener("storage", handler);
-    window.addEventListener("ft_masked_amounts", handler);
+    window.addEventListener(MASKED_AMOUNTS_EVENT, handler);
 
     return () => {
       window.removeEventListener("storage", handler);
-      window.removeEventListener("ft_masked_amounts", handler);
+      window.removeEventListener(MASKED_AMOUNTS_EVENT, handler);
     };
   }, []);
 
   const getSnapshot = useCallback(() => {
     try {
-      return window.localStorage.getItem(storageKey) === "1";
+      const value = window.localStorage.getItem(storageKey);
+      return value === "1" || value === "true";
     } catch {
       return false;
     }
@@ -48,9 +50,9 @@ export function MaskedAmountProvider({
   const toggle = useCallback(() => {
     const nextHidden = !getSnapshot();
     try {
-      window.localStorage.setItem(storageKey, nextHidden ? "1" : "0");
+      window.localStorage.setItem(storageKey, nextHidden ? "true" : "false");
     } catch {}
-    window.dispatchEvent(new Event("ft_masked_amounts"));
+    window.dispatchEvent(new Event(MASKED_AMOUNTS_EVENT));
   }, [getSnapshot, storageKey]);
 
   const value = useMemo<MaskedAmountContextValue>(

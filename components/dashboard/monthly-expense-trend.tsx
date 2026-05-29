@@ -9,6 +9,8 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
+import { convertFromIDR, formatCurrency } from "@/lib/currency";
+import { useDisplayCurrency } from "@/hooks/use-display-currency";
 
 type MonthlyExpenseTrendItem = {
   month: string;
@@ -18,14 +20,6 @@ type MonthlyExpenseTrendItem = {
 type MonthlyExpenseTrendProps = {
   data: MonthlyExpenseTrendItem[];
 };
-
-function formatRupiah(amount: number) {
-  return new Intl.NumberFormat("id-ID", {
-    style: "currency",
-    currency: "IDR",
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
 
 function formatMonthLabel(month: string) {
   const [year, monthNum] = month.split("-").map(Number);
@@ -40,8 +34,11 @@ function formatMonthLabel(month: string) {
 export default function MonthlyExpenseTrend({
   data,
 }: MonthlyExpenseTrendProps) {
+  const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
+
   const chartData = data.map((item) => ({
     ...item,
+    expenseConverted: convertFromIDR(item.expense, effectiveCurrency, rateFromIDR),
     label: formatMonthLabel(item.month),
   }));
 
@@ -81,7 +78,7 @@ export default function MonthlyExpenseTrend({
                 tick={{ fill: "var(--foreground)" }}
               />
               <Tooltip
-                formatter={(value) => formatRupiah(Number(value ?? 0))}
+                formatter={(value) => formatCurrency(Number(value ?? 0), effectiveCurrency)}
                 labelFormatter={(label) => `Bulan: ${label}`}
                 contentStyle={{
                   borderRadius: "12px",
@@ -91,7 +88,7 @@ export default function MonthlyExpenseTrend({
                 }}
               />
               <Bar
-                dataKey="expense"
+                dataKey="expenseConverted"
                 fill="#2563eb"
                 radius={[10, 10, 0, 0]}
               />

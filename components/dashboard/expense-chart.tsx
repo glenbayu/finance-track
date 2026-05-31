@@ -37,7 +37,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
 
   if (!data.length) {
     return (
-      <InteractiveDotPanel className="section-card">
+      <InteractiveDotPanel className="section-card max-h-[500px]">
         <h2 className="text-xl font-semibold">Pengeluaran per Kategori</h2>
         <p className="mt-3 text-sm text-slate-500 dark:text-slate-400">Belum ada data pengeluaran.</p>
       </InteractiveDotPanel>
@@ -45,7 +45,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   }
 
   return (
-    <InteractiveDotPanel className="section-card">
+    <InteractiveDotPanel className="section-card max-h-[500px] overflow-hidden">
       <h2 className="text-xl font-semibold">Pengeluaran per Kategori</h2>
 
       <div className="mt-3 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(230px,280px)] lg:items-start">
@@ -125,7 +125,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         </div>
 
         <div>
-          <div className="scroll-optimized min-h-0 max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[30rem]">
+          <div className="scroll-optimized h-[390px] space-y-2 overflow-y-auto pr-1">
             {breakdown.map((item) => (
               <div key={item.name} className="soft-inset p-3">
                 <div className="flex items-start justify-between gap-3">

@@ -1,6 +1,10 @@
-import Link from "next/link";
+"use client";
+
+import { useTransition } from "react";
+import { useRouter } from "next/navigation";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import TemplateIcon from "@/components/quick-add/template-icon";
+import LoadingSpinner from "@/components/ui/loading-spinner";
 import { formatTemplateTypeLabel, type QuickAddTemplate } from "@/lib/quick-add";
 
 type QuickAddTemplateCardProps = {
@@ -16,13 +20,31 @@ export default function QuickAddTemplateCard({
   onSelect,
   className = "",
 }: QuickAddTemplateCardProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+
   const isCompact = variant === "compact";
   const href = `/transactions/new?templateId=${encodeURIComponent(template.id)}`;
-  const cardClassName = `soft-inset min-w-0 overflow-hidden transition hover:brightness-[0.99] ${
+  
+  const handleSelect = () => {
+    if (onSelect) {
+      onSelect(template);
+      return;
+    }
+
+    startTransition(() => {
+      router.push(href);
+    });
+  };
+
+  const cardClassName = `soft-inset relative min-w-0 overflow-hidden transition ${
+    isPending ? "scale-[0.98] ring-2 ring-emerald-500/20" : "hover:brightness-[0.99]"
+  } ${
     isCompact ? "h-[84px] p-3" : "p-3.5"
   } ${className}`.trim();
+
   const content = (
-    <div className="flex min-w-0 items-start gap-2">
+    <div className={`flex min-w-0 items-start gap-2 transition-opacity ${isPending ? "opacity-40" : "opacity-100"}`}>
       <TemplateIcon
         icon={template.icon}
         color={template.color}
@@ -61,24 +83,20 @@ export default function QuickAddTemplateCard({
     </div>
   );
 
-  if (onSelect) {
-    return (
-      <button
-        type="button"
-        onClick={() => onSelect(template)}
-        className={`${cardClassName} w-full text-left`}
-      >
-        {content}
-      </button>
-    );
-  }
-
   return (
-    <Link
-      href={href}
-      className={cardClassName}
+    <button
+      type="button"
+      onClick={handleSelect}
+      disabled={isPending}
+      className={`${cardClassName} w-full text-left cursor-pointer`}
+      aria-busy={isPending}
     >
       {content}
-    </Link>
+      {isPending && (
+        <div className="absolute inset-0 flex items-center justify-center bg-white/10 backdrop-blur-[1px] dark:bg-black/10">
+          <LoadingSpinner size={isCompact ? "sm" : "md"} className="text-emerald-600 dark:text-emerald-400" />
+        </div>
+      )}
+    </button>
   );
 }

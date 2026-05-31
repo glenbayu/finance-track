@@ -69,6 +69,115 @@ function compactValue(value: number, currencySymbol: string) {
   return `${currencySymbol}${formatted}`;
 }
 
+type TrendTooltipEntry = {
+  dataKey?: string | number;
+  name?: string | number;
+  value?: number | string | null;
+  color?: string;
+};
+
+type TrendTooltipProps = {
+  active?: boolean;
+  payload?: TrendTooltipEntry[];
+  label?: string | number;
+  coordinate?: {
+    x?: number;
+    y?: number;
+  };
+  viewBox?: {
+    width?: number;
+    height?: number;
+  };
+  currencySymbol: string;
+};
+
+function clamp(value: number, min: number, max: number) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function CustomTooltip({
+  active,
+  payload,
+  label,
+  coordinate,
+  viewBox,
+  currencySymbol,
+}: TrendTooltipProps) {
+  if (!active || !payload?.length) return null;
+
+  const chartWidth = Number(viewBox?.width ?? 240);
+  const chartHeight = Number(viewBox?.height ?? 280);
+  const pointX = Number(coordinate?.x ?? chartWidth / 2);
+  const pointY = Number(coordinate?.y ?? chartHeight / 2);
+
+  const tooltipWidth = Math.min(180, Math.max(140, chartWidth - 16));
+  const tooltipHeight = Math.min(90, Math.max(72, 44 + payload.length * 22));
+  const gap = 12;
+  const padding = 8;
+
+  const canPlaceRight = pointX + gap + tooltipWidth <= chartWidth - padding;
+  const canPlaceLeft = pointX - gap - tooltipWidth >= padding;
+  const canPlaceBelow = pointY + gap + tooltipHeight <= chartHeight - padding;
+  const canPlaceAbove = pointY - gap - tooltipHeight >= padding;
+
+  const left = clamp(
+    canPlaceRight
+      ? pointX + gap
+      : canPlaceLeft
+        ? pointX - tooltipWidth - gap
+        : pointX - tooltipWidth / 2,
+    padding,
+    chartWidth - tooltipWidth - padding,
+  );
+
+  const top = clamp(
+    canPlaceBelow
+      ? pointY + gap
+      : canPlaceAbove
+        ? pointY - tooltipHeight - gap
+        : pointY - tooltipHeight / 2,
+    padding,
+    chartHeight - tooltipHeight - padding,
+  );
+
+  return (
+    <div
+      style={{
+        left,
+        top,
+        width: tooltipWidth,
+        minHeight: tooltipHeight,
+        borderRadius: 12,
+        border: "1px solid var(--stroke)",
+        background: "var(--surface)",
+        color: "var(--foreground)",
+      }}
+      className="pointer-events-none absolute z-30 p-3 shadow-lg"
+    >
+      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+        Bulan: {shortMonthLabel(String(label ?? ""))}
+      </p>
+
+      <div className="space-y-1.5">
+        {(payload as TrendTooltipEntry[]).map((entry) => (
+          <div key={String(entry.dataKey ?? entry.name)} className="flex items-center justify-between gap-3">
+            <span className="inline-flex min-w-0 items-center gap-2 text-sm">
+              <span
+                className="h-2.5 w-2.5 shrink-0 rounded-full"
+                style={{ backgroundColor: entry.color ?? "#10b981" }}
+              />
+              <span className="truncate">{entry.name}</span>
+            </span>
+            <span className="shrink-0 text-sm font-semibold">
+              {compactValue(Number(entry.value ?? 0), currencySymbol)}
+            </span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 export default function ReportsCharts({
   trendData,
   categoryData,
@@ -106,11 +215,27 @@ export default function ReportsCharts({
         {!trendData.length ? (
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Belum ada data trend.</p>
         ) : (
-          <div className="mt-4 h-[280px] w-full min-w-0 overflow-hidden">
+          <div className="relative mt-4 h-[280px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={convertedTrendData}>
+              <LineChart
+                data={convertedTrendData}
+                accessibilityLayer={false}
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: 15,
+                  bottom: 5,
+                }}>
                 <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "var(--foreground)" }} />
+                <XAxis
+                  dataKey="month"
+                  tickFormatter={shortMonthLabel}
+                  tickLine={false}
+                  axisLine={false}
+                  fontSize={12}
+                  tick={{ fill: "var(--foreground)" }}
+                  minTickGap={12}
+                />
                 <YAxis
                   tickFormatter={compactCurrency}
                   tickLine={false}
@@ -119,17 +244,29 @@ export default function ReportsCharts({
                   tick={{ fill: "var(--foreground)" }}
                 />
                 <Tooltip
-                  formatter={(value) => formatCurrency(Number(value ?? 0), effectiveCurrency)}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "1px solid var(--stroke)",
-                    backgroundColor: "var(--surface)",
-                    color: "var(--foreground)",
-                  }}
+                  content={<CustomTooltip currencySymbol={currencySymbol} />}
+                  wrapperStyle={{ pointerEvents: "none", zIndex: 30 }}
+                  cursor={{ stroke: "var(--stroke)", strokeDasharray: "4 4" }}
                 />
-                <Legend />
-                <Line type="monotone" dataKey="income" name="Pemasukan" stroke="#10b981" strokeWidth={2.4} dot={false} />
-                <Line type="monotone" dataKey="expense" name="Pengeluaran" stroke="#ef4444" strokeWidth={2.4} dot={false} />
+                <Legend verticalAlign="top" height={36} />
+                <Line
+                  type="monotone"
+                  dataKey="income"
+                  name="Pemasukan"
+                  stroke="#10b981"
+                  strokeWidth={2.6}
+                  dot={false}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="expense"
+                  name="Pengeluaran"
+                  stroke="#ef4444"
+                  strokeWidth={2.6}
+                  dot={false}
+                  activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
+                />
               </LineChart>
             </ResponsiveContainer>
           </div>
@@ -149,7 +286,7 @@ export default function ReportsCharts({
         ) : (
           <div className="mt-3 h-[280px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <PieChart>
+              <PieChart accessibilityLayer={false}>
                 <Pie
                   data={convertedCategoryData}
                   dataKey="value"
@@ -188,7 +325,7 @@ export default function ReportsCharts({
         ) : (
           <div className="mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={convertedTrendData}>
+              <BarChart data={convertedTrendData} accessibilityLayer={false}>
                 <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="month"
@@ -266,6 +403,7 @@ export default function ReportsCharts({
                 <BarChart
                   layout="vertical"
                   data={forecastBars}
+                  accessibilityLayer={false}
                   margin={{ top: 4, right: 12, left: 10, bottom: 4 }}
                 >
                   <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" horizontal={false} />

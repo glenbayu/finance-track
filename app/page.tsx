@@ -351,7 +351,7 @@ export default async function Home({ searchParams }: HomeProps) {
       }
     >
       <MaskedAmountProvider>
-        <section className="grid gap-4 md:grid-cols-2 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
           <InteractiveDotPanel className="stat-card self-start h-fit">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm text-slate-500 dark:text-slate-400">Saldo Bulan Ini</p>
@@ -418,8 +418,13 @@ export default async function Home({ searchParams }: HomeProps) {
                 undoFromTemplateAction={undoQuickAddTransaction}
               />
               <TopSpendingInsight data={topSpendingData} totalExpense={totalExpense} />
-              <MonthlyHistory data={monthlyHistoryData} />
             </div>
+          </div>
+        </section>
+
+        <section className="mt-6 hidden lg:grid lg:grid-cols-12 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
+          <div className="lg:col-span-12">
+            <MonthlyHistory data={monthlyHistoryData} />
           </div>
         </section>
 

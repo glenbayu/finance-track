@@ -18,6 +18,8 @@ type FormSelectProps = {
   onValueChange?: (nextValue: string) => void;
   required?: boolean;
   placeholder?: string;
+  icon?: React.ReactNode;
+  disabled?: boolean;
 };
 
 function getNextIndex(
@@ -46,6 +48,8 @@ export default function FormSelect({
   onValueChange,
   required,
   placeholder,
+  icon,
+  disabled,
 }: FormSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(-1);
@@ -183,6 +187,7 @@ export default function FormSelect({
         value={selectedValue}
         onChange={(event) => setNextValue(event.target.value)}
         required={required}
+        disabled={disabled}
         tabIndex={-1}
         aria-hidden="true"
         className="sr-only"
@@ -196,7 +201,10 @@ export default function FormSelect({
 
       <button
         type="button"
+        disabled={disabled}
         className={`input-base flex items-center justify-between gap-2 text-left ${
+          disabled ? "cursor-not-allowed opacity-70" : ""
+        } ${
           isPlaceholderVisible
             ? "text-slate-400 dark:text-slate-500"
             : "text-slate-800 dark:text-slate-100"
@@ -204,16 +212,19 @@ export default function FormSelect({
         aria-haspopup="listbox"
         aria-expanded={isOpen}
         aria-controls={listboxId}
-        onClick={() =>
+        onClick={() => {
+          if (disabled) return;
+
           setIsOpen((current) => {
             if (!current) {
               setActiveIndex(preferredIndex);
             }
 
             return !current;
-          })
-        }
+          });
+        }}
         onKeyDown={(event) => {
+          if (disabled) return;
           if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
 
           event.preventDefault();
@@ -222,12 +233,15 @@ export default function FormSelect({
         }}
       >
         <span className="truncate">{triggerLabel}</span>
-        <ChevronDown
-          size={16}
-          className={`shrink-0 text-slate-500 dark:text-slate-400 transition-transform ${
-            isOpen ? "rotate-180" : ""
-          }`}
-        />
+        <div className="flex items-center gap-1.5 shrink-0">
+          {icon}
+          <ChevronDown
+            size={16}
+            className={`text-slate-500 dark:text-slate-400 transition-transform ${
+              isOpen ? "rotate-180" : ""
+            }`}
+          />
+        </div>
       </button>
 
       {isOpen && menuStyle && typeof document !== "undefined"

@@ -107,6 +107,18 @@ button,
   touch-action: manipulation;
 }
 
+/* Fix Recharts blue outline/box on mobile tap */
+.recharts-wrapper,
+.recharts-surface,
+.recharts-sector,
+.recharts-curve,
+.recharts-rectangle,
+.recharts-dot {
+  -webkit-tap-highlight-color: transparent;
+  outline: none !important;
+  -webkit-focus-ring-color: transparent;
+}
+
 @supports (-webkit-touch-callout: none) {
   .input-base,
   input[type="text"],
@@ -203,7 +215,7 @@ button,
   }
 
   .hero-panel {
-    @apply w-full rounded-[26px] border border-[color:var(--stroke)] bg-[color:var(--surface)]/95 p-6 shadow-[0_26px_44px_-32px_rgba(47,35,16,0.4)] backdrop-blur md:p-8 dark:shadow-[0_24px_44px_-30px_rgba(0,0,0,0.65)];
+    @apply w-full rounded-[26px] border border-[color:var(--stroke)] bg-[color:var(--surface)]/95 p-4 shadow-[0_26px_44px_-32px_rgba(47,35,16,0.4)] backdrop-blur md:p-8 dark:shadow-[0_24px_44px_-30px_rgba(0,0,0,0.65)];
     background-image: linear-gradient(145deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 252, 245, 0.8) 100%);
     animation: fade-slide-up 420ms ease-out both;
   }
@@ -531,7 +543,8 @@ button,
   }
 
   .app-shell-page {
-    padding-bottom: max(6.5rem, calc(6.5rem + env(safe-area-inset-bottom)));
+    /* Increased padding to ensure no overlap with the floating dock */
+    padding-bottom: max(8rem, calc(8rem + env(safe-area-inset-bottom)));
     overflow-x: clip;
   }
 
@@ -579,7 +592,7 @@ button,
   }
 
   .app-shell-dock-link {
-    @apply inline-flex h-12 min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-2 text-[10px] font-semibold text-slate-600 transition-colors duration-200 hover:bg-[color:var(--surface-soft)] dark:text-slate-300 dark:hover:bg-slate-800;
+    @apply inline-flex h-[58px] min-w-0 w-full flex-col items-center justify-center gap-1 rounded-xl px-1 py-1 text-[10px] font-semibold text-slate-600 transition-all duration-200 hover:bg-[color:var(--surface-soft)] dark:text-slate-300 dark:hover:bg-slate-800;
   }
 
   .app-shell-dock-link span {
@@ -587,7 +600,7 @@ button,
   }
 
   .app-shell-dock-link.is-primary {
-    @apply h-12 rounded-xl bg-[color:var(--brand)] px-2 text-white shadow-[0_10px_22px_-16px_rgba(47,76,67,0.65)] hover:bg-[color:var(--brand-strong)] dark:text-white dark:hover:bg-[color:var(--brand-strong)];
+    @apply h-[58px] rounded-xl bg-[color:var(--brand)] px-2 text-white shadow-[0_10px_22px_-16px_rgba(47,76,67,0.65)] hover:bg-[color:var(--brand-strong)] dark:text-white dark:hover:bg-[color:var(--brand-strong)];
   }
 
   .app-shell-dock-link.is-active:not(.is-primary) {
@@ -634,7 +647,17 @@ button,
   .scroll-optimized {
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
-    contain: layout paint;
+    scrollbar-gutter: stable;
+    min-height: 0;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 

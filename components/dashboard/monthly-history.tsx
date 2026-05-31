@@ -36,7 +36,7 @@ export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
       {!data.length ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada riwayat transaksi.</p>
       ) : (
-        <div className="scroll-optimized max-h-[420px] space-y-3 overflow-y-auto pr-1">
+        <div className="scroll-optimized min-h-0 max-h-[420px] space-y-3 overflow-y-auto pr-1 lg:max-h-[calc(100dvh-16rem)]">
           {data.map((item) => (
             <div
               key={item.month}

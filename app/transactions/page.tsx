@@ -12,6 +12,7 @@ import TransactionsSearch from "@/components/transactions/transactions-search";
 import TransactionsFilterControls from "@/components/transactions/transactions-filter-controls";
 import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/date";
 import { requireUser } from "@/lib/supabase/auth";
+import TransactionMobileFilter from "@/components/transactions/transaction-mobile-filter";
 
 type TransactionsPageProps = {
   searchParams?: Promise<{
@@ -330,6 +331,14 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
   const paginationItems = getPaginationItems(currentPage, totalPages);
   const highlightQuery = searchQuery;
 
+  // Use filteredByCategory so the summary card reflects the active filters
+  const monthlyIncome = filteredByCategory
+    .filter((t) => t.type === "income")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+  const monthlyExpense = filteredByCategory
+    .filter((t) => t.type === "expense")
+    .reduce((sum, t) => sum + Number(t.amount), 0);
+
   return (
     <AppShell
       className="transactions-page journal-transactions"
@@ -359,7 +368,6 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       }
       mobileActions={
         <>
-          <MonthFilter selectedMonth={selectedMonth} className="w-full" forceDropdownPicker />
           <TransactionsSearch
             defaultValue={searchValue}
             className="w-full"
@@ -367,7 +375,10 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
             smallScreenPlaceholder="Cari transaksi..."
             useSmallScreenPlaceholder
           />
-          <TransactionsFilterControls
+          <TransactionMobileFilter
+            selectedMonth={selectedMonth}
+            totalIncome={monthlyIncome}
+            totalExpense={monthlyExpense}
             categories={filterCategories}
             selectedType={selectedType}
             selectedCategoryId={selectedCategoryId}

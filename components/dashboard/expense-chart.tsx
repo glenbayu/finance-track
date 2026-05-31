@@ -52,7 +52,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         <div className="w-full min-w-0">
           <div className="relative mx-auto w-full max-w-[340px] sm:max-w-none lg:max-w-[380px]">
             <ResponsiveContainer width="100%" aspect={1.05} minHeight={220}>
-              <PieChart>
+              <PieChart accessibilityLayer={false}>
                 <Pie
                   data={data}
                   dataKey="value"
@@ -125,7 +125,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         </div>
 
         <div>
-          <div className="scroll-optimized max-h-80 space-y-2 overflow-y-auto pr-1">
+          <div className="scroll-optimized min-h-0 max-h-80 space-y-2 overflow-y-auto pr-1 lg:max-h-[30rem]">
             {breakdown.map((item) => (
               <div key={item.name} className="soft-inset p-3">
                 <div className="flex items-start justify-between gap-3">

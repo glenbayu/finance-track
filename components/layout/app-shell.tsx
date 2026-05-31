@@ -213,34 +213,38 @@ export default function AppShell({
         <div className={`min-w-0 ${contentClassName}`}>
           <section className="hero-panel">
             <div
-              className={`flex flex-col gap-4 ${
-                headerLayout === "stacked"
+              className={`flex flex-col gap-4 ${headerLayout === "stacked"
                   ? "lg:items-start"
                   : "lg:flex-row lg:items-end lg:justify-between"
-              }`}
+                }`}
             >
-              <div className="min-w-0 lg:min-w-[240px] lg:flex-1 lg:pr-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-slate-500 dark:text-slate-400">
+              <div className="space-y-1.5 md:space-y-2">
+                <p className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400/80">
                   {badge}
                 </p>
-                <h1 className={`mt-2 text-3xl font-bold md:text-4xl ${titleClassName}`}>{title}</h1>
-                <p className="mt-2 text-slate-600 dark:text-slate-300">{description}</p>
+                <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+                  {title}
+                </h1>
+                {description ? (
+                  <p className="max-w-2xl text-xs md:text-lg font-medium text-slate-500 dark:text-slate-400 leading-relaxed md:block">
+                    {description}
+                  </p>
+                ) : null}
               </div>
 
               {headerActions ? (
                 <div
-                  className={`hidden lg:flex lg:items-end lg:gap-2 ${
-                    headerLayout === "stacked"
+                  className={`hidden lg:flex lg:items-end lg:gap-2 ${headerLayout === "stacked"
                       ? "lg:w-full lg:justify-end"
                       : "lg:shrink-0 lg:justify-end"
-                  } ${headerActionsClassName}`}
+                    } ${headerActionsClassName}`}
                 >
                   {headerActions}
                 </div>
               ) : null}
             </div>
 
-            {mobileActions ? <div className="mt-5 grid gap-3 lg:hidden">{mobileActions}</div> : null}
+            {mobileActions ? <div className="mt-5 grid gap-3 lg:hidden overflow-x-hidden">{mobileActions}</div> : null}
           </section>
 
           <section className="mt-6">{children}</section>

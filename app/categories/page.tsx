@@ -470,92 +470,44 @@ export default async function CategoriesPage() {
       description="Kelola kategori pemasukan dan pengeluaran dengan lebih rapi."
     >
       <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
-        <div className="section-card">
-          <h2 className="text-xl font-semibold">Tambah Kategori</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Tambah kategori baru sesuai kebutuhan kamu.
-          </p>
-
-          <form action={createCategory} className="mt-5 space-y-4">
-            <div>
-              <label className="mb-2 block text-sm font-medium">
-                Nama kategori
-              </label>
-              <input
-                type="text"
-                name="name"
-                placeholder="Contoh: Saham"
-                className="input-base"
-                required
-              />
-            </div>
-
-            <div>
-              <label className="mb-2 block text-sm font-medium">Tipe</label>
-              <FormSelect
-                name="type"
-                defaultValue="expense"
-                options={[
-                  { value: "expense", label: "Pengeluaran" },
-                  { value: "income", label: "Pemasukan" },
-                ]}
-                required
-              />
-            </div>
-
-            <SubmitButton className="btn-primary w-full py-3" pendingText="Menyimpan...">
-              Simpan Kategori
-            </SubmitButton>
-          </form>
-        </div>
-
         <div className="space-y-6">
           <section className="section-card">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold">Active Categories</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Gunakan archive untuk menyembunyikan kategori tanpa menghapus riwayat transaksi.
-              </p>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Gunakan merge untuk merapikan kategori duplikat.
-              </p>
-            </div>
+            <h2 className="text-xl font-semibold">Tambah Kategori</h2>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Tambah kategori baru sesuai kebutuhan kamu.
+            </p>
 
-            {!activeCategories.length ? (
-              <div className="text-sm text-slate-500 dark:text-slate-400">
-                <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-600 dark:text-slate-300">
-                  <FolderSearch size={18} />
-                </span>
-                <p>Belum ada kategori aktif.</p>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <Link href="/transactions/new" className="btn-primary">
-                    + Tambah Transaksi
-                  </Link>
-                  <Link href="/" className="btn-secondary">
-                    Ke Dashboard
-                  </Link>
-                </div>
+            <form action={createCategory} className="mt-5 space-y-4">
+              <div>
+                <label className="mb-2 block text-sm font-medium">
+                  Nama kategori
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  placeholder="Contoh: Saham"
+                  className="input-base"
+                  required
+                />
               </div>
-            ) : (
-              <div className="space-y-5">
-                <div>
-                  <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    Pemasukan ({activeByType.income.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {activeByType.income.map((category) => renderCategoryCard(category))}
-                  </div>
-                </div>
-                <div>
-                  <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    Pengeluaran ({activeByType.expense.length})
-                  </h3>
-                  <div className="space-y-3">
-                    {activeByType.expense.map((category) => renderCategoryCard(category))}
-                  </div>
-                </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium">Tipe</label>
+                <FormSelect
+                  name="type"
+                  defaultValue="expense"
+                  options={[
+                    { value: "expense", label: "Pengeluaran" },
+                    { value: "income", label: "Pemasukan" },
+                  ]}
+                  required
+                />
               </div>
-            )}
+
+              <SubmitButton className="btn-primary w-full py-3" pendingText="Menyimpan...">
+                Simpan Kategori
+              </SubmitButton>
+            </form>
           </section>
 
           <section className="section-card">
@@ -574,11 +526,59 @@ export default async function CategoriesPage() {
                 <p>Belum ada kategori yang diarsipkan.</p>
               </div>
             ) : (
-              <div className="space-y-3">
+              <div className="space-y-3 lg:max-h-[calc(100dvh-24rem)] lg:overflow-y-auto lg:pr-1">
                 {archivedCategories.map((category) => renderCategoryCard(category, true))}
               </div>
             )}
           </section>
+        </div>
+
+        <div className="section-card">
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold">Active Categories</h2>
+            <p className="text-sm text-slate-500 dark:text-slate-400">
+              Gunakan archive untuk menyembunyikan kategori tanpa menghapus riwayat transaksi.
+            </p>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
+              Gunakan merge untuk merapikan kategori duplikat.
+            </p>
+          </div>
+
+          {!activeCategories.length ? (
+            <div className="text-sm text-slate-500 dark:text-slate-400">
+              <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-600 dark:text-slate-300">
+                <FolderSearch size={18} />
+              </span>
+              <p>Belum ada kategori aktif.</p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <Link href="/transactions/new" className="btn-primary">
+                  + Tambah Transaksi
+                </Link>
+                <Link href="/" className="btn-secondary">
+                  Ke Dashboard
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-5 lg:max-h-[calc(100dvh-26rem)] lg:overflow-y-auto lg:pr-1">
+              <div>
+                <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                  Pemasukan ({activeByType.income.length})
+                </h3>
+                <div className="space-y-3">
+                  {activeByType.income.map((category) => renderCategoryCard(category))}
+                </div>
+              </div>
+              <div>
+                <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
+                  Pengeluaran ({activeByType.expense.length})
+                </h3>
+                <div className="space-y-3">
+                  {activeByType.expense.map((category) => renderCategoryCard(category))}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </AppShell>

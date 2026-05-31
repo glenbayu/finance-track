@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { FolderKanban, Settings, Sparkles, Tags, Target } from "lucide-react";
+import { LogOut, Settings, Sparkles, Tags, Target } from "lucide-react";
 import AppShell from "@/components/layout/app-shell";
 import LogoutButton from "@/components/auth/logout-button";
 import { requireUser } from "@/lib/supabase/auth";
@@ -40,12 +40,6 @@ export default async function MorePage() {
       activeNav="more"
       title="More"
       description="Akses menu tambahan untuk mengatur finance tracker."
-      headerActions={
-        <LogoutButton
-          iconOnly
-          className="btn-secondary h-10 w-10 px-0 text-slate-500 dark:text-slate-300"
-        />
-      }
     >
       <section className="grid gap-4">
         {menuItems.map((item) => {
@@ -68,7 +62,7 @@ export default async function MorePage() {
         <article className="section-card">
           <div className="flex items-start gap-3">
             <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-700 dark:text-slate-200">
-              <FolderKanban size={18} />
+                <LogOut size={18} />
             </span>
             <div className="min-w-0">
               <p className="text-lg font-semibold">Logout</p>

@@ -165,6 +165,24 @@ function getPaginationItems(currentPage: number, totalPages: number) {
   return paginationItems;
 }
 
+function getMobilePaginationItems(currentPage: number, totalPages: number) {
+  if (totalPages <= 6) {
+    return Array.from({ length: totalPages }, (_, index) => index + 1).map(
+      (page) => page as number | null,
+    );
+  }
+
+  if (currentPage <= 3) {
+    return [1, 2, 3, null, totalPages];
+  }
+
+  if (currentPage >= totalPages - 2) {
+    return [1, null, totalPages - 3, totalPages - 2, totalPages - 1, totalPages];
+  }
+
+  return [1, null, currentPage - 1, currentPage, currentPage + 1, null, totalPages];
+}
+
 async function deleteTransaction(formData: FormData) {
   "use server";
 
@@ -329,6 +347,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
   };
 
   const paginationItems = getPaginationItems(currentPage, totalPages);
+  const mobilePaginationItems = getMobilePaginationItems(currentPage, totalPages);
   const highlightQuery = searchQuery;
 
   // Use filteredByCategory so the summary card reflects the active filters
@@ -414,6 +433,8 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
             <div className="space-y-3 p-3 md:hidden">
               {paginatedTransactions.map((transaction) => {
                 const category = toCategory(transaction.categories);
+                const amountValue = Number(transaction.amount);
+                const useCompactAmount = Math.abs(amountValue) >= 100000;
 
                 return (
                   <article key={transaction.id} className="soft-inset">
@@ -439,17 +460,17 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                       </span>
                     </div>
 
-                    <div className="mt-4 flex flex-wrap items-center justify-between gap-3">
+                    <div className="mt-4 flex items-center justify-between gap-3">
                       <p
-                        className={`text-lg font-semibold ${
+                        className={`min-w-0 whitespace-nowrap text-lg font-semibold ${
                           transaction.type === "income" ? "text-emerald-600" : "text-rose-600"
                         }`}
                       >
                         {transaction.type === "income" ? "+" : "-"}
-                        <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
+                        <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
                       </p>
 
-                      <div className="flex flex-wrap items-center gap-2">
+                      <div className="flex shrink-0 items-center gap-2">
                         <DuplicateTransactionButton id={transaction.id} />
                         <EditTransactionButton id={transaction.id} />
                         <DeleteTransactionButton id={transaction.id} action={deleteTransaction} />
@@ -511,70 +532,149 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               </table>
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-slate-200 p-4 dark:border-slate-800">
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Halaman {currentPage} dari {totalPages} - {totalCount} transaksi
-              </p>
-
-              <nav aria-label="Pagination transaksi" className="flex items-center gap-1.5">
-                {currentPage > 1 ? (
-                  <Link
-                    href={buildPageHref(currentPage - 1)}
-                    aria-label="Halaman sebelumnya"
-                    className="btn-secondary h-9 w-9 px-0"
-                  >
-                    <ChevronLeft size={16} />
-                  </Link>
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-300 dark:border-slate-700 dark:text-slate-600"
-                  >
-                    <ChevronLeft size={16} />
+            <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+              <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                <p className="text-xs text-slate-600 dark:text-slate-300 md:text-sm">
+                  <span className="md:hidden">
+                    Hal. {currentPage}/{totalPages} &bull; {totalCount} transaksi
                   </span>
-                )}
-
-                {paginationItems.map((item, index) =>
-                  item ? (
-                    <Link
-                      key={`page-${item}`}
-                      href={buildPageHref(item)}
-                      aria-current={item === currentPage ? "page" : undefined}
-                      className={
-                        item === currentPage
-                          ? "inline-flex h-9 min-w-9 items-center justify-center rounded-xl bg-slate-900 px-3 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
-                          : "btn-secondary h-9 min-w-9 px-3"
-                      }
-                    >
-                      {item}
-                    </Link>
-                  ) : (
-                    <span
-                      key={`ellipsis-${index}`}
-                      className="inline-flex h-9 min-w-9 items-center justify-center px-1 text-sm text-slate-500 dark:text-slate-400"
-                    >
-                      ...
-                    </span>
-                  ),
-                )}
-
-                {currentPage < totalPages ? (
-                  <Link
-                    href={buildPageHref(currentPage + 1)}
-                    aria-label="Halaman berikutnya"
-                    className="btn-secondary h-9 w-9 px-0"
-                  >
-                    <ChevronRight size={16} />
-                  </Link>
-                ) : (
-                  <span
-                    aria-hidden="true"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-xl border border-slate-200 text-slate-300 dark:border-slate-700 dark:text-slate-600"
-                  >
-                    <ChevronRight size={16} />
+                  <span className="hidden md:inline">
+                    Halaman {currentPage} dari {totalPages} - {totalCount} transaksi
                   </span>
-                )}
-              </nav>
+                </p>
+
+                <nav
+                  aria-label="Pagination transaksi"
+                  className="w-full md:hidden"
+                >
+                  <div className="flex items-center justify-between gap-1.5">
+                    {currentPage > 1 ? (
+                      <Link
+                        href={buildPageHref(currentPage - 1)}
+                        aria-label="Halaman sebelumnya"
+                        className="btn-secondary h-8 w-8 shrink-0 px-0"
+                      >
+                        <ChevronLeft size={14} />
+                      </Link>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--stroke)] bg-[color:var(--surface)] text-slate-300 dark:text-slate-600"
+                      >
+                        <ChevronLeft size={14} />
+                      </span>
+                    )}
+
+                    <div className="flex min-w-0 flex-1 items-center justify-center gap-1.5">
+                      {mobilePaginationItems.map((item, index) =>
+                        item ? (
+                          <Link
+                            key={`mobile-page-${item}`}
+                            href={buildPageHref(item)}
+                            aria-current={item === currentPage ? "page" : undefined}
+                            className={
+                              item === currentPage
+                                ? "inline-flex h-8 min-w-8 shrink-0 items-center justify-center rounded-full bg-slate-900 px-2.5 text-xs font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
+                                : "btn-secondary h-8 min-w-8 shrink-0 px-2.5 text-xs"
+                            }
+                          >
+                            {item}
+                          </Link>
+                        ) : (
+                          <span
+                            key={`mobile-ellipsis-${index}`}
+                            className="inline-flex h-8 min-w-4 shrink-0 items-center justify-center px-0.5 text-xs text-slate-500 dark:text-slate-400"
+                          >
+                            ...
+                          </span>
+                        ),
+                      )}
+                    </div>
+
+                    {currentPage < totalPages ? (
+                      <Link
+                        href={buildPageHref(currentPage + 1)}
+                        aria-label="Halaman berikutnya"
+                        className="btn-secondary h-8 w-8 shrink-0 px-0"
+                      >
+                        <ChevronRight size={14} />
+                      </Link>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-[color:var(--stroke)] bg-[color:var(--surface)] text-slate-300 dark:text-slate-600"
+                      >
+                        <ChevronRight size={14} />
+                      </span>
+                    )}
+                  </div>
+                </nav>
+
+                <nav
+                  aria-label="Pagination transaksi"
+                  className="hidden md:block md:w-auto"
+                >
+                  <div className="flex items-center gap-1.5 md:min-w-0 md:flex-nowrap md:justify-end">
+                    {currentPage > 1 ? (
+                      <Link
+                        href={buildPageHref(currentPage - 1)}
+                        aria-label="Halaman sebelumnya"
+                        className="btn-secondary h-9 w-9 shrink-0 px-0"
+                      >
+                        <ChevronLeft size={16} />
+                      </Link>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--stroke)] bg-[color:var(--surface)] text-slate-300 dark:text-slate-600"
+                      >
+                        <ChevronLeft size={16} />
+                      </span>
+                    )}
+
+                    {paginationItems.map((item, index) =>
+                      item ? (
+                        <Link
+                          key={`page-${item}`}
+                          href={buildPageHref(item)}
+                          aria-current={item === currentPage ? "page" : undefined}
+                          className={
+                            item === currentPage
+                              ? "inline-flex h-9 min-w-9 shrink-0 items-center justify-center rounded-full bg-slate-900 px-3 text-sm font-semibold text-white dark:bg-slate-100 dark:text-slate-900"
+                              : "btn-secondary h-9 min-w-9 shrink-0 px-3"
+                          }
+                        >
+                          {item}
+                        </Link>
+                      ) : (
+                        <span
+                          key={`ellipsis-${index}`}
+                          className="inline-flex h-9 min-w-9 shrink-0 items-center justify-center px-1 text-sm text-slate-500 dark:text-slate-400"
+                        >
+                          ...
+                        </span>
+                      ),
+                    )}
+
+                    {currentPage < totalPages ? (
+                      <Link
+                        href={buildPageHref(currentPage + 1)}
+                        aria-label="Halaman berikutnya"
+                        className="btn-secondary h-9 w-9 shrink-0 px-0"
+                      >
+                        <ChevronRight size={16} />
+                      </Link>
+                    ) : (
+                      <span
+                        aria-hidden="true"
+                        className="inline-flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-[color:var(--stroke)] bg-[color:var(--surface)] text-slate-300 dark:text-slate-600"
+                      >
+                        <ChevronRight size={16} />
+                      </span>
+                    )}
+                  </div>
+                </nav>
+              </div>
             </div>
           </>
         )}

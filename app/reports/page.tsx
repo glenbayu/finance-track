@@ -369,9 +369,9 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       description="Lihat rekap bulanan, tren pengeluaran, dan estimasi bulan berikutnya berdasarkan data transaksi kamu."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
-        <MonthFilter selectedMonth={selectedMonth} className="min-w-[210px]" />
+        <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
       }
-      mobileActions={<MonthFilter selectedMonth={selectedMonth} className="w-full" />}
+      mobileActions={<MonthFilter selectedMonth={selectedMonth} compact className="w-full" />}
     >
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         <article className="stat-card">

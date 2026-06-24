@@ -26,7 +26,7 @@ export type AppNavKey =
 type AppShellProps = {
   title: string;
   description: string;
-  activeNav: AppNavKey;
+  activeNav: AppNavKey | null;
   month?: string;
   badge?: string;
   className?: string;
@@ -210,7 +210,7 @@ export default function AppShell({
           </div>
         </aside>
 
-        <div className={`min-w-0 ${contentClassName}`}>
+        <div className={`app-shell-content min-w-0 ${contentClassName}`}>
           <section className="hero-panel">
             <div
               className={`flex flex-col gap-4 ${headerLayout === "stacked"
@@ -222,7 +222,7 @@ export default function AppShell({
                 <p className="text-[10px] md:text-sm font-bold uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400/80">
                   {badge}
                 </p>
-                <h1 className="text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white leading-tight">
+                <h1 className={`text-2xl md:text-4xl font-black tracking-tight text-slate-900 dark:text-white leading-tight ${titleClassName}`}>
                   {title}
                 </h1>
                 {description ? (
@@ -255,7 +255,7 @@ export default function AppShell({
         <nav className="app-shell-mobile-dock lg:hidden" aria-label="Navigasi cepat">
           {mobileDockItems.map((item) => {
             const Icon = item.icon;
-            const isActive = item.activeWhen.includes(activeNav);
+            const isActive = activeNav ? item.activeWhen.includes(activeNav) : false;
 
             return (
               <Link

@@ -1,13 +1,14 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { CalendarDays, LoaderCircle } from "lucide-react";
+import { CalendarDays, ChevronDown, LoaderCircle } from "lucide-react";
+import { formatMonthLabel } from "@/lib/format";
 
 type MonthFilterProps = {
   selectedMonth: string;
   className?: string;
-  forceDropdownPicker?: boolean;
+  compact?: boolean;
 };
 
 function isMonthValue(value: string) {
@@ -30,20 +31,48 @@ function toMonthParts(value: string) {
 export default function MonthFilter({
   selectedMonth,
   className = "",
-  forceDropdownPicker = false,
+  compact = false,
 }: MonthFilterProps) {
   const inputId = useId();
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const compactInputRef = useRef<HTMLInputElement | null>(null);
   const [displayMonth, setDisplayMonth] = useState(selectedMonth);
   const [supportsMonthInput, setSupportsMonthInput] = useState(true);
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
+  const [isCompactOpen, setIsCompactOpen] = useState(false);
 
   useEffect(() => {
     setDisplayMonth(selectedMonth);
   }, [selectedMonth]);
+
+  useEffect(() => {
+    if (!isCompactOpen) return;
+
+    const handlePointerDown = (event: PointerEvent) => {
+      const target = event.target as Node;
+      if (!rootRef.current?.contains(target)) {
+        setIsCompactOpen(false);
+      }
+    };
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        setIsCompactOpen(false);
+      }
+    };
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    document.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.removeEventListener("pointerdown", handlePointerDown);
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isCompactOpen]);
 
   useEffect(() => {
     const input = document.createElement("input");
@@ -117,14 +146,119 @@ export default function MonthFilter({
     const safeMonth = Math.min(12, Math.max(1, nextMonthNum));
     const nextMonth = `${nextYear}-${String(safeMonth).padStart(2, "0")}`;
     setDisplayMonth(nextMonth);
+    setIsCompactOpen(false);
     handleMonthChange(nextMonth);
   }
 
-  const useDropdownPicker = forceDropdownPicker || isCoarsePointer || !supportsMonthInput;
+  const useDropdownPicker = isCoarsePointer || !supportsMonthInput;
+  const compactLabel = formatMonthLabel(displayMonth);
+  const useCompactNativePicker = compact && supportsMonthInput;
+
+  function openCompactNativePicker() {
+    const input = compactInputRef.current;
+    if (!input) return;
+
+    if (typeof input.showPicker === "function") {
+      input.showPicker();
+      return;
+    }
+
+    input.focus();
+    input.click();
+  }
 
   return (
-    <div className={`relative min-w-0 ${className}`}>
-      {useDropdownPicker ? (
+    <div ref={rootRef} className={`relative min-w-0 ${className}`}>
+      {useCompactNativePicker ? (
+        <>
+          <button
+            type="button"
+            onClick={openCompactNativePicker}
+            className="btn-secondary h-10 w-full min-w-0 justify-between gap-2 rounded-2xl px-4 text-sm font-semibold"
+          >
+            <span className="truncate text-left">{compactLabel}</span>
+            <ChevronDown size={16} className="shrink-0 text-slate-500 dark:text-slate-400" />
+          </button>
+
+          <label htmlFor={`${inputId}-compact-native`} className="sr-only">
+            Pilih bulan
+          </label>
+          <input
+            ref={compactInputRef}
+            id={`${inputId}-compact-native`}
+            type="month"
+            value={displayMonth}
+            aria-busy={isPending}
+            inputMode="numeric"
+            pattern="[0-9]{4}-[0-9]{2}"
+            onChange={(event) => {
+              const nextMonth = event.currentTarget.value;
+              setDisplayMonth(nextMonth);
+              handleMonthChange(nextMonth);
+            }}
+            tabIndex={-1}
+            className="pointer-events-none absolute left-0 top-0 h-px w-px opacity-0"
+          />
+        </>
+      ) : compact ? (
+        <>
+          <button
+            type="button"
+            aria-haspopup="dialog"
+            aria-expanded={isCompactOpen}
+            onClick={() => setIsCompactOpen((current) => !current)}
+            className="btn-secondary h-10 w-full min-w-0 justify-between gap-2 rounded-2xl px-4 text-sm font-semibold"
+          >
+            <span className="truncate text-left">{compactLabel}</span>
+            <ChevronDown
+              size={16}
+              className={`shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
+                isCompactOpen ? "rotate-180" : ""
+              }`}
+            />
+          </button>
+
+          {isCompactOpen ? (
+            <div className="absolute left-0 right-0 top-full z-[90] mt-2 rounded-[22px] border border-[color:var(--stroke)] bg-[color:var(--surface)]/98 p-3 shadow-[0_24px_44px_-26px_rgba(39,31,17,0.34)] backdrop-blur-sm dark:shadow-[0_28px_52px_-28px_rgba(2,6,23,0.95)]">
+              <div className="grid grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] gap-2">
+                <label htmlFor={`${inputId}-compact-month`} className="sr-only">
+                  Pilih bulan
+                </label>
+                <select
+                  id={`${inputId}-compact-month`}
+                  value={displayMonthNum}
+                  aria-label="Pilih bulan"
+                  onChange={(event) => updateFromFallback(displayYear, Number(event.currentTarget.value))}
+                  className="input-base select-base h-10 rounded-2xl py-2 text-sm"
+                >
+                  {monthOptions.map((monthOption) => (
+                    <option key={monthOption.value} value={monthOption.value}>
+                      {monthOption.label}
+                    </option>
+                  ))}
+                </select>
+
+                <label htmlFor={`${inputId}-compact-year`} className="sr-only">
+                  Pilih tahun
+                </label>
+                <select
+                  id={`${inputId}-compact-year`}
+                  value={displayYear}
+                  aria-label="Pilih tahun"
+                  onChange={(event) => updateFromFallback(Number(event.currentTarget.value), displayMonthNum)}
+                  className="input-base select-base h-10 rounded-2xl py-2 text-sm"
+                >
+                  {yearOptions.map((yearOption) => (
+                    <option key={yearOption} value={yearOption}>
+                      {yearOption}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : useDropdownPicker ? (
         <div className="grid grid-cols-2 gap-2">
           <label htmlFor={`${inputId}-month`} className="sr-only">
             Pilih bulan
@@ -189,7 +323,9 @@ export default function MonthFilter({
         <LoaderCircle
           size={15}
           className={
-            useDropdownPicker
+            compact
+              ? "absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
+              : useDropdownPicker
               ? "absolute right-3 top-3 animate-spin text-slate-400"
               : "absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
           }

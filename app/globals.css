@@ -559,13 +559,40 @@ button,
   }
 
   .app-shell-grid {
-    @apply grid gap-4 lg:grid-cols-[250px_minmax(0,1fr)] lg:gap-6;
+    @apply grid gap-4 lg:gap-6;
   }
 
   .app-shell-sidebar {
-    @apply sticky top-6 max-h-[calc(100dvh-3rem)] flex-col overflow-auto;
+    @apply flex-col;
     padding-top: max(1.25rem, calc(1.25rem + env(safe-area-inset-top)));
     padding-bottom: max(1.25rem, calc(1.25rem + env(safe-area-inset-bottom)));
+  }
+
+  .app-shell-content {
+    min-width: 0;
+  }
+
+  @media (min-width: 1024px) {
+    .app-shell-grid {
+      --app-shell-sidebar-width: 250px;
+      --app-shell-sidebar-gap: 1.5rem;
+      display: block;
+    }
+
+    .app-shell-sidebar {
+      position: fixed;
+      top: max(1.5rem, calc(1.5rem + env(safe-area-inset-top)));
+      left: max(2rem, calc((100vw - 72rem) / 2));
+      width: var(--app-shell-sidebar-width);
+      max-height: calc(100dvh - max(3rem, calc(3rem + env(safe-area-inset-top) + env(safe-area-inset-bottom))));
+      overflow-y: auto;
+      overscroll-behavior: contain;
+      box-sizing: border-box;
+    }
+
+    .app-shell-content {
+      margin-left: calc(var(--app-shell-sidebar-width) + var(--app-shell-sidebar-gap));
+    }
   }
 
   .app-shell-nav-link {

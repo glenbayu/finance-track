@@ -1,7 +1,52 @@
-<svg width="256" height="256" viewBox="0 0 256 256" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <rect width="256" height="256" rx="68" fill="#111827"/>
-  <rect x="48" y="164" width="36" height="44" rx="12" fill="#F8FAFC"/>
-  <rect x="102" y="116" width="36" height="92" rx="12" fill="#F8FAFC"/>
-  <rect x="156" y="72" width="36" height="136" rx="12" fill="#F8FAFC"/>
-  <path d="M52 88C80.7 52.4 120.2 58.9 147.4 79.8C159.2 88.9 171.8 93.5 192 83.5" stroke="#22C55E" stroke-width="12" stroke-linecap="round"/>
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" rx="120" fill="#F4ECDD"/>
+  <path
+    d="M54 418C85 450 127 468 173 468H374C422 468 466 445 497 408V512H54V418Z"
+    fill="#123E35"
+  />
+  <path
+    d="M54 151C54 121.176 78.1766 97 108 97H364C402.66 97 434 128.34 434 167V365C434 393.719 410.719 417 382 417H176C108.621 417 54 362.379 54 295V151Z"
+    fill="#FFF9F0"
+  />
+  <path d="M54 151C54 121.176 78.1766 97 108 97H146V417H108C78.1766 417 54 392.823 54 363V151Z" fill="#1D5448" />
+  <path d="M146 97H364C402.66 97 434 128.34 434 167V365C434 393.719 410.719 417 382 417H146V97Z" fill="url(#paperGlow)" />
+  <path d="M199 97H244V176L221.5 156L199 176V97Z" fill="#91A783" />
+  <rect x="175" y="182" width="120" height="14" rx="7" fill="#D8C8A3" />
+  <rect x="175" y="214" width="82" height="14" rx="7" fill="#D8C8A3" />
+  <path
+    d="M177 312L252 245C258 239 268 238 275 243L306 266C314 272 326 270 332 262L396 187"
+    stroke="#1D5448"
+    stroke-width="14"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <circle cx="401" cy="182" r="18" fill="#1D5448" />
+  <circle cx="401" cy="182" r="31" fill="#1D5448" fill-opacity="0.18" />
+  <rect x="207" y="330" width="29" height="42" rx="8" fill="url(#barFill)" />
+  <rect x="257" y="312" width="29" height="60" rx="8" fill="url(#barFill)" />
+  <rect x="307" y="293" width="29" height="79" rx="8" fill="url(#barFill)" />
+  <rect x="357" y="272" width="29" height="100" rx="8" fill="url(#barFill)" />
+  <path d="M147 391H434" stroke="#E8DCC4" stroke-width="2" />
+  <circle cx="188" cy="431" r="26" fill="#1D5448" />
+  <path
+    d="M188 416V446M178 422C178 418.686 182.477 416 188 416C193.523 416 198 418.686 198 422C198 425.314 193.523 428 188 428C182.477 428 178 430.686 178 434C178 437.314 182.477 440 188 440C193.523 440 198 437.314 198 434"
+    stroke="#FFF9F0"
+    stroke-width="6"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+  />
+  <rect x="228" y="416" width="90" height="12" rx="6" fill="#D8C8A3" />
+  <rect x="228" y="438" width="58" height="12" rx="6" fill="#D8C8A3" />
+  <rect x="339" y="416" width="55" height="12" rx="6" fill="#91A783" />
+  <rect x="339" y="438" width="35" height="12" rx="6" fill="#D8C8A3" />
+  <defs>
+    <linearGradient id="paperGlow" x1="165" y1="112" x2="429" y2="390" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF8" />
+      <stop offset="1" stop-color="#F7EEDA" />
+    </linearGradient>
+    <linearGradient id="barFill" x1="221.5" y1="293" x2="385" y2="372" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#9FB391" />
+      <stop offset="1" stop-color="#C8D3BA" />
+    </linearGradient>
+  </defs>
 </svg>

@@ -93,11 +93,16 @@ export default function FormSelect({
       if (!root) return;
 
       const rect = root.getBoundingClientRect();
+      const isMobileViewport = window.innerWidth < 768;
       const viewportPadding = 8;
       const gap = 8;
       const defaultMaxHeight = 256;
       const availableBelow = window.innerHeight - rect.bottom - viewportPadding;
       const availableAbove = rect.top - viewportPadding;
+      const availableWidth = window.innerWidth - viewportPadding * 2;
+      const menuWidth = isMobileViewport
+        ? Math.min(availableWidth, Math.max(rect.width, 240))
+        : rect.width;
       const openUpward = availableBelow < 220 && availableAbove > availableBelow;
       const maxHeight = Math.max(
         140,
@@ -107,12 +112,18 @@ export default function FormSelect({
       const top = openUpward
         ? Math.max(viewportPadding, rect.top - gap - maxHeight)
         : Math.min(window.innerHeight - viewportPadding - maxHeight, rect.bottom + gap);
+      const left = isMobileViewport
+        ? Math.min(
+            Math.max(viewportPadding, rect.left),
+            window.innerWidth - viewportPadding - menuWidth,
+          )
+        : rect.left;
 
       setMenuStyle({
         position: "fixed",
         top: `${Math.round(top)}px`,
-        left: `${Math.round(rect.left)}px`,
-        width: `${Math.round(rect.width)}px`,
+        left: `${Math.round(left)}px`,
+        width: `${Math.round(menuWidth)}px`,
         maxHeight: `${Math.round(maxHeight)}px`,
         zIndex: 9999,
       });
@@ -276,7 +287,9 @@ export default function FormSelect({
                         setIsOpen(false);
                       }}
                     >
-                      <span className="truncate">{option.label}</span>
+                      <span className="min-w-0 flex-1 whitespace-normal break-words leading-5">
+                        {option.label}
+                      </span>
                       {isSelected ? <Check size={14} className="text-slate-700 dark:text-slate-200" /> : null}
                     </button>
                   </li>

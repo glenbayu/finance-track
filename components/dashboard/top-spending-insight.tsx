@@ -73,13 +73,19 @@ function formatContribution(percentage: number) {
   return `${percentage.toFixed(1)}%`;
 }
 
-export default function TopSpendingInsight({ data, totalExpense }: TopSpendingInsightProps) {
+export default function TopSpendingInsight({
+  data,
+  totalExpense,
+}: TopSpendingInsightProps) {
   const masked = useMaskedAmounts();
   const isHidden = masked?.isHidden ?? false;
   const { formatFromIDR } = useDisplayCurrency();
+  const panelClassName = data.length
+    ? "section-card flex min-h-[30rem] flex-col md:min-h-[34rem] lg:min-h-0"
+    : "section-card";
 
   return (
-    <InteractiveDotPanel className="section-card">
+    <InteractiveDotPanel className={panelClassName}>
       <div className="mb-4 flex items-center justify-between">
         <div>
           <h2 className="text-xl font-semibold">Top Kategori Pengeluaran Bulan Ini</h2>
@@ -94,7 +100,7 @@ export default function TopSpendingInsight({ data, totalExpense }: TopSpendingIn
           Belum ada kategori pengeluaran di bulan ini.
         </p>
       ) : (
-        <div className="scroll-optimized min-h-0 max-h-[17rem] space-y-3 overflow-y-auto pr-1 md:max-h-[23rem] lg:max-h-[calc(100dvh-18rem)]">
+        <div className="scroll-optimized min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 lg:max-h-[calc(100dvh-18rem)]">
           {data.map((item, index) => (
             <details key={`${item.category_name}-${index}`} className="soft-inset group">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3">

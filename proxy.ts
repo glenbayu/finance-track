@@ -1,11 +1,13 @@
 import { NextResponse, type NextRequest } from "next/server";
 import { createServerClient } from "@supabase/ssr";
+import {
+  createIdleCookieOptions,
+  IDLE_COOKIE,
+  MAX_IDLE_MS,
+} from "@/lib/auth/idle-session";
 
 export async function proxy(request: NextRequest) {
-  const IDLE_COOKIE = "ft_last_activity";
-  const MAX_IDLE_MS = 10 * 60 * 1000;
-
-  let response = NextResponse.next({
+  const response = NextResponse.next({
     request,
   });
 
@@ -43,7 +45,17 @@ export async function proxy(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
+  const { pathname, search } = request.nextUrl;
+
+  const redirectWithCookies = (url: URL) => {
+    const redirectResponse = NextResponse.redirect(url);
+
+    response.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie);
+    });
+
+    return redirectResponse;
+  };
 
   const isAuthPage =
     pathname.startsWith("/login") || pathname.startsWith("/signup");
@@ -67,27 +79,26 @@ export async function proxy(request: NextRequest) {
       now - lastActivity > MAX_IDLE_MS;
 
     if (isExpired) {
+      await supabase.auth.signOut();
+
       const url = request.nextUrl.clone();
       url.pathname = "/login";
       url.searchParams.set(
         "error",
         "Sesi kamu sudah berakhir karena tidak aktif selama 10 menit.",
       );
-      url.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
+      url.searchParams.set("next", `${pathname}${search}`);
 
-      response = NextResponse.redirect(url);
-      await supabase.auth.signOut();
-      response.cookies.delete(IDLE_COOKIE);
-      return response;
+      const redirectResponse = redirectWithCookies(url);
+      redirectResponse.cookies.delete(IDLE_COOKIE);
+      return redirectResponse;
     }
 
-    response.cookies.set(IDLE_COOKIE, String(now), {
-      httpOnly: true,
-      sameSite: "lax",
-      secure: request.nextUrl.protocol === "https:",
-      path: "/",
-      maxAge: 60 * 60 * 24 * 14,
-    });
+    response.cookies.set(
+      IDLE_COOKIE,
+      String(now),
+      createIdleCookieOptions(request.nextUrl.protocol === "https:"),
+    );
   } else {
     response.cookies.delete(IDLE_COOKIE);
   }
@@ -95,16 +106,14 @@ export async function proxy(request: NextRequest) {
   if (!user && isProtectedPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("next", `${request.nextUrl.pathname}${request.nextUrl.search}`);
-    response = NextResponse.redirect(url);
-    return response;
+    url.searchParams.set("next", `${pathname}${search}`);
+    return redirectWithCookies(url);
   }
 
   if (user && isAuthPage) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
-    response = NextResponse.redirect(url);
-    return response;
+    return redirectWithCookies(url);
   }
 
   return response;

@@ -1,4 +1,5 @@
 import AppShell from "@/components/layout/app-shell";
+import PwaInstallCard from "@/components/pwa/pwa-install-card";
 import ProfileCard from "@/components/settings/profile-card";
 import AppearanceCard from "@/components/settings/appearance-card";
 import PreferencesCard from "@/components/settings/preferences-card";
@@ -20,6 +21,7 @@ export default async function SettingsPage() {
         <div className="space-y-4 xl:col-span-8">
           <ProfileCard email={user.email ?? "-"} />
           <AppearanceCard />
+          <PwaInstallCard />
           <PreferencesCard />
         </div>
         <div className="space-y-4 xl:col-span-4">

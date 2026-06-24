@@ -324,7 +324,7 @@ export default async function Home({ searchParams }: HomeProps) {
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
         <>
-          <MonthFilter selectedMonth={selectedMonth} className="min-w-[210px]" />
+          <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
           <Link href="/transactions/new" className="btn-primary h-10 px-5">
             + Transaksi
           </Link>
@@ -333,7 +333,7 @@ export default async function Home({ searchParams }: HomeProps) {
       mobileActions={
         <>
           <div className="flex w-full min-w-0 items-center gap-2">
-            <MonthFilter selectedMonth={selectedMonth} className="flex-1" />
+            <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
             <LogoutButton
               iconOnly
               className="btn-secondary h-10 w-10 shrink-0 justify-center px-0"

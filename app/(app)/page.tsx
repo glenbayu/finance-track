@@ -12,7 +12,7 @@ import { MaskedAmountProvider } from "@/components/ui/masked-amount";
 import MaskedCurrencyAmount from "@/components/ui/masked-currency-amount";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import MonthFilter from "@/components/ui/month-filter";
-import { createTransactionFromTemplate, undoQuickAddTransaction } from "@/app/quick-add/actions";
+import { createTransactionFromTemplate, undoQuickAddTransaction } from "@/lib/actions/quick-add";
 import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth } from "@/lib/date";
 import { formatDate as formatDateLabel } from "@/lib/format";
 import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/quick-add";

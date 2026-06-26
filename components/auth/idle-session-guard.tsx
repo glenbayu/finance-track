@@ -42,7 +42,7 @@ export default function IdleSessionGuard() {
       }
 
       const params = new URLSearchParams();
-      params.set("error", "Sesi kamu sudah berakhir karena tidak aktif selama 10 menit.");
+      params.set("error", "Session Expired");
 
       if (window.location.pathname !== "/login" && window.location.pathname !== "/signup") {
         params.set("next", `${window.location.pathname}${window.location.search}`);

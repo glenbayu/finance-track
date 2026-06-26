@@ -9,7 +9,7 @@ import {
   reorderQuickAddTemplate,
   toggleQuickAddTemplate,
   updateQuickAddTemplate,
-} from "@/app/settings/templates/actions";
+} from "./actions";
 import {
   byTemplateSort,
   formatTemplateTypeLabel,

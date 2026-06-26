@@ -85,7 +85,7 @@ export async function proxy(request: NextRequest) {
       url.pathname = "/login";
       url.searchParams.set(
         "error",
-        "Sesi kamu sudah berakhir karena tidak aktif selama 10 menit.",
+        "Session Expired",
       );
       url.searchParams.set("next", `${pathname}${search}`);
 

@@ -17,7 +17,7 @@ import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth } from
 import { formatDate as formatDateLabel } from "@/lib/format";
 import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
-import { ArrowUpRight, Wallet } from "lucide-react";
+import { ArrowUpRight, Wallet, Settings } from "lucide-react";
 
 type HomeProps = {
   searchParams?: Promise<{
@@ -148,6 +148,8 @@ export default async function Home({ searchParams }: HomeProps) {
       amount,
       note,
       transaction_date,
+      wallet_id,
+      destination_wallet_id,
       categories (
         id,
         name
@@ -156,6 +158,23 @@ export default async function Home({ searchParams }: HomeProps) {
     .eq("user_id", user.id)
     .gte("transaction_date", start)
     .lt("transaction_date", end);
+
+  const { data: allTimeTransactions } = await supabase
+    .from("transactions")
+    .select(`
+      id,
+      type,
+      amount,
+      wallet_id,
+      destination_wallet_id
+    `)
+    .eq("user_id", user.id);
+
+  const { data: wallets } = await supabase
+    .from("wallets")
+    .select("id, name, type")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
 
   const { data: previousExpenses } = await supabase
     .from("transactions")
@@ -188,6 +207,37 @@ export default async function Home({ searchParams }: HomeProps) {
       .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
 
   const balance = totalIncome - totalExpense;
+
+  const walletBalances = {
+    cash: 0,
+    bank: 0,
+    receivable: 0,
+  };
+  
+  const walletTypeMap = new Map<string, string>();
+  wallets?.forEach(w => walletTypeMap.set(w.id, w.type));
+
+  allTransactions?.forEach((t) => {
+    const amount = Number(t.amount);
+    if (t.type === 'income' && t.wallet_id) {
+      const type = walletTypeMap.get(t.wallet_id);
+      if (type) walletBalances[type as keyof typeof walletBalances] += amount;
+    } else if (t.type === 'expense' && t.wallet_id) {
+      const type = walletTypeMap.get(t.wallet_id);
+      if (type) walletBalances[type as keyof typeof walletBalances] -= amount;
+    } else if (t.type === 'transfer') {
+      if (t.wallet_id) {
+        const type = walletTypeMap.get(t.wallet_id);
+        if (type) walletBalances[type as keyof typeof walletBalances] -= amount;
+      }
+      if (t.destination_wallet_id) {
+        const type = walletTypeMap.get(t.destination_wallet_id);
+        if (type) walletBalances[type as keyof typeof walletBalances] += amount;
+      }
+    }
+  });
+
+  const totalNetWorth = walletBalances.cash + walletBalances.bank + walletBalances.receivable;
 
   type ExpenseGroup = {
     categoryId: string | null;
@@ -271,7 +321,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
     if (item.type === "income") {
       current.income += Number(item.amount);
-    } else {
+    } else if (item.type === "expense") {
       current.expense += Number(item.amount);
     }
 
@@ -354,7 +404,12 @@ export default async function Home({ searchParams }: HomeProps) {
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
           <InteractiveDotPanel className="stat-card self-start h-fit">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Saldo Bulan Ini</p>
+              <div className="flex items-center gap-2">
+                <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
+                <Link href="/wallets" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Atur Dompet">
+                  <Settings size={14} />
+                </Link>
+              </div>
               <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
                 <Wallet size={14} />
               </span>
@@ -366,6 +421,27 @@ export default async function Home({ searchParams }: HomeProps) {
               showLabel="Tampilkan saldo"
               hideLabel="Sembunyikan saldo"
             />
+            
+            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+              <div className="flex flex-col">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
+                <span className={`text-sm font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <CurrencyAmount amountIDR={walletBalances.cash} />
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-slate-500 dark:text-slate-400">M-Bank/E-Wallet</span>
+                <span className={`text-sm font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <CurrencyAmount amountIDR={walletBalances.bank} />
+                </span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Tertahan</span>
+                <span className={`text-sm font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <CurrencyAmount amountIDR={walletBalances.receivable} />
+                </span>
+              </div>
+            </div>
           </InteractiveDotPanel>
 
           <InteractiveDotPanel className="stat-card self-start h-fit">

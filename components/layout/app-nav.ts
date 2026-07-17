@@ -7,6 +7,7 @@ import {
   Settings,
   Tags,
   Target,
+  Wallet,
   type LucideIcon,
 } from "lucide-react";
 
@@ -16,6 +17,7 @@ export type AppNavKey =
   | "reports"
   | "budgets"
   | "categories"
+  | "wallets"
   | "settings"
   | "add"
   | "more";
@@ -38,6 +40,7 @@ export const desktopNavMainItems: DesktopNavItem[] = [
   { key: "reports", label: "Reports", path: "/reports", icon: BarChart3 },
   { key: "budgets", label: "Budgets", path: "/budgets", icon: Target },
   { key: "categories", label: "Categories", path: "/categories", icon: Tags },
+  { key: "wallets", label: "Wallets", path: "/wallets", icon: Wallet },
 ];
 
 export const desktopNavBottomItems: DesktopNavItem[] = [
@@ -83,7 +86,7 @@ export const mobileDockItems: MobileDockItem[] = [
     path: "/more",
     icon: Ellipsis,
     primary: false,
-    activeWhen: ["more", "settings", "budgets", "categories"],
+    activeWhen: ["more", "settings", "budgets", "categories", "wallets"],
   },
 ];
 
@@ -103,6 +106,7 @@ export function getActiveNavFromPathname(pathname: string | null) {
   if (pathname.startsWith("/reports")) return "reports";
   if (pathname.startsWith("/budgets")) return "budgets";
   if (pathname.startsWith("/categories")) return "categories";
+  if (pathname.startsWith("/wallets")) return "wallets";
   if (pathname.startsWith("/settings")) return "settings";
   if (pathname.startsWith("/more")) return "more";
   return null;

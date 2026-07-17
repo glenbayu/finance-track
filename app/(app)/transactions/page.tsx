@@ -25,7 +25,7 @@ type TransactionsPageProps = {
   }>;
 };
 
-type TxType = "income" | "expense";
+type TxType = "income" | "expense" | "transfer" | "adjustment";
 type SortMode = "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
 type TypeFilter = "all" | TxType;
 
@@ -37,6 +37,8 @@ type TransactionRow = {
   note: string | null;
   transaction_date: string;
   created_at: string | null;
+  wallet_id: string | null;
+  destination_wallet_id: string | null;
   categories: CategoryRelation | CategoryRelation[];
 };
 
@@ -222,7 +224,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
   const ITEMS_PER_PAGE = 10;
   const { start, end } = getMonthRange(selectedMonth);
 
-  const [transactionsResult, categoriesResult] = await Promise.all([
+  const [transactionsResult, categoriesResult, walletsResult] = await Promise.all([
     supabase
       .from("transactions")
       .select(`
@@ -232,6 +234,8 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         note,
         transaction_date,
         created_at,
+        wallet_id,
+        destination_wallet_id,
         categories (
           id,
           name,
@@ -246,6 +250,10 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       .select("id, name, type, archived_at")
       .or(`user_id.eq.${user.id},user_id.is.null`)
       .order("name", { ascending: true }),
+    supabase
+      .from("wallets")
+      .select("id, name")
+      .eq("user_id", user.id)
   ]);
 
   if (transactionsResult.error) {
@@ -255,8 +263,17 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
     throw new Error(`Gagal memuat kategori: ${categoriesResult.error.message}`);
   }
 
+  // Temporary Data Cleanup: fix expense of 6.106.000 to transfer
+  await supabase
+    .from("transactions")
+    .update({ type: "transfer" })
+    .eq("user_id", user.id)
+    .eq("amount", 6106000)
+    .eq("type", "expense");
+
   const allTransactions = (transactionsResult.data ?? []) as TransactionRow[];
   const categories = (categoriesResult.data ?? []) as CategoryOption[];
+  const walletsMap = new Map((walletsResult.data ?? []).map(w => [w.id, w.name]));
   const activeFilterCategories = categories
     .filter((category) => !category.archived_at)
     .map((category) => ({
@@ -444,7 +461,11 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           {formatDate(transaction.transaction_date)}
                         </p>
                         <p className="mt-1 truncate font-semibold text-slate-900 dark:text-slate-100">
-                          {category?.name
+                          {transaction.type === "transfer" 
+                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
+                            : transaction.type === "adjustment"
+                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
+                            : category?.name
                             ? highlightText(category.name, highlightQuery)
                             : "Tanpa kategori"}
                         </p>
@@ -455,18 +476,26 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         </p>
                       </div>
 
-                      <span className={transaction.type === "income" ? "chip-income" : "chip-expense"}>
-                        {transaction.type === "income" ? "Pemasukan" : "Pengeluaran"}
+                      <span className={
+                        transaction.type === "income" ? "chip-income" : 
+                        transaction.type === "expense" ? "chip-expense" : 
+                        "inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                      }>
+                        {transaction.type === "income" ? "Pemasukan" : 
+                         transaction.type === "expense" ? "Pengeluaran" : 
+                         transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
                       </span>
                     </div>
 
                     <div className="mt-4 flex items-center justify-between gap-3">
                       <p
                         className={`min-w-0 whitespace-nowrap text-lg font-semibold ${
-                          transaction.type === "income" ? "text-emerald-600" : "text-rose-600"
+                          transaction.type === "income" ? "text-emerald-600" : 
+                          transaction.type === "expense" ? "text-rose-600" : 
+                          "text-slate-700 dark:text-slate-300"
                         }`}
                       >
-                        {transaction.type === "income" ? "+" : "-"}
+                        {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                         <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
                       </p>
 
@@ -502,20 +531,34 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           {formatDate(transaction.transaction_date)}
                         </td>
                         <td className="px-4 py-3">
-                          <span className={transaction.type === "income" ? "chip-income" : "chip-expense"}>
-                            {transaction.type === "income" ? "Pemasukan" : "Pengeluaran"}
+                          <span className={
+                            transaction.type === "income" ? "chip-income" : 
+                            transaction.type === "expense" ? "chip-expense" : 
+                            "inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          }>
+                            {transaction.type === "income" ? "Pemasukan" : 
+                             transaction.type === "expense" ? "Pengeluaran" : 
+                             transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
                           </span>
                         </td>
                         <td className="px-4 py-3 text-slate-700 dark:text-slate-200">
-                          {category?.name ? highlightText(category.name, highlightQuery) : "Tanpa kategori"}
+                          {transaction.type === "transfer" 
+                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
+                            : transaction.type === "adjustment"
+                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
+                            : category?.name
+                            ? highlightText(category.name, highlightQuery)
+                            : "Tanpa kategori"}
                         </td>
                         <td className="px-4 py-3 text-slate-500 dark:text-slate-300">
                           {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}
                         </td>
                         <td className={`px-4 py-3 text-right font-semibold ${
-                          transaction.type === "income" ? "text-emerald-600" : "text-rose-600"
+                          transaction.type === "income" ? "text-emerald-600" : 
+                          transaction.type === "expense" ? "text-rose-600" : 
+                          "text-slate-700 dark:text-slate-300"
                         }`}>
-                          {transaction.type === "income" ? "+" : "-"}
+                          {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                           <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                         </td>
                         <td className="px-4 py-3 text-right">

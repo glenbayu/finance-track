@@ -8,12 +8,12 @@ import FormSelect from "@/components/ui/form-select";
 type CategoryOption = {
   id: string;
   name: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "transfer" | "adjustment";
 };
 
 type TransactionsFilterControlsProps = {
   categories: CategoryOption[];
-  selectedType: "all" | "income" | "expense";
+  selectedType: "all" | "income" | "expense" | "transfer" | "adjustment";
   selectedCategoryId: string;
   selectedSort: "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
   className?: string;
@@ -29,9 +29,11 @@ const sortLabelMap: Record<
   amount_asc: "Terendah",
 };
 
-const typeLabelMap: Record<"income" | "expense", string> = {
+const typeLabelMap: Record<"income" | "expense" | "transfer" | "adjustment", string> = {
   income: "Income",
   expense: "Expense",
+  transfer: "Transfer",
+  adjustment: "Koreksi",
 };
 
 export default function TransactionsFilterControls({
@@ -64,6 +66,8 @@ export default function TransactionsFilterControls({
       { value: "all", label: "Tipe" },
       { value: "income", label: "Income" },
       { value: "expense", label: "Expense" },
+      { value: "transfer", label: "Transfer" },
+      { value: "adjustment", label: "Koreksi" },
     ],
     [],
   );

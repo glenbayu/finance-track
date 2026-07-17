@@ -1,234 +1,76 @@
-# Finance Tracker
+# Finance Tracker - Personal Wealth & Allocation Manager
+![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
+![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
+![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
+![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript)
 
-Finance Tracker is a personal finance web app for recording income and expenses, tracking monthly budgets, reviewing reports, and using quick-add templates from both desktop and mobile devices.
+## 📖 About The Project
 
-## Stack
+Finance Tracker adalah sebuah aplikasi manajemen keuangan pribadi berkonsep *Wealth & Allocation Manager*. Ini bukan sekadar pencatat uang keluar-masuk biasa. Sistem ini dirancang untuk memisahkan dan memantau saldo pengguna berdasarkan kategori dompet aktual (Kas, E-Wallet, dan Piutang), sehingga Anda dapat melihat sebaran aset finansial secara mutlak (All-Time Balance) namun tetap dapat mengontrol arus kas masuk-keluar bulanan secara akurat tanpa terganggu oleh mutasi saldo.
 
-- Next.js 16 App Router
-- React 19
-- TypeScript
-- Tailwind CSS v4
-- Supabase Auth + Database
-- Recharts
-- Lucide React
-- PWA support
+## ✨ Key Features (Fitur Unggulan)
 
-## Main Features
+* **Multi-Wallet Management:** Pemisahan dan pemantauan saldo riil secara langsung ke dalam 3 kategori utama: *Cash on Hand*, *Bank & E-Wallet*, dan *Saldo Tertahan / Piutang*.
+* **Smart Transfer & Allocation:** Memindahkan uang antar-dompet kini semudah *one-click transfer*. Mutasi tidak akan menggelembungkan laporan Pemasukan & Pengeluaran bulanan Anda, sehingga laporan arus kas (cash flow) tetap suci dan akurat 100%.
+* **Receivable Tracking & Quick Settlement:** Punya uang yang nyangkut di teman atau tertahan sebagai deposit? Masukkan sebagai Saldo Tertahan, dan lakukan koreksi / pelunasan saldo kapan pun Anda butuh tanpa merusak statistik grafik pengeluaran Anda!
+* **Dynamic Monthly Cashflow:** Dasbor cerdas yang memisahkan antara total kekayaan bersih (Net Worth/Total Semua Saldo) dengan analitik arus kas dinamis khusus untuk bulan yang sedang berjalan.
+* **Clean & Responsive UI/UX:** Antarmuka bergaya *glassmorphism* modern dengan palet warna *cream-green minimalis*. Super responsif, terasa seperti aplikasi native yang mulus, baik saat diakses via Desktop maupun layar sempit *Mobile*.
 
-- Dashboard with monthly summary, expense distribution, quick add, and recent history
-- Transaction list with search, filters, sort, pagination, and mobile-friendly controls
-- Add, edit, duplicate, and delete transactions
-- Budget monitoring by month and category
-- Category management
-- Reports and analytics
-- Quick-add templates
-- Theme toggle
-- Idle session auto logout after 10 minutes of inactivity
-- PWA install support
+## 🛠️ Tech Stack
 
-## Folder Guide
+| Teknologi | Peran / Deskripsi |
+| --- | --- |
+| **Next.js** | Framework React utama untuk rendering (Server Components & SSR) dan rute API. |
+| **React** | Library UI utama. |
+| **Tailwind CSS** | Styling utility-first untuk pembuatan UI responsif yang super cepat. |
+| **Supabase** | Backend-as-a-Service (PostgreSQL Database & Authentication). |
+| **TypeScript** | Static typing untuk meminimalisasi *bugs* pada JavaScript. |
+| **Lucide React** | Koleksi ikon elegan dan modern. |
 
-This repository now follows a simple separation:
+## 🚀 Getting Started / Installation
 
-- `app/`
-  Next.js routes, layouts, loading boundaries, and API routes
-- `components/`
-  Reusable UI and feature-level React components
-- `lib/`
-  Shared business logic, Supabase helpers, utilities, and server actions
-- `hooks/`
-  Client hooks
-- `public/`
-  Static assets and PWA files
-- `supabase/migrations/`
-  Database schema migrations
+Ikuti langkah-langkah mudah di bawah ini untuk menjalankan *Finance Tracker* secara lokal di perangkat Anda:
 
-## Project Structure
+### 1. Clone Repository
+```bash
+git clone https://github.com/username/finance-track.git
+cd finance-track
+```
+
+### 2. Install Dependencies
+```bash
+npm install
+# atau
+yarn install
+```
+
+### 3. Setup Environment Variables
+Buat file bernama `.env.local` di *root directory* project Anda, lalu masukkan kredensial dari project Supabase Anda:
+```env
+NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+```
+
+### 4. Setup Database
+Jalankan file *migrations* yang berada di dalam folder `supabase/migrations/` ke SQL Editor di *Dashboard* Supabase Anda untuk membangun struktur tabel, relasi, dan fungsi-fungsi yang diperlukan.
+
+### 5. Jalankan Development Server
+```bash
+npm run dev
+# atau
+yarn dev
+```
+Buka [http://localhost:3000](http://localhost:3000) di browser Anda untuk melihat hasilnya.
+
+## 📂 Folder Structure
 
 ```text
 finance-track/
-|-- app/
-|   |-- (app)/
-|   |   |-- budgets/
-|   |   |-- categories/
-|   |   |-- more/
-|   |   |-- reports/
-|   |   |-- settings/
-|   |   |   |-- templates/
-|   |   |-- transactions/
-|   |   |   |-- [id]/edit/
-|   |   |   |-- new/
-|   |   |-- layout.tsx
-|   |   |-- loading.tsx
-|   |   |-- page.tsx
-|   |-- api/
-|   |   |-- session/
-|   |   |   |-- activity/
-|   |   |   `-- logout/
-|   |-- login/
-|   |-- signup/
-|   |-- error.tsx
-|   |-- globals.css
-|   |-- layout.tsx
-|   |-- loading.tsx
-|   `-- not-found.tsx
-|-- components/
-|   |-- auth/
-|   |-- budgets/
-|   |-- dashboard/
-|   |-- layout/
-|   |-- pwa/
-|   |-- quick-add/
-|   |-- reports/
-|   |-- settings/
-|   |-- transactions/
-|   `-- ui/
-|-- hooks/
-|-- lib/
-|   |-- actions/
-|   |   `-- quick-add.ts
-|   |-- auth/
-|   |-- reports/
-|   |-- supabase/
-|   |-- currency.ts
-|   |-- date.ts
-|   |-- exchange-rates.ts
-|   |-- format.ts
-|   |-- preferences.ts
-|   `-- quick-add.ts
-|-- public/
-|   |-- apple-touch-icon.png
-|   |-- favicon.svg
-|   |-- icon-192.png
-|   |-- icon-512.png
-|   |-- manifest.webmanifest
-|   `-- sw.js
-|-- supabase/
-|   `-- migrations/
-|-- proxy.ts
-|-- package.json
-`-- tsconfig.json
+├── app/               # Next.js App Router (Pages, Layouts, API Routes)
+├── components/        # Reusable React components (UI, Transactions, Wallets, dll)
+├── lib/               # Utility functions (formatters, Supabase client auth)
+├── public/            # Static assets (images, icons)
+├── supabase/          # Script Database Migrations (SQL)
+└── package.json       # Dependencies list & Project Config
 ```
-
-## Important Architectural Notes
-
-### 1. App route grouping
-
-- `app/(app)` contains authenticated application pages
-- `app/login` and `app/signup` stay outside the authenticated shell
-- `app/api` contains session endpoints used by the idle timeout flow
-
-### 2. Desktop shell
-
-- Desktop sidebar is handled by the persistent layout in `app/(app)/layout.tsx`
-- Shared desktop navigation lives in `components/layout/`
-- Page-level header/content wrapper lives in `components/layout/app-shell.tsx`
-
-### 3. Quick add
-
-- UI lives in `components/quick-add/`
-- shared mapping helpers live in `lib/quick-add.ts`
-- server actions for quick add now live in `lib/actions/quick-add.ts`
-
-### 4. Idle session handling
-
-- `components/auth/idle-session-guard.tsx` handles client-side inactivity tracking
-- `proxy.ts` enforces protected route access and validates idle expiration on incoming requests
-- `app/api/session/activity/route.ts` refreshes last-activity cookie
-- `app/api/session/logout/route.ts` performs logout and clears idle cookie
-
-## Development Setup
-
-### Prerequisites
-
-- Node.js 20+
-- npm
-- A Supabase project
-
-### Environment Variables
-
-Create `.env.local` in the project root:
-
-```env
-NEXT_PUBLIC_SUPABASE_URL=your_supabase_project_url
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
-```
-
-### Install
-
-```bash
-npm install
-```
-
-### Run locally
-
-```bash
-npm run dev
-```
-
-App URL:
-
-```text
-http://localhost:3000
-```
-
-## Available Scripts
-
-```bash
-npm run dev
-npm run lint
-npm run build
-npm run start
-```
-
-## Database and Migrations
-
-Supabase migrations are stored in:
-
-```text
-supabase/migrations/
-```
-
-This project includes migrations for:
-
-- budgets
-- quick add templates
-- quick add usage tracking
-- category archive support
-- `updated_at` columns and triggers
-
-## Conventions Used In This Repo
-
-- Route files stay inside `app/`
-- Feature components stay inside `components/<feature>/`
-- Shared primitive or presentational components stay inside `components/ui/`
-- Server-only helpers and reusable business logic stay inside `lib/`
-- Server actions should be placed near the business domain they belong to, not scattered in route roots
-- Mobile and desktop variations may live in the same feature folder when they serve the same page
-
-## Suggested Onboarding Path
-
-If you are new to the codebase, read files in this order:
-
-1. `app/layout.tsx`
-2. `app/(app)/layout.tsx`
-3. `components/layout/app-shell.tsx`
-4. `app/(app)/page.tsx`
-5. `app/(app)/transactions/page.tsx`
-6. `lib/supabase/auth.ts`
-7. `proxy.ts`
-
-## Current Cleanup Outcome
-
-Recent organization cleanup includes:
-
-- authenticated pages grouped under `app/(app)`
-- persistent desktop shell isolated in layout components
-- quick-add server actions moved from `app/quick-add/actions.ts` to `lib/actions/quick-add.ts`
-- README rewritten to make the repository easier to navigate
-
-## Notes
-
-- PWA assets live in `public/`
-- The app uses Indonesian UI copy in most screens
-- The current design system is intentionally shared across desktop and mobile, with mobile-specific controls in transaction and dashboard flows

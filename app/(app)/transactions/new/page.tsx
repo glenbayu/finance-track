@@ -16,15 +16,25 @@ async function createTransaction(formData: FormData) {
 
   const { supabase, user } = await requireUser();
 
-  const type = formData.get("type") as "income" | "expense";
+  const type = formData.get("type") as "income" | "expense" | "transfer";
   const amount = Number(formData.get("amount"));
   const categoryId = formData.get("category_id") as string;
+  const walletId = formData.get("wallet_id") as string;
+  const destinationWalletId = formData.get("destination_wallet_id") as string;
   const rawNote = String(formData.get("note") || "").trim();
   const note = rawNote ? rawNote.slice(0, NOTE_MAX_LENGTH) : null;
   const transactionDate = formData.get("transaction_date") as string;
 
-  if (!type || !transactionDate || !categoryId) {
+  if (!type || !transactionDate || !walletId) {
     throw new Error("Data transaksi belum lengkap.");
+  }
+
+  if (type !== "transfer" && !categoryId) {
+    throw new Error("Kategori harus dipilih.");
+  }
+
+  if (type === "transfer" && (!destinationWalletId || walletId === destinationWalletId)) {
+    throw new Error("Dompet tujuan tidak valid.");
   }
 
   if (!Number.isFinite(amount) || amount <= 0) {
@@ -35,23 +45,31 @@ async function createTransaction(formData: FormData) {
     throw new Error("Tanggal transaksi tidak valid.");
   }
 
-  const { data: category, error: categoryError } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("id", categoryId)
-    .or(`user_id.eq.${user.id},user_id.is.null`)
-    .is("archived_at", null)
-    .single();
+  let validCategoryId = categoryId;
+  if (type !== "transfer") {
+    const { data: category, error: categoryError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("id", categoryId)
+      .or(`user_id.eq.${user.id},user_id.is.null`)
+      .is("archived_at", null)
+      .single();
 
-  if (categoryError || !category) {
-    throw new Error("Kategori tidak valid.");
+    if (categoryError || !category) {
+      throw new Error("Kategori tidak valid.");
+    }
+    validCategoryId = category.id;
+  } else {
+    validCategoryId = null as any; // Allow null for transfer
   }
 
   const { error } = await supabase.from("transactions").insert({
     user_id: user.id,
     type,
     amount,
-    category_id: categoryId,
+    category_id: validCategoryId,
+    wallet_id: walletId,
+    destination_wallet_id: type === "transfer" ? destinationWalletId : null,
     note,
     transaction_date: transactionDate,
   });
@@ -70,6 +88,8 @@ type NewTransactionPageProps = {
   searchParams?: Promise<{
     templateId?: string;
     duplicateId?: string;
+    type?: string;
+    source_id?: string;
   }>;
 };
 
@@ -78,6 +98,8 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
   const params = await searchParams;
   const templateId = String(params?.templateId ?? "").trim();
   const duplicateId = String(params?.duplicateId ?? "").trim();
+  const typeParam = String(params?.type ?? "").trim();
+  const sourceIdParam = String(params?.source_id ?? "").trim();
 
   const { data: categories, error } = await supabase
     .from("categories")
@@ -86,11 +108,17 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
     .is("archived_at", null)
     .order("name", { ascending: true });
 
-  if (error) {
+  const { data: wallets, error: walletsError } = await supabase
+    .from("wallets")
+    .select("id, name, type")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+
+  if (error || walletsError) {
     return (
       <main className="page-shell">
         <div className="page-container">
-          <p className="text-red-600">Gagal load kategori: {error.message}</p>
+          <p className="text-red-600">Gagal load data: {error?.message || walletsError?.message}</p>
         </div>
       </main>
     );
@@ -139,13 +167,20 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
 
   let infoMessage: string | null = null;
   let initialValues: {
-    type?: QuickAddTemplateType;
+    type?: QuickAddTemplateType | "transfer";
     categoryId?: string | null;
     amountIDR?: number | null;
     note?: string | null;
+    walletId?: string;
   } = {};
 
-  if (duplicateId) {
+  if (typeParam === "transfer") {
+    initialValues = {
+      type: "transfer",
+      walletId: sourceIdParam || undefined
+    };
+    infoMessage = "Mode transfer. Silakan masukkan nominal dan dompet tujuan.";
+  } else if (duplicateId) {
     const { data: sourceTransaction, error: sourceError } = await supabase
       .from("transactions")
       .select("id, type, category_id, amount, note")
@@ -260,6 +295,7 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
       <TransactionForm
         key={`tx-form-${templateId || "manual"}`}
         categories={categories ?? []}
+        wallets={wallets ?? []}
         recentCategories={recentCategories}
         defaultDate={today}
         action={createTransaction}

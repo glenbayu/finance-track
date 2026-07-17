@@ -10,7 +10,7 @@ import { pad2 } from "@/lib/date";
 type CategoryOption = {
   id: string;
   name: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "transfer" | "adjustment";
 };
 
 type TransactionMobileFilterProps = {
@@ -18,7 +18,7 @@ type TransactionMobileFilterProps = {
   totalIncome: number;
   totalExpense: number;
   categories: CategoryOption[];
-  selectedType: "all" | "income" | "expense";
+  selectedType: "all" | "income" | "expense" | "transfer" | "adjustment";
   selectedCategoryId: string;
   selectedSort: "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
   className?: string;
@@ -87,8 +87,10 @@ export default function TransactionMobileFilter({
 
   const typeOptions = [
     { value: "all", label: "Tipe" },
-    { value: "income", label: "Masuk" },
-    { value: "expense", label: "Keluar" },
+    { value: "income", label: "Income" },
+    { value: "expense", label: "Expense" },
+    { value: "transfer", label: "Transfer" },
+    { value: "adjustment", label: "Koreksi" },
   ];
 
   const categoryOptions = useMemo(() => [

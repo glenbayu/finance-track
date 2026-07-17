@@ -1,4 +1,4 @@
-﻿import Link from "next/link";
+import Link from "next/link";
 import AppShell from "@/components/layout/app-shell";
 import ReportsCharts from "@/components/reports/reports-charts";
 import CurrencyAmount from "@/components/ui/currency-amount";
@@ -266,7 +266,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     if (!current) return;
     if (row.type === "income") {
       current.income += Number(row.amount);
-    } else {
+    } else if (row.type === "expense") {
       current.expense += Number(row.amount);
     }
     current.cashflow = current.income - current.expense;

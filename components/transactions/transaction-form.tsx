@@ -11,6 +11,12 @@ type Category = {
   type: "income" | "expense";
 };
 
+type Wallet = {
+  id: string;
+  name: string;
+  type: string;
+};
+
 type RecentCategory = {
   id: string;
   name: string;
@@ -20,13 +26,15 @@ type RecentCategory = {
 
 type TransactionFormProps = {
   categories: Category[];
+  wallets: Wallet[];
   defaultDate: string;
   action: (formData: FormData) => void | Promise<void>;
   initialValues?: {
-    type?: "income" | "expense";
+    type?: "income" | "expense" | "transfer";
     categoryId?: string | null;
     amountIDR?: number | null;
     note?: string | null;
+    walletId?: string | null;
   };
   infoMessage?: string | null;
   recentCategories?: RecentCategory[];
@@ -44,15 +52,18 @@ function formatRupiahInput(value: string) {
 
 export default function TransactionForm({
   categories,
+  wallets,
   defaultDate,
   action,
   initialValues,
   infoMessage,
   recentCategories = [],
 }: TransactionFormProps) {
-  const defaultType = initialValues?.type === "income" ? "income" : "expense";
-  const [type, setType] = useState<"income" | "expense">(defaultType);
+  const defaultType = (initialValues?.type === "income" || initialValues?.type === "expense" || initialValues?.type === "transfer") ? initialValues.type : "expense";
+  const [type, setType] = useState<"income" | "expense" | "transfer">(defaultType);
   const [categoryId, setCategoryId] = useState(initialValues?.categoryId ?? "");
+  const [walletId, setWalletId] = useState(initialValues?.walletId ?? (wallets[0]?.id ?? ""));
+  const [destinationWalletId, setDestinationWalletId] = useState(wallets.length > 1 ? wallets[1].id : "");
   const [amountDisplay, setAmountDisplay] = useState(
     initialValues?.amountIDR ? formatRupiahInput(String(initialValues.amountIDR)) : "",
   );
@@ -82,12 +93,13 @@ export default function TransactionForm({
           name="type"
           value={type}
           onValueChange={(nextValue) => {
-            setType(nextValue as "income" | "expense");
+            setType(nextValue as "income" | "expense" | "transfer");
             setCategoryId("");
           }}
           options={[
             { value: "expense", label: "Pengeluaran" },
             { value: "income", label: "Pemasukan" },
+            { value: "transfer", label: "Transfer / Mutasi" },
           ]}
           required
         />
@@ -131,6 +143,35 @@ export default function TransactionForm({
         </div>
       </div>
 
+      <div className={`grid gap-4 ${type === 'transfer' ? 'md:grid-cols-2' : ''}`}>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {type === 'transfer' ? 'Dompet Asal' : 'Dompet'}
+          </label>
+          <FormSelect
+            name="wallet_id"
+            value={walletId}
+            onValueChange={setWalletId}
+            options={wallets.map(w => ({ value: w.id, label: w.name }))}
+            required
+          />
+        </div>
+        
+        {type === 'transfer' && (
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Dompet Tujuan</label>
+            <FormSelect
+              name="destination_wallet_id"
+              value={destinationWalletId}
+              onValueChange={setDestinationWalletId}
+              options={wallets.map(w => ({ value: w.id, label: w.name }))}
+              required
+            />
+          </div>
+        )}
+      </div>
+
+      {type !== 'transfer' && (
       <div>
         {recentCategoryChips.length ? (
           <div className="mb-3 flex flex-wrap items-center gap-2">
@@ -169,6 +210,7 @@ export default function TransactionForm({
           placeholder="Pilih kategori"
         />
       </div>
+      )}
 
       <div>
         <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Catatan</label>

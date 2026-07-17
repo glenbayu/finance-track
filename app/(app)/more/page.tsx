@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { LogOut, Settings, Sparkles, Tags, Target } from "lucide-react";
+import { LogOut, Settings, Sparkles, Tags, Target, Wallet } from "lucide-react";
 import AppShell from "@/components/layout/app-shell";
 import LogoutButton from "@/components/auth/logout-button";
 import { requireUser } from "@/lib/supabase/auth";
@@ -19,6 +19,12 @@ export default async function MorePage() {
       label: "Categories",
       description: "Kelola kategori pemasukan dan pengeluaran.",
       icon: Tags,
+    },
+    {
+      href: "/wallets",
+      label: "Wallets",
+      description: "Kelola daftar rekening, dompet fisik, dan saldo tertahan.",
+      icon: Wallet,
     },
     {
       href: "/settings",

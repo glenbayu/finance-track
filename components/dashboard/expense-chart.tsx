@@ -10,6 +10,7 @@ import {
 import { useMaskedAmounts } from "@/components/ui/masked-amount";
 import InteractiveDotPanel from "@/components/ui/interactive-dot-panel";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
+import { useEffect, useState } from "react";
 
 type ExpenseChartItem = {
   name: string;
@@ -20,15 +21,33 @@ type ExpenseChartProps = {
   data: ExpenseChartItem[];
 };
 
-const COLORS = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
+// Light mode: vibrant original palette
+const COLORS_LIGHT = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
+// Dark mode: OLED finance palette (high-contrast, profit-green anchor)
+const COLORS_DARK = ["#dc2626", "#f87171", "#059669", "#3b82f6", "#d97706", "#a78bfa"];
+
 
 export default function ExpenseChart({ data }: ExpenseChartProps) {
   const masked = useMaskedAmounts();
   const isHidden = masked?.isHidden ?? false;
   const { formatFromIDR } = useDisplayCurrency();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const mq = window.matchMedia("(prefers-color-scheme: dark)");
+    const checkDark = () =>
+      setIsDark(document.documentElement.classList.contains("dark"));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
+
+  const COLORS = isDark ? COLORS_DARK : COLORS_LIGHT;
 
   const totalExpense = data.reduce((sum, item) => sum + item.value, 0);
   const breakdown = data.map((item, index) => ({
+
     ...item,
     color: COLORS[index % COLORS.length],
     percentage: totalExpense > 0 ? Math.round((item.value / totalExpense) * 100) : 0,

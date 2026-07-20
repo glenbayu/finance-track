@@ -53,14 +53,14 @@ export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
                 <div className="grid w-full gap-3 text-sm [grid-template-columns:repeat(auto-fit,minmax(140px,1fr))]">
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">Pemasukan</p>
-                    <p className="font-semibold text-emerald-600">
+                    <p className="font-semibold text-emerald-600 dark:text-[#34d399]">
                       {formatFromIDR(item.income)}
                     </p>
                   </div>
 
                   <div>
                     <p className="text-slate-500 dark:text-slate-400">Pengeluaran</p>
-                    <p className="font-semibold text-rose-600">
+                    <p className="font-semibold text-rose-600 dark:text-[#f87171]">
                       {formatFromIDR(item.expense)}
                     </p>
                   </div>
@@ -69,7 +69,7 @@ export default function MonthlyHistory({ data }: MonthlyHistoryProps) {
                     <p className="text-slate-500 dark:text-slate-400">Selisih</p>
                     <p
                       className={`font-semibold ${
-                        item.balance >= 0 ? "text-emerald-600" : "text-rose-600"
+                        item.balance >= 0 ? "text-emerald-600 dark:text-[#34d399]" : "text-rose-600 dark:text-[#f87171]"
                       }`}
                     >
                       {formatFromIDR(item.balance)}

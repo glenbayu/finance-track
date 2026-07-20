@@ -11,6 +11,7 @@ import {
 } from "recharts";
 import { convertFromIDR, formatCurrency } from "@/lib/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
+import { useEffect, useState } from "react";
 
 type MonthlyExpenseTrendItem = {
   month: string;
@@ -60,7 +61,7 @@ function ExpenseTrendTooltip({
       <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
         {String(label ?? "")}
       </p>
-      <p className="mt-1 text-sm font-semibold text-slate-700 dark:text-slate-200">
+      <p className="mt-1 text-sm font-semibold text-rose-600 dark:text-[#f87171]">
         {formatCurrency(amount, currency)}
       </p>
     </div>
@@ -71,12 +72,26 @@ export default function MonthlyExpenseTrend({
   data,
 }: MonthlyExpenseTrendProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const checkDark = () =>
+      setIsDark(document.documentElement.classList.contains("dark"));
+    checkDark();
+    const obs = new MutationObserver(checkDark);
+    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
+    return () => obs.disconnect();
+  }, []);
 
   const chartData = data.map((item) => ({
     ...item,
     expenseConverted: convertFromIDR(item.expense, effectiveCurrency, rateFromIDR),
     label: formatMonthLabel(item.month),
   }));
+
+  // Dark: alert red for expenses; Light: trust blue
+  const barFill = isDark ? "#dc2626" : "#2563eb";
+  const cursorFill = isDark ? "rgba(220, 38, 38, 0.1)" : "rgba(37, 99, 235, 0.08)";
 
   return (
     <div className="section-card">
@@ -115,11 +130,11 @@ export default function MonthlyExpenseTrend({
               />
               <Tooltip
                 content={<ExpenseTrendTooltip currency={effectiveCurrency} />}
-                cursor={{ fill: "rgba(37, 99, 235, 0.08)" }}
+                cursor={{ fill: cursorFill }}
               />
               <Bar
                 dataKey="expenseConverted"
-                fill="#2563eb"
+                fill={barFill}
                 radius={[10, 10, 0, 0]}
               />
             </BarChart>

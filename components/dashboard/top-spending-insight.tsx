@@ -63,7 +63,7 @@ function formatChangeText(currentAmount: number, previousAmount: number, changeP
   const sign = rounded > 0 ? "+" : "";
   return {
     text: `${sign}${rounded}% vs bulan lalu`,
-    className: rounded > 0 ? "text-rose-600" : "text-emerald-600",
+    className: rounded > 0 ? "text-rose-600 dark:text-[#f87171]" : "text-emerald-600 dark:text-[#34d399]",
   };
 }
 
@@ -105,7 +105,7 @@ export default function TopSpendingInsight({
             <details key={`${item.category_name}-${index}`} className="soft-inset group">
               <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
                 <span className="flex min-w-0 items-start gap-3">
-                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-semibold text-red-600">
+                  <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-semibold text-red-600 dark:bg-rose-500/10 dark:text-[#f87171]">
                     {index + 1}
                   </span>
 
@@ -121,7 +121,7 @@ export default function TopSpendingInsight({
 
                 <span className="ml-4 flex shrink-0 items-center gap-2">
                   <span className="flex flex-col items-end leading-tight">
-                    <span className="font-semibold text-red-600">
+                    <span className="font-semibold text-red-600 dark:text-[#f87171]">
                       {isHidden ? "***" : formatFromIDR(item.amount)}
                     </span>
                     {isHidden ? (
@@ -177,7 +177,7 @@ export default function TopSpendingInsight({
                         </p>
                       </div>
 
-                      <p className="shrink-0 text-sm font-semibold text-rose-600">
+                      <p className="shrink-0 text-sm font-semibold text-rose-600 dark:text-[#f87171]">
                         {isHidden ? "***" : formatFromIDR(transaction.amount)}
                       </p>
                     </div>

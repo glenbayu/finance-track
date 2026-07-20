@@ -1,8 +1,16 @@
 import type { Metadata, Viewport } from "next";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import IdleSessionGuard from "@/components/auth/idle-session-guard";
 import PwaRegistration from "@/components/pwa/pwa-registration";
 import ThemeProvider from "@/components/ui/theme-provider";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+  weight: ["300", "400", "500", "600", "700"],
+});
 
 export const metadata: Metadata = {
   applicationName: "Finance Tracker",
@@ -34,7 +42,10 @@ export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   viewportFit: "cover",
-  themeColor: "#2c5c50",
+  themeColor: [
+    { media: "(prefers-color-scheme: light)", color: "#2c5c50" },
+    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+  ],
 };
 
 export default function RootLayout({
@@ -60,7 +71,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body>
+      <body className={inter.variable}>
         <ThemeProvider>
           <IdleSessionGuard />
           <PwaRegistration />

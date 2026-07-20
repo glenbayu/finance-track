@@ -15,7 +15,7 @@ Finance Tracker adalah sebuah aplikasi manajemen keuangan pribadi berkonsep *Wea
 * **Smart Transfer & Allocation:** Memindahkan uang antar-dompet kini semudah *one-click transfer*. Mutasi tidak akan menggelembungkan laporan Pemasukan & Pengeluaran bulanan Anda, sehingga laporan arus kas (cash flow) tetap suci dan akurat 100%.
 * **Receivable Tracking & Quick Settlement:** Punya uang yang nyangkut di teman atau tertahan sebagai deposit? Masukkan sebagai Saldo Tertahan, dan lakukan koreksi / pelunasan saldo kapan pun Anda butuh tanpa merusak statistik grafik pengeluaran Anda!
 * **Dynamic Monthly Cashflow:** Dasbor cerdas yang memisahkan antara total kekayaan bersih (Net Worth/Total Semua Saldo) dengan analitik arus kas dinamis khusus untuk bulan yang sedang berjalan.
-* **Clean & Responsive UI/UX:** Antarmuka bergaya *glassmorphism* modern dengan palet warna *cream-green minimalis*. Super responsif, terasa seperti aplikasi native yang mulus, baik saat diakses via Desktop maupun layar sempit *Mobile*.
+* **Clean & Responsive UI/UX:** Antarmuka bergaya *glassmorphism* modern dengan palet warna *cream-green minimalis* untuk *Light Mode*, dan *OLED Glassmorphism* premium dengan palet warna finansial dinamis untuk *Dark Mode*. Super responsif, terasa seperti aplikasi native yang mulus, baik saat diakses via Desktop maupun layar sempit *Mobile*.
 
 ## Tech Stack
 

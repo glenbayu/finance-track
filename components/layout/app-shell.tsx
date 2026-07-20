@@ -48,11 +48,11 @@ export default function AppShell({
               }`}
             >
               <div className="space-y-1.5 md:space-y-2">
-                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400/80 md:text-sm">
+                <p className="text-[10px] font-bold uppercase tracking-[0.2em] text-slate-500/80 dark:text-slate-400/80 md:text-sm animate-[metric-enter_0.4s_both]">
                   {badge}
                 </p>
                 <h1
-                  className={`text-2xl font-black leading-tight tracking-tight text-slate-900 dark:text-white md:text-4xl ${titleClassName}`}
+                  className={`text-2xl font-black leading-tight tracking-tight text-slate-900 dark:text-white md:text-4xl animate-[metric-enter_0.4s_both_0.03s] ${titleClassName}`}
                 >
                   {title}
                 </h1>

@@ -402,7 +402,7 @@ export default async function Home({ searchParams }: HomeProps) {
     >
       <MaskedAmountProvider>
         <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
-          <InteractiveDotPanel className="stat-card self-start h-fit">
+          <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-blue">
             <div className="mb-3 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
@@ -426,25 +426,25 @@ export default async function Home({ searchParams }: HomeProps) {
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
                 <span className={`text-sm font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <CurrencyAmount amountIDR={walletBalances.cash} />
+                  <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} maskedText="***" />
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">M-Bank/E-Wallet</span>
                 <span className={`text-sm font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <CurrencyAmount amountIDR={walletBalances.bank} />
+                  <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} maskedText="***" />
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Tertahan</span>
                 <span className={`text-sm font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <CurrencyAmount amountIDR={walletBalances.receivable} />
+                  <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} maskedText="***" />
                 </span>
               </div>
             </div>
           </InteractiveDotPanel>
 
-          <InteractiveDotPanel className="stat-card self-start h-fit">
+          <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-green">
             <div className="mb-3 flex items-center justify-between">
               <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
               <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">

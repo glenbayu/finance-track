@@ -148,27 +148,24 @@ function CustomTooltip({
         width: tooltipWidth,
         minHeight: tooltipHeight,
         borderRadius: 12,
-        border: "1px solid var(--stroke)",
-        background: "var(--surface)",
-        color: "var(--foreground)",
       }}
-      className="pointer-events-none absolute z-30 p-3 shadow-lg"
+      className="pointer-events-none absolute z-30 p-3 shadow-md border border-slate-200/50 bg-white/75 backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
     >
-      <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
+      <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
         Bulan: {shortMonthLabel(String(label ?? ""))}
       </p>
 
       <div className="space-y-1.5">
         {(payload as TrendTooltipEntry[]).map((entry) => (
           <div key={String(entry.dataKey ?? entry.name)} className="flex items-center justify-between gap-3">
-            <span className="inline-flex min-w-0 items-center gap-2 text-sm">
+            <span className="inline-flex min-w-0 items-center gap-2 text-sm text-slate-700 dark:text-slate-300">
               <span
                 className="h-2.5 w-2.5 shrink-0 rounded-full"
                 style={{ backgroundColor: entry.color ?? "#10b981" }}
               />
               <span className="truncate">{entry.name}</span>
             </span>
-            <span className="shrink-0 text-sm font-semibold">
+            <span className="shrink-0 text-sm font-bold font-mono text-slate-900 dark:text-slate-100">
               {compactValue(Number(entry.value ?? 0), currencySymbol)}
             </span>
           </div>

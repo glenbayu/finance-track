@@ -401,90 +401,159 @@ export default async function Home({ searchParams }: HomeProps) {
       }
     >
       <MaskedAmountProvider>
-        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-2 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
-          <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-blue">
-            <div className="mb-3 flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
-                <Link href="/wallets" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Atur Dompet">
-                  <Settings size={14} />
-                </Link>
+        {/* Mobile & Tablet Layout */}
+        <div className="lg:hidden space-y-7">
+          <section className="grid gap-4 md:grid-cols-2 [&>*]:min-w-0 [&>*]:w-full">
+            <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-blue">
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
+                  <Link href="/wallets" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Atur Dompet">
+                    <Settings size={14} />
+                  </Link>
+                </div>
+                <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                  <Wallet size={14} />
+                </span>
               </div>
-              <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
-                <Wallet size={14} />
-              </span>
+              <MaskedCurrencyAmount
+                amountIDR={balance}
+                valueClassName="text-2xl font-bold text-slate-900 dark:text-slate-100"
+                showLabel="Tampilkan saldo"
+                hideLabel="Sembunyikan saldo"
+              />
+              
+              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
+                  <span className={`text-sm font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} />
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">M-Bank/E-Wallet</span>
+                  <span className={`text-sm font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} />
+                  </span>
+                </div>
+                <div className="flex flex-col">
+                  <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Tertahan</span>
+                  <span className={`text-sm font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                    <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} />
+                  </span>
+                </div>
+              </div>
+            </InteractiveDotPanel>
+
+            <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-green">
+              <div className="mb-3 flex items-center justify-between">
+                <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
+                <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+                  <ArrowUpRight size={14} />
+                </span>
+              </div>
+              <MaskedCurrencyAmount
+                amountIDR={totalIncome}
+                valueClassName="text-2xl font-bold text-emerald-600"
+                showToggle={false}
+              />
+            </InteractiveDotPanel>
+          </section>
+
+          <section className="grid gap-6 [&>*]:min-w-0 [&>*]:w-full">
+            <div className="min-w-0 w-full">
+              <ExpenseChart data={expenseChartData} />
             </div>
-            <MaskedCurrencyAmount
-              amountIDR={balance}
-              valueClassName="text-2xl font-bold text-slate-900 dark:text-slate-100"
-              maskedText="***"
-              showLabel="Tampilkan saldo"
-              hideLabel="Sembunyikan saldo"
-            />
+
+            <div className="min-w-0 w-full">
+              <TopSpendingInsight data={topSpendingData} totalExpense={totalExpense} />
+            </div>
+
+            <div className="min-w-0 w-full space-y-6">
+              <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
+              <MonthlyHistory data={monthlyHistoryData} />
+            </div>
+          </section>
+        </div>
+
+        {/* Desktop Bento Grid Layout */}
+        <div className="hidden lg:grid lg:grid-cols-12 gap-5 mt-6 items-stretch [&>*]:min-w-0 [&>*]:w-full">
+          {/* Bento Item 1: Sisa Saldo & Rincian Dompet (lg:col-span-8) */}
+          <InteractiveDotPanel className="stat-card lg:col-span-8 flex flex-col justify-between metric-glow-blue stagger-1">
+            <div>
+              <div className="mb-3 flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
+                  <Link href="/wallets" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors icon-spin-hover" title="Atur Dompet">
+                    <Settings size={14} />
+                  </Link>
+                </div>
+                <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                  <Wallet size={14} />
+                </span>
+              </div>
+              <MaskedCurrencyAmount
+                amountIDR={balance}
+                valueClassName="text-3xl font-bold text-slate-900 dark:text-slate-100"
+                showLabel="Tampilkan saldo"
+                hideLabel="Sembunyikan saldo"
+              />
+            </div>
             
-            <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <div className="mt-6 grid grid-cols-3 gap-4 border-t border-slate-200 pt-4 dark:border-slate-700">
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
-                <span className={`text-sm font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} maskedText="***" />
+                <span className={`text-base font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} />
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">M-Bank/E-Wallet</span>
-                <span className={`text-sm font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} maskedText="***" />
+                <span className={`text-base font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} />
                 </span>
               </div>
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Tertahan</span>
-                <span className={`text-sm font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
-                  <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} maskedText="***" />
+                <span className={`text-base font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} />
                 </span>
               </div>
             </div>
           </InteractiveDotPanel>
 
-          <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-green">
+          {/* Bento Item 2: Pemasukan Bulan Ini (lg:col-span-4) */}
+          <InteractiveDotPanel className="stat-card lg:col-span-4 flex flex-col justify-between metric-glow-green stagger-2">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan Bulan Ini</p>
               <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
                 <ArrowUpRight size={14} />
               </span>
             </div>
-            <MaskedCurrencyAmount
-              amountIDR={totalIncome}
-              valueClassName="text-2xl font-bold text-emerald-600"
-              maskedText="***"
-              showToggle={false}
-            />
+            <div className="mb-4">
+              <MaskedCurrencyAmount
+                amountIDR={totalIncome}
+                valueClassName="text-3xl font-bold text-emerald-600"
+                showToggle={false}
+              />
+            </div>
+            <div className="border-t border-slate-200 pt-4 dark:border-slate-700">
+              <span className="text-xs text-slate-500 dark:text-slate-400">Status Finansial</span>
+              <p className="text-sm font-semibold text-emerald-600 mt-1">Surplus Profit</p>
+            </div>
           </InteractiveDotPanel>
-        </section>
 
-        <section className="mt-7 grid gap-6 lg:hidden [&>*]:min-w-0 [&>*]:w-full">
-          <div className="min-w-0 w-full">
-            <ExpenseChart data={expenseChartData} />
-          </div>
+          {/* Bento Items 3-6: 2 kolom vertikal (kiri: Chart+Trend, kanan: QuickAdd+TopSpending) */}
+          <div className="lg:col-span-12 grid grid-cols-12 gap-5 items-start">
 
-          <div className="min-w-0 w-full">
-            <TopSpendingInsight data={topSpendingData} totalExpense={totalExpense} />
-          </div>
-
-          <div className="min-w-0 w-full space-y-6">
-            <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
-            <MonthlyHistory data={monthlyHistoryData} />
-          </div>
-        </section>
-
-        <section className="mt-6 hidden gap-5 lg:grid lg:grid-cols-12 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
-          <div className="min-w-0 w-full self-start lg:col-span-7">
-            <div className="space-y-5">
+            {/* Kolom kiri: ExpenseChart + MonthlyTrend */}
+            <div className="col-span-7 flex flex-col gap-5 min-w-0 stagger-3">
               <ExpenseChart data={expenseChartData} />
               <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
             </div>
-          </div>
 
-          <div className="min-w-0 w-full self-start lg:col-span-5">
-            <div className="space-y-5">
+            {/* Kolom kanan: QuickAdd + TopSpending (langsung di bawahnya) */}
+            <div className="col-span-5 flex flex-col gap-5 min-w-0 stagger-4">
               <QuickAddTransaction
                 categories={categories ?? []}
                 action={quickAddTransaction}
@@ -496,13 +565,15 @@ export default async function Home({ searchParams }: HomeProps) {
               <TopSpendingInsight data={topSpendingData} totalExpense={totalExpense} />
             </div>
           </div>
-        </section>
 
-        <section className="mt-6 hidden lg:grid lg:grid-cols-12 lg:items-start [&>*]:min-w-0 [&>*]:w-full">
-          <div className="lg:col-span-12">
+          {/* Bento Item 7: Monthly History (lg:col-span-12) */}
+          <div className="lg:col-span-12 min-w-0 w-full stagger-5">
             <MonthlyHistory data={monthlyHistoryData} />
           </div>
-        </section>
+        </div>
+
+
+
 
         <InteractiveDotPanel className="section-card min-w-0 w-full mt-6 lg:hidden">
             <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">

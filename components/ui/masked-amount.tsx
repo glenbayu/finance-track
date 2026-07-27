@@ -84,7 +84,7 @@ type MaskedAmountProps = {
 
 export default function MaskedAmount({
   value,
-  maskedText = "***",
+  maskedText = "******",
   valueClassName = "",
   buttonClassName = "btn-secondary h-9 w-9 px-0",
   showToggle = true,
@@ -99,12 +99,14 @@ export default function MaskedAmount({
 
   return (
     <div className={showToggle ? "flex items-center justify-between gap-3" : undefined}>
-      <p className={valueClassName}>{isHidden ? maskedText : value}</p>
+      <span className={valueClassName}>
+        {isHidden ? maskedText : value}
+      </span>
       {showToggle ? (
         <button
           type="button"
           onClick={toggleHidden}
-          className={buttonClassName}
+          className={`rounded-full transition-all active:scale-90 ${buttonClassName}`}
           aria-label={isHidden ? showLabel : hideLabel}
           title={isHidden ? showTitle : hideTitle}
           disabled={!toggleHidden}

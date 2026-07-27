@@ -10,8 +10,7 @@ import {
 import { useMaskedAmounts } from "@/components/ui/masked-amount";
 import InteractiveDotPanel from "@/components/ui/interactive-dot-panel";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
-import { useEffect, useState } from "react";
-
+import { useEffect, useState, useMemo } from "react";
 type ExpenseChartItem = {
   name: string;
   value: number;
@@ -32,8 +31,10 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   const isHidden = masked?.isHidden ?? false;
   const { formatFromIDR } = useDisplayCurrency();
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const checkDark = () =>
       setIsDark(document.documentElement.classList.contains("dark"));
@@ -45,13 +46,12 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
 
   const COLORS = isDark ? COLORS_DARK : COLORS_LIGHT;
 
-  const totalExpense = data.reduce((sum, item) => sum + item.value, 0);
-  const breakdown = data.map((item, index) => ({
-
+  const totalExpense = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
+  const breakdown = useMemo(() => data.map((item, index) => ({
     ...item,
     color: COLORS[index % COLORS.length],
     percentage: totalExpense > 0 ? Math.round((item.value / totalExpense) * 100) : 0,
-  }));
+  })), [data, COLORS, totalExpense]);
   const topCategory = breakdown[0];
 
   if (!data.length) {
@@ -70,68 +70,72 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
       <div className="mt-3 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(230px,280px)] lg:items-start">
         <div className="w-full min-w-0">
           <div className="relative mx-auto w-full max-w-[340px] sm:max-w-none lg:max-w-[380px]">
-            <ResponsiveContainer width="100%" aspect={1.05} minHeight={220}>
-              <PieChart accessibilityLayer={false}>
-                <Pie
-                  data={data}
-                  dataKey="value"
-                  nameKey="name"
-                  outerRadius="79%"
-                  innerRadius="51%"
-                  paddingAngle={2}
-                  labelLine={false}
-                >
-                  {data.map((_, index) => (
-                    <Cell
-                      key={`cell-${index}`}
-                      fill={COLORS[index % COLORS.length]}
+            {!mounted ? (
+              /* Stable GPU placeholder to prevent layout shifts */
+              <div className="h-[220px] sm:h-[300px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-full animate-pulse mx-auto max-w-[220px] sm:max-w-[300px]" />
+            ) : (
+              <>
+                <ResponsiveContainer width="100%" aspect={1.05} minHeight={220}>
+                  <PieChart accessibilityLayer={false}>
+                    <Pie
+                      data={data}
+                      dataKey="value"
+                      nameKey="name"
+                      outerRadius="79%"
+                      innerRadius="51%"
+                      paddingAngle={2}
+                      labelLine={false}
+                      animationDuration={950}
+                    >
+                      {data.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={COLORS[index % COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      content={({ active, payload }) => {
+                        if (!active || !payload?.length) return null;
+
+                        const point = payload[0]?.payload as ExpenseChartItem | undefined;
+                        if (!point) return null;
+
+                        const percentage =
+                          totalExpense > 0
+                            ? Math.round((point.value / totalExpense) * 100)
+                            : 0;
+
+                        return (
+                          <div
+                            className="rounded-xl border border-slate-200/50 bg-white/75 px-3 py-2 shadow-md backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
+                          >
+                            <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{point.name}</p>
+                            <p className="text-sm font-semibold font-mono text-slate-800 dark:text-slate-200 mt-0.5">{isHidden ? "******" : formatFromIDR(point.value)}</p>
+                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
+                              {percentage}% dari total
+                            </p>
+                          </div>
+                        );
+                      }}
                     />
-                  ))}
-                </Pie>
-                <Tooltip
-                  content={({ active, payload }) => {
-                    if (!active || !payload?.length) return null;
+                  </PieChart>
+                </ResponsiveContainer>
 
-                    const point = payload[0]?.payload as ExpenseChartItem | undefined;
-                    if (!point) return null;
-
-                    const percentage =
-                      totalExpense > 0
-                        ? Math.round((point.value / totalExpense) * 100)
-                        : 0;
-
-                    return (
-                      <div
-                        className="rounded-xl border px-3 py-2 shadow-sm"
-                        style={{
-                          borderColor: "var(--stroke)",
-                          backgroundColor: "var(--surface)",
-                          color: "var(--foreground)",
-                        }}
-                      >
-                        <p className="text-sm font-semibold">{point.name}</p>
-                        <p className="text-sm">{isHidden ? "***" : formatFromIDR(point.value)}</p>
-                        <p className="text-xs text-slate-500 dark:text-slate-400">
-                          {percentage}% dari total
-                        </p>
-                      </div>
-                    );
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-
-            <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center lg:hidden">
-              <div className="text-center leading-tight">
-                <p className="text-base font-semibold text-slate-900 dark:text-slate-100 sm:text-lg">
-                  {isHidden ? "***" : formatFromIDR(totalExpense)}
-                </p>
-                <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-                  Total Pengeluaran
-                </p>
-              </div>
-            </div>
+                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center lg:hidden">
+                  <div className="text-center leading-tight">
+                    <p className="text-base font-semibold text-slate-900 dark:text-slate-100 sm:text-lg">
+                      {isHidden ? "******" : formatFromIDR(totalExpense)}
+                    </p>
+                    <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
+                      Total Pengeluaran
+                    </p>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
+
 
           <div className="mt-0 hidden text-center lg:-mt-20 lg:block">
             <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">

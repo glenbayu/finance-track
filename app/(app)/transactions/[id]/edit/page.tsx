@@ -1,4 +1,5 @@
 import { notFound, redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
 import TransactionEditForm from "@/components/transactions/transaction-edit-form";
 import LogoutButton from "@/components/auth/logout-button";
 import AppShell from "@/components/layout/app-shell";
@@ -20,15 +21,25 @@ async function updateTransaction(formData: FormData) {
   const { supabase, user } = await requireUser();
 
   const id = formData.get("id") as string;
-  const type = formData.get("type") as "income" | "expense";
+  const type = formData.get("type") as "income" | "expense" | "transfer" | "adjustment";
   const amount = Number(formData.get("amount"));
   const categoryId = formData.get("category_id") as string;
+  const walletId = formData.get("wallet_id") as string;
+  const destinationWalletId = formData.get("destination_wallet_id") as string;
   const rawNote = String(formData.get("note") || "").trim();
   const note = rawNote ? rawNote.slice(0, NOTE_MAX_LENGTH) : null;
   const transactionDate = formData.get("transaction_date") as string;
 
-  if (!id || !type || !categoryId || !transactionDate) {
+  if (!id || !type || !transactionDate || !walletId) {
     throw new Error("Data transaksi belum lengkap.");
+  }
+
+  if (type !== "transfer" && type !== "adjustment" && !categoryId) {
+    throw new Error("Kategori harus dipilih.");
+  }
+
+  if (type === "transfer" && (!destinationWalletId || walletId === destinationWalletId)) {
+    throw new Error("Dompet tujuan tidak valid.");
   }
 
   if (!Number.isFinite(amount) || amount <= 0) {
@@ -39,16 +50,22 @@ async function updateTransaction(formData: FormData) {
     throw new Error("Tanggal transaksi tidak valid.");
   }
 
-  const { data: category, error: categoryError } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("id", categoryId)
-    .or(`user_id.eq.${user.id},user_id.is.null`)
-    .is("archived_at", null)
-    .single();
+  let validCategoryId = categoryId;
+  if (type !== "transfer" && type !== "adjustment") {
+    const { data: category, error: categoryError } = await supabase
+      .from("categories")
+      .select("id")
+      .eq("id", categoryId)
+      .or(`user_id.eq.${user.id},user_id.is.null`)
+      .is("archived_at", null)
+      .single();
 
-  if (categoryError || !category) {
-    throw new Error("Kategori tidak valid.");
+    if (categoryError || !category) {
+      throw new Error("Kategori tidak valid.");
+    }
+    validCategoryId = category.id;
+  } else {
+    validCategoryId = null as any;
   }
 
   const { error } = await supabase
@@ -56,7 +73,9 @@ async function updateTransaction(formData: FormData) {
     .update({
       type,
       amount,
-      category_id: categoryId,
+      category_id: validCategoryId,
+      wallet_id: walletId,
+      destination_wallet_id: type === "transfer" ? destinationWalletId : null,
       note,
       transaction_date: transactionDate,
     })
@@ -67,6 +86,10 @@ async function updateTransaction(formData: FormData) {
     throw new Error(error.message);
   }
 
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath("/wallets");
+
   redirect("/transactions");
 }
 
@@ -74,32 +97,40 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
   const { supabase, user } = await requireUser();
   const { id } = await params;
 
-  const [{ data: transaction, error: transactionError }, { data: categories, error: categoriesError }] =
-    await Promise.all([
-      supabase
-        .from("transactions")
-        .select("*")
-        .eq("user_id", user.id)
-        .eq("id", id)
-        .single(),
-      supabase
-        .from("categories")
-        .select("id, name, type")
-        .or(`user_id.eq.${user.id},user_id.is.null`)
-        .is("archived_at", null)
-        .order("name", { ascending: true }),
-    ]);
+  const [
+    { data: transaction, error: transactionError },
+    { data: categories, error: categoriesError },
+    { data: wallets, error: walletsError },
+  ] = await Promise.all([
+    supabase
+      .from("transactions")
+      .select("*")
+      .eq("user_id", user.id)
+      .eq("id", id)
+      .single(),
+    supabase
+      .from("categories")
+      .select("id, name, type")
+      .or(`user_id.eq.${user.id},user_id.is.null`)
+      .is("archived_at", null)
+      .order("name", { ascending: true }),
+    supabase
+      .from("wallets")
+      .select("id, name, type")
+      .eq("user_id", user.id)
+      .order("name", { ascending: true }),
+  ]);
 
   if (transactionError || !transaction) {
     notFound();
   }
 
-  if (categoriesError) {
+  if (categoriesError || walletsError) {
     return (
       <main className="page-shell">
         <div className="page-container">
           <p className="text-red-600">
-            Gagal load kategori: {categoriesError.message}
+            Gagal load data: {categoriesError?.message || walletsError?.message}
           </p>
         </div>
       </main>
@@ -131,6 +162,8 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
       activeNav="transactions"
       title="Edit Transaksi"
       description="Ubah data transaksi yang sudah ada."
+      layoutStyle="drawer"
+      backPath="/transactions"
       headerActions={
         <>
           <Link
@@ -166,8 +199,10 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
       <TransactionEditForm
         transaction={transaction}
         categories={categoryOptions}
+        wallets={wallets ?? []}
         action={updateTransaction}
       />
     </AppShell>
   );
 }
+

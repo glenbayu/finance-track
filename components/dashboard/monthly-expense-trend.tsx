@@ -55,13 +55,12 @@ function ExpenseTrendTooltip({
 
   return (
     <div
-      className="rounded-xl border border-[color:var(--stroke)] bg-[color:var(--surface)] px-3 py-2 shadow-lg"
-      style={{ color: "var(--foreground)" }}
+      className="rounded-xl border border-slate-200/50 bg-white/75 px-3 py-2 shadow-md backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
     >
-      <p className="text-sm font-medium text-slate-900 dark:text-slate-100">
+      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
         {String(label ?? "")}
       </p>
-      <p className="mt-1 text-sm font-semibold text-rose-600 dark:text-[#f87171]">
+      <p className="mt-0.5 text-sm font-semibold font-mono text-rose-600 dark:text-rose-500">
         {formatCurrency(amount, currency)}
       </p>
     </div>
@@ -73,8 +72,10 @@ export default function MonthlyExpenseTrend({
 }: MonthlyExpenseTrendProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
   const [isDark, setIsDark] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
     const checkDark = () =>
       setIsDark(document.documentElement.classList.contains("dark"));
     checkDark();
@@ -104,6 +105,9 @@ export default function MonthlyExpenseTrend({
 
       {!chartData.length ? (
         <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada data pengeluaran.</p>
+      ) : !mounted ? (
+        /* GPU Accelerated Placeholder height matching the chart to prevent Layout Shift (CLS) */
+        <div className="h-[250px] w-full md:h-[280px] bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
       ) : (
         <div className="h-[250px] w-full md:h-[280px]">
           <ResponsiveContainer width="100%" height="100%">
@@ -136,6 +140,7 @@ export default function MonthlyExpenseTrend({
                 dataKey="expenseConverted"
                 fill={barFill}
                 radius={[10, 10, 0, 0]}
+                animationDuration={250}
               />
             </BarChart>
           </ResponsiveContainer>

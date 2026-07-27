@@ -267,6 +267,8 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
       activeNav="add"
       title="Tambah Transaksi"
       description="Catat pemasukan atau pengeluaran baru."
+      layoutStyle="drawer"
+      backPath="/"
     >
       {activeTemplates.length ? (
         <section className="section-card mt-6">

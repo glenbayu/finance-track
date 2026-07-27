@@ -12,11 +12,19 @@ type Category = {
   type: "income" | "expense";
 };
 
+type Wallet = {
+  id: string;
+  name: string;
+  type: string;
+};
+
 type Transaction = {
   id: string;
-  type: "income" | "expense";
+  type: "income" | "expense" | "transfer" | "adjustment";
   amount: number;
   category_id: string | null;
+  wallet_id: string | null;
+  destination_wallet_id: string | null;
   note: string | null;
   transaction_date: string;
 };
@@ -24,6 +32,7 @@ type Transaction = {
 type TransactionEditFormProps = {
   transaction: Transaction;
   categories: Category[];
+  wallets: Wallet[];
   action: (formData: FormData) => void;
 };
 
@@ -40,10 +49,15 @@ function formatRupiahInput(value: string) {
 export default function TransactionEditForm({
   transaction,
   categories,
+  wallets,
   action,
 }: TransactionEditFormProps) {
-  const [type, setType] = useState<"income" | "expense">(transaction.type);
+  const [type, setType] = useState<"income" | "expense" | "transfer" | "adjustment">(transaction.type);
   const [categoryId, setCategoryId] = useState(transaction.category_id ?? "");
+  const [walletId, setWalletId] = useState(transaction.wallet_id ?? (wallets[0]?.id ?? ""));
+  const [destinationWalletId, setDestinationWalletId] = useState(
+    transaction.destination_wallet_id ?? (wallets.length > 1 ? wallets[1].id : "")
+  );
   const [amountDisplay, setAmountDisplay] = useState(formatRupiahInput(transaction.amount.toString()));
 
   const filteredCategories = useMemo(() => {
@@ -60,7 +74,7 @@ export default function TransactionEditForm({
           name="type"
           value={type}
           onValueChange={(nextValue) => {
-            const nextType = nextValue as "income" | "expense";
+            const nextType = nextValue as "income" | "expense" | "transfer" | "adjustment";
             const hasMatchingCategory = categories.some(
               (item) => item.type === nextType && item.id === categoryId,
             );
@@ -74,6 +88,10 @@ export default function TransactionEditForm({
           options={[
             { value: "expense", label: "Pengeluaran" },
             { value: "income", label: "Pemasukan" },
+            { value: "transfer", label: "Transfer / Mutasi" },
+            ...(transaction.type === "adjustment"
+              ? [{ value: "adjustment", label: "Penyesuaian Saldo (Adjust)" }]
+              : []),
           ]}
           required
         />
@@ -113,23 +131,53 @@ export default function TransactionEditForm({
         </div>
       </div>
 
-      <div>
-        <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori</label>
-        <FormSelect
-          name="category_id"
-          value={categoryId}
-          onValueChange={setCategoryId}
-          options={[
-            { value: "", label: "Pilih kategori", disabled: true },
-            ...filteredCategories.map((category) => ({
-              value: category.id,
-              label: category.name,
-            })),
-          ]}
-          required
-          placeholder="Pilih kategori"
-        />
+      <div className={`grid gap-4 ${type === 'transfer' ? 'md:grid-cols-2' : ''}`}>
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">
+            {type === 'transfer' ? 'Dompet Asal' : 'Dompet'}
+          </label>
+          <FormSelect
+            name="wallet_id"
+            value={walletId}
+            onValueChange={setWalletId}
+            options={wallets.map(w => ({ value: w.id, label: w.name }))}
+            required
+          />
+        </div>
+        
+        {type === 'transfer' && (
+          <div>
+            <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Dompet Tujuan</label>
+            <FormSelect
+              name="destination_wallet_id"
+              value={destinationWalletId}
+              onValueChange={setDestinationWalletId}
+              options={wallets.map(w => ({ value: w.id, label: w.name }))}
+              required
+            />
+          </div>
+        )}
       </div>
+
+      {type !== 'transfer' && type !== 'adjustment' && (
+        <div>
+          <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Kategori</label>
+          <FormSelect
+            name="category_id"
+            value={categoryId}
+            onValueChange={setCategoryId}
+            options={[
+              { value: "", label: "Pilih kategori", disabled: true },
+              ...filteredCategories.map((category) => ({
+                value: category.id,
+                label: category.name,
+              })),
+            ]}
+            required
+            placeholder="Pilih kategori"
+          />
+        </div>
+      )}
 
       <div>
         <label className="mb-2 block text-sm font-semibold text-slate-700 dark:text-slate-200">Catatan</label>

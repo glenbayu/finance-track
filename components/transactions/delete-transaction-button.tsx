@@ -7,6 +7,8 @@ import ConfirmationModal from "@/components/ui/confirmation-modal";
 type DeleteTransactionButtonProps = {
   id: string;
   action: (formData: FormData) => void | Promise<void>;
+  className?: string;
+  label?: string;
 };
 
 function ConfirmDeleteButton({
@@ -38,6 +40,8 @@ function ConfirmDeleteButton({
 export default function DeleteTransactionButton({
   id,
   action,
+  className,
+  label,
 }: DeleteTransactionButtonProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -69,11 +73,12 @@ export default function DeleteTransactionButton({
         type="button"
         aria-label="Hapus transaksi"
         title="Hapus transaksi"
-        className="btn-danger-icon"
+        className={className || "btn-danger-icon"}
         onClick={() => setIsOpen(true)}
         disabled={isSubmitting}
       >
-        <Trash2 size={14} className="text-white" />
+        <Trash2 size={14} className={label ? "mr-1.5 inline-block" : "text-white"} />
+        {label}
       </button>
 
       <ConfirmationModal

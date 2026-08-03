@@ -37,7 +37,7 @@ export default function QuickAddTemplateCard({
     });
   };
 
-  const cardClassName = `soft-inset relative min-w-0 overflow-hidden transition hover-bounce ${
+  const cardClassName = `soft-inset relative min-w-0 overflow-hidden transition-all duration-200 hover:-translate-y-0.5 active:scale-[0.98] hover:shadow-md ${
     isPending ? "scale-[0.98] ring-2 ring-emerald-500/20" : "hover:brightness-[0.99]"
   } ${
     isCompact ? "h-[84px] p-3" : "p-3.5"

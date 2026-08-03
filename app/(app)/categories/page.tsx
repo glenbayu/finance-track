@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
-import { formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
 import { Archive, FolderSearch } from "lucide-react";
 

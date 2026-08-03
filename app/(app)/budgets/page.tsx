@@ -5,8 +5,8 @@ import AppShell from "@/components/layout/app-shell";
 import SubmitButton from "@/components/ui/submit-button";
 import MonthFilter from "@/components/ui/month-filter";
 import CurrencyAmount from "@/components/ui/currency-amount";
-import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/date";
-import { formatDate } from "@/lib/format";
+import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
+import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
 
 type BudgetsPageProps = {

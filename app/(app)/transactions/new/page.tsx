@@ -6,7 +6,7 @@ import AppShell from "@/components/layout/app-shell";
 import QuickAddTemplateCard from "@/components/quick-add/quick-add-template-card";
 import type { QuickAddTemplateType } from "@/lib/quick-add";
 import { byTemplateSort, mapQuickAddTemplateRow } from "@/lib/quick-add";
-import { getCurrentDate, isDateValue } from "@/lib/date";
+import { getCurrentDate, isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 
 const NOTE_MAX_LENGTH = 140;
@@ -263,35 +263,38 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
     <AppShell
       className="journal-entry"
       containerClassName="max-w-6xl"
-      contentClassName="max-w-3xl"
+      contentClassName="max-w-xl mx-auto"
       activeNav="add"
       title="Tambah Transaksi"
       description="Catat pemasukan atau pengeluaran baru."
-      layoutStyle="drawer"
+      layoutStyle="default"
       backPath="/"
     >
       {activeTemplates.length ? (
-        <section className="section-card mt-6">
-          <div className="mb-3 flex items-center justify-between gap-2">
-            <h2 className="text-base font-semibold">Pilih Template Cepat</h2>
-            <Link
-              href="/settings/templates"
-              className="text-xs font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
-            >
-              Kelola
-            </Link>
+        <details className="section-card mt-4 group">
+          <summary className="flex cursor-pointer items-center justify-between gap-2 list-none [&::-webkit-details-marker]:hidden p-3 sm:p-4">
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              Template Cepat ({activeTemplates.length})
+            </span>
+            <span className="text-xs text-slate-400 group-open:hidden">Tampilkan ▸</span>
+            <span className="text-xs text-slate-400 hidden group-open:inline">Sembunyikan ▾</span>
+          </summary>
+          <div className="px-3 pb-3 sm:px-4 sm:pb-4">
+            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+              {activeTemplates.map((template) => (
+                <QuickAddTemplateCard key={template.id} template={template} variant="default" />
+              ))}
+            </div>
+            <div className="mt-2 flex items-center gap-2">
+              <Link
+                href="/settings/templates"
+                className="text-[10px] font-semibold text-slate-500 underline underline-offset-4 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
+              >
+                Kelola Template
+              </Link>
+            </div>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-            {activeTemplates.map((template) => (
-              <QuickAddTemplateCard key={template.id} template={template} variant="default" />
-            ))}
-          </div>
-          <div className="mt-3">
-            <Link href="/transactions/new" className="btn-secondary h-10 px-4">
-              Tambah Manual
-            </Link>
-          </div>
-        </section>
+        </details>
       ) : null}
 
       <TransactionForm

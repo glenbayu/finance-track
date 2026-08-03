@@ -1,4 +1,4 @@
-import type { CurrencyCode } from "@/lib/currency";
+import type { CurrencyCode } from "@/lib/utils/currency";
 
 export type QuickAddTemplateType = "income" | "expense";
 

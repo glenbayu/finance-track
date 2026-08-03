@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import TransactionEditForm from "@/components/transactions/transaction-edit-form";
 import LogoutButton from "@/components/auth/logout-button";
 import AppShell from "@/components/layout/app-shell";
-import { isDateValue } from "@/lib/date";
+import { isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 import Link from "next/link";
 
@@ -93,6 +93,33 @@ async function updateTransaction(formData: FormData) {
   redirect("/transactions");
 }
 
+async function deleteTransaction(formData: FormData) {
+  "use server";
+
+  const { supabase, user } = await requireUser();
+  const id = formData.get("id") as string;
+
+  if (!id) {
+    throw new Error("ID transaksi tidak valid.");
+  }
+
+  const { error } = await supabase
+    .from("transactions")
+    .delete()
+    .eq("id", id)
+    .eq("user_id", user.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath("/wallets");
+
+  redirect("/transactions");
+}
+
 export default async function EditTransactionPage({ params }: EditPageProps) {
   const { supabase, user } = await requireUser();
   const { id } = await params;
@@ -158,11 +185,11 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
     <AppShell
       className="journal-entry"
       containerClassName="max-w-6xl"
-      contentClassName="max-w-3xl"
+      contentClassName="max-w-xl mx-auto"
       activeNav="transactions"
       title="Edit Transaksi"
       description="Ubah data transaksi yang sudah ada."
-      layoutStyle="drawer"
+      layoutStyle="default"
       backPath="/transactions"
       headerActions={
         <>
@@ -201,6 +228,7 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
         categories={categoryOptions}
         wallets={wallets ?? []}
         action={updateTransaction}
+        deleteAction={deleteTransaction}
       />
     </AppShell>
   );

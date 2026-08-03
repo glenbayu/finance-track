@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentDate, isDateValue } from "@/lib/date";
+import { getCurrentDate, isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 
 type QuickAddResult = {

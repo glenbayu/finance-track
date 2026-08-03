@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { CSSProperties, MouseEventHandler, ReactNode } from "react";
 
 type InteractiveDotPanelProps = {
@@ -25,8 +25,13 @@ export default function InteractiveDotPanel({
   const panelRef = useRef<HTMLDivElement | null>(null);
   const rafRef = useRef<number | null>(null);
   const pendingPointRef = useRef<{ x: number; y: number } | null>(null);
+  const [canHover, setCanHover] = useState(false);
 
   useEffect(() => {
+    const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+    const supportsHover = window.matchMedia("(hover: hover)").matches;
+    setCanHover(supportsHover && !isAndroid);
+
     return () => {
       if (rafRef.current !== null) {
         window.cancelAnimationFrame(rafRef.current);
@@ -72,7 +77,7 @@ export default function InteractiveDotPanel({
     onMouseLeave?.(event);
   };
 
-  if (!interactive) {
+  if (!interactive || !canHover) {
     return (
       <div
         ref={panelRef}

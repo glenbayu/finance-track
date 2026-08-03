@@ -3,7 +3,7 @@
 import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, ChevronDown, LoaderCircle } from "lucide-react";
-import { formatMonthLabel } from "@/lib/format";
+import { formatMonthLabel } from "@/lib/utils/format";
 
 type MonthFilterProps = {
   selectedMonth: string;
@@ -44,6 +44,7 @@ export default function MonthFilter({
   const [supportsMonthInput, setSupportsMonthInput] = useState(true);
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
   const [isCompactOpen, setIsCompactOpen] = useState(false);
+  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     setDisplayMonth(selectedMonth);
@@ -78,6 +79,7 @@ export default function MonthFilter({
     const input = document.createElement("input");
     input.setAttribute("type", "month");
     setSupportsMonthInput(input.type === "month");
+    setIsAndroid(/android/i.test(navigator.userAgent));
   }, []);
 
   useEffect(() => {
@@ -152,7 +154,7 @@ export default function MonthFilter({
 
   const useDropdownPicker = isCoarsePointer || !supportsMonthInput;
   const compactLabel = formatMonthLabel(displayMonth);
-  const useCompactNativePicker = compact && supportsMonthInput;
+  const useCompactNativePicker = compact && supportsMonthInput && !isAndroid;
 
   function openCompactNativePicker() {
     const input = compactInputRef.current;

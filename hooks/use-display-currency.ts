@@ -7,8 +7,8 @@ import {
   formatCurrency,
   SUPPORTED_CURRENCIES,
   normalizeCurrencyCode,
-} from "@/lib/currency";
-import { getRateFromIDRToCurrency } from "@/lib/exchange-rates";
+} from "@/lib/utils/currency";
+import { getRateFromIDRToCurrency } from "@/lib/utils/exchange-rates";
 
 const STORAGE_KEY = "finance-track-display-currency";
 const CURRENCY_EVENT = "ft_display_currency";

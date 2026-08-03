@@ -5,7 +5,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { ArrowUpDown } from "lucide-react";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import FormSelect from "@/components/ui/form-select";
-import { pad2 } from "@/lib/date";
+import { pad2 } from "@/lib/utils/date";
 
 type CategoryOption = {
   id: string;

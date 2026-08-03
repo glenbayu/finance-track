@@ -2,7 +2,7 @@
 
 import { Eye, EyeOff } from "lucide-react";
 import { createContext, useCallback, useContext, useMemo, useSyncExternalStore } from "react";
-import { AMOUNT_PRIVACY_STORAGE_KEY, MASKED_AMOUNTS_EVENT } from "@/lib/preferences";
+import { AMOUNT_PRIVACY_STORAGE_KEY, MASKED_AMOUNTS_EVENT } from "@/lib/utils/preferences";
 
 type MaskedAmountContextValue = {
   isHidden: boolean;

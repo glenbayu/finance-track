@@ -1,16 +1,8 @@
 import type { Metadata, Viewport } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import IdleSessionGuard from "@/components/auth/idle-session-guard";
 import PwaRegistration from "@/components/pwa/pwa-registration";
 import ThemeProvider from "@/components/ui/theme-provider";
-
-const inter = Inter({
-  subsets: ["latin"],
-  variable: "--font-inter",
-  display: "swap",
-  weight: ["300", "400", "500", "600", "700"],
-});
 
 export const metadata: Metadata = {
   applicationName: "Finance Tracker",
@@ -65,13 +57,18 @@ export default function RootLayout({
                   var isDark = stored === "dark";
                   document.documentElement.classList.toggle("dark", isDark);
                   document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+                  
+                  var ua = navigator.userAgent || "";
+                  if (/android/i.test(ua)) {
+                    document.documentElement.classList.add("is-android");
+                  }
                 } catch (e) {}
               })();
             `,
           }}
         />
       </head>
-      <body className={inter.variable}>
+      <body className="font-sans antialiased">
         <ThemeProvider>
           <IdleSessionGuard />
           <PwaRegistration />

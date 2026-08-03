@@ -13,11 +13,12 @@ import MaskedCurrencyAmount from "@/components/ui/masked-currency-amount";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import MonthFilter from "@/components/ui/month-filter";
 import { createTransactionFromTemplate, undoQuickAddTransaction } from "@/lib/actions/quick-add";
-import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth } from "@/lib/date";
-import { formatDate as formatDateLabel } from "@/lib/format";
+import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth } from "@/lib/utils/date";
+import { formatDate as formatDateLabel } from "@/lib/utils/format";
 import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowUpRight, Wallet, Settings } from "lucide-react";
+import { syncRolloversAndAdminFees } from "@/lib/rollover";
 
 type HomeProps = {
   searchParams?: Promise<{
@@ -75,6 +76,7 @@ async function quickAddTransaction(formData: FormData) {
 
 export default async function Home({ searchParams }: HomeProps) {
   const { supabase, user } = await requireUser();
+  await syncRolloversAndAdminFees(supabase, user.id);
   const params = await searchParams;
   const selectedMonth =
     params?.month ?? getCurrentMonth();

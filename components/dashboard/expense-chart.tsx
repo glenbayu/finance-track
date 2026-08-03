@@ -33,6 +33,11 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
+  const isAndroid = useMemo(() => {
+    if (typeof navigator === "undefined") return false;
+    return /android/i.test(navigator.userAgent);
+  }, []);
+
   useEffect(() => {
     setMounted(true);
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
@@ -85,7 +90,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                       innerRadius="51%"
                       paddingAngle={2}
                       labelLine={false}
-                      animationDuration={950}
+                      animationDuration={isAndroid ? 0 : 550}
                     >
                       {data.map((_, index) => (
                         <Cell
@@ -108,7 +113,10 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
 
                         return (
                           <div
-                            className="rounded-xl border border-slate-200/50 bg-white/75 px-3 py-2 shadow-md backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
+                            className={`rounded-xl border border-slate-200/50 px-3 py-2 shadow-md ${isAndroid
+                                ? "bg-white dark:bg-[#0a0c10]"
+                                : "bg-white/75 backdrop-blur-md dark:bg-[#0a0c10]/75"
+                              } dark:border-white/5`}
                           >
                             <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{point.name}</p>
                             <p className="text-sm font-semibold font-mono text-slate-800 dark:text-slate-200 mt-0.5">{isHidden ? "******" : formatFromIDR(point.value)}</p>

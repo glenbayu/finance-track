@@ -1,4 +1,4 @@
-import { CurrencyCode, SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { CurrencyCode, SUPPORTED_CURRENCIES } from "@/lib/utils/currency";
 
 type RateResult = {
   rate: number;

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import {
   Bar,
   BarChart,
@@ -15,7 +16,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { convertFromIDR, formatCurrency, getCurrencySymbol } from "@/lib/currency";
+import { convertFromIDR, formatCurrency, getCurrencySymbol } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import type { CategoryForecastResult } from "@/lib/reports/forecast";
 
@@ -109,6 +110,7 @@ function CustomTooltip({
   const chartHeight = Number(viewBox?.height ?? 280);
   const pointX = Number(coordinate?.x ?? chartWidth / 2);
   const pointY = Number(coordinate?.y ?? chartHeight / 2);
+  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
 
   const tooltipWidth = Math.min(180, Math.max(140, chartWidth - 16));
   const tooltipHeight = Math.min(90, Math.max(72, 44 + payload.length * 22));
@@ -149,7 +151,11 @@ function CustomTooltip({
         minHeight: tooltipHeight,
         borderRadius: 12,
       }}
-      className="pointer-events-none absolute z-30 p-3 shadow-md border border-slate-200/50 bg-white/75 backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
+      className={`pointer-events-none absolute z-30 p-3 shadow-md border border-slate-200/50 ${
+        isAndroid
+          ? "bg-white dark:bg-[#0a0c10]"
+          : "bg-white/75 backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
+      }`}
     >
       <p className="mb-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
         Bulan: {shortMonthLabel(String(label ?? ""))}
@@ -181,6 +187,12 @@ export default function ReportsCharts({
   forecastCategoryData,
 }: ReportsChartsProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
+  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   const convertedTrendData = trendData.map((item) => ({
     ...item,
@@ -211,6 +223,8 @@ export default function ReportsCharts({
 
         {!trendData.length ? (
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Belum ada data trend.</p>
+        ) : !mounted ? (
+          <div className="mt-4 h-[280px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
         ) : (
           <div className="relative mt-4 h-[280px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
@@ -254,6 +268,7 @@ export default function ReportsCharts({
                   strokeWidth={2.6}
                   dot={false}
                   activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
+                  isAnimationActive={!isAndroid}
                 />
                 <Line
                   type="monotone"
@@ -263,6 +278,7 @@ export default function ReportsCharts({
                   strokeWidth={2.6}
                   dot={false}
                   activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
+                  isAnimationActive={!isAndroid}
                 />
               </LineChart>
             </ResponsiveContainer>
@@ -280,6 +296,8 @@ export default function ReportsCharts({
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
             Belum ada pengeluaran pada bulan ini.
           </p>
+        ) : !mounted ? (
+          <div className="mt-3 h-[280px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-full animate-pulse max-w-[240px] mx-auto" />
         ) : (
           <div className="mt-3 h-[280px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
@@ -291,6 +309,7 @@ export default function ReportsCharts({
                   innerRadius="52%"
                   outerRadius="78%"
                   paddingAngle={2}
+                  animationDuration={isAndroid ? 0 : 400}
                 >
                   {convertedCategoryData.map((_, index) => (
                     <Cell key={`reports-category-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
@@ -319,6 +338,8 @@ export default function ReportsCharts({
 
         {!convertedTrendData.length ? (
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Belum ada data cashflow.</p>
+        ) : !mounted ? (
+          <div className="mt-4 h-[240px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
         ) : (
           <div className="mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%">
@@ -348,7 +369,7 @@ export default function ReportsCharts({
                     color: "var(--foreground)",
                   }}
                 />
-                <Bar dataKey="cashflow" radius={[8, 8, 0, 0]}>
+                <Bar dataKey="cashflow" radius={[8, 8, 0, 0]} isAnimationActive={!isAndroid}>
                   {convertedTrendData.map((item) => (
                     <Cell key={item.month} fill={item.cashflow >= 0 ? "#10b981" : "#ef4444"} />
                   ))}
@@ -396,28 +417,32 @@ export default function ReportsCharts({
             </div>
 
             <div className="mt-4 hidden h-[260px] w-full min-w-0 overflow-hidden sm:block">
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart
-                  layout="vertical"
-                  data={forecastBars}
-                  accessibilityLayer={false}
-                  margin={{ top: 4, right: 12, left: 10, bottom: 4 }}
-                >
-                  <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" horizontal={false} />
-                  <XAxis type="number" tickFormatter={compactCurrency} tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "var(--foreground)" }} />
-                  <YAxis type="category" dataKey="name" width={90} tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "var(--foreground)" }} />
-                  <Tooltip
-                    formatter={(value) => formatCurrency(Number(value ?? 0), effectiveCurrency)}
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "1px solid var(--stroke)",
-                      backgroundColor: "var(--surface)",
-                      color: "var(--foreground)",
-                    }}
-                  />
-                  <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="#0ea5a5" />
-                </BarChart>
-              </ResponsiveContainer>
+              {!mounted ? (
+                <div className="h-full w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
+              ) : (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart
+                    layout="vertical"
+                    data={forecastBars}
+                    accessibilityLayer={false}
+                    margin={{ top: 4, right: 12, left: 10, bottom: 4 }}
+                  >
+                    <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" horizontal={false} />
+                    <XAxis type="number" tickFormatter={compactCurrency} tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "var(--foreground)" }} />
+                    <YAxis type="category" dataKey="name" width={90} tickLine={false} axisLine={false} fontSize={12} tick={{ fill: "var(--foreground)" }} />
+                    <Tooltip
+                      formatter={(value) => formatCurrency(Number(value ?? 0), effectiveCurrency)}
+                      contentStyle={{
+                        borderRadius: "12px",
+                        border: "1px solid var(--stroke)",
+                        backgroundColor: "var(--surface)",
+                        color: "var(--foreground)",
+                      }}
+                    />
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="#0ea5a5" isAnimationActive={!isAndroid} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
             </div>
           </>
         )}

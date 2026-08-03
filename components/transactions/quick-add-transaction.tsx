@@ -10,7 +10,7 @@ import QuickAddConfirmationModal from "@/components/quick-add/quick-add-confirma
 import QuickAddToast from "@/components/quick-add/quick-add-toast";
 import { ChevronDown } from "lucide-react";
 import type { QuickAddTemplate } from "@/lib/quick-add";
-import { isDateValue } from "@/lib/date";
+import { isDateValue } from "@/lib/utils/date";
 
 type Category = {
   id: string;

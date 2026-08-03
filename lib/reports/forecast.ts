@@ -1,4 +1,4 @@
-import { getCurrentMonth, isMonthValue, pad2 } from "@/lib/date";
+import { getCurrentMonth, isMonthValue, pad2 } from "@/lib/utils/date";
 
 export type ForecastConfidence = "low" | "medium-low" | "medium" | "insufficient";
 

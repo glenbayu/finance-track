@@ -1,6 +1,6 @@
 import Link from "next/link";
 import AppShell from "@/components/layout/app-shell";
-import ReportsCharts from "@/components/reports/reports-charts";
+import ReportsCharts from "@/components/reports/dynamic-reports-charts";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import MonthFilter from "@/components/ui/month-filter";
 import {
@@ -12,8 +12,8 @@ import {
   type CategoryForecastResult,
   type ForecastConfidence,
 } from "@/lib/reports/forecast";
-import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths, isMonthValue } from "@/lib/date";
-import { formatDate, formatMonthLabel } from "@/lib/format";
+import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths, isMonthValue } from "@/lib/utils/date";
+import { formatDate, formatMonthLabel } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
 
 type ReportsPageProps = {
@@ -85,8 +85,11 @@ function confidenceClass(confidence: ForecastConfidence) {
   return "chip-neutral";
 }
 
+import { syncRolloversAndAdminFees } from "@/lib/rollover";
+
 export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const { supabase, user } = await requireUser();
+  await syncRolloversAndAdminFees(supabase, user.id);
   const params = await searchParams;
   const selectedMonth = isMonthValue(params?.month ?? "") ? (params?.month as string) : getCurrentMonth();
   const previousMonth = getPreviousMonth(selectedMonth);

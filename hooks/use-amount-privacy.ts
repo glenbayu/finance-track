@@ -4,7 +4,7 @@ import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   AMOUNT_PRIVACY_STORAGE_KEY,
   MASKED_AMOUNTS_EVENT,
-} from "@/lib/preferences";
+} from "@/lib/utils/preferences";
 
 function parseStoredValue(value: string | null) {
   if (value === "1" || value === "true") return true;

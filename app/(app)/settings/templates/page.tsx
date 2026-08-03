@@ -16,7 +16,7 @@ import {
   mapQuickAddTemplateRow,
   type QuickAddTemplate,
 } from "@/lib/quick-add";
-import { formatDate } from "@/lib/format";
+import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowDown, ArrowUp, Pencil, Plus, Trash2 } from "lucide-react";
 

@@ -2,7 +2,7 @@
 
 import { SlidersHorizontal } from "lucide-react";
 import FormSelect from "@/components/ui/form-select";
-import { SUPPORTED_CURRENCIES } from "@/lib/currency";
+import { SUPPORTED_CURRENCIES } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 
 export default function PreferencesCard() {

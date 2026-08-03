@@ -990,7 +990,124 @@ button,
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
+
+  /* ── Android-Specific Mobile Optimizations ── */
+  .is-android {
+    /* Disable expensive backdrop blur on all cards & panels to boost scroll speed */
+    .hero-panel,
+    .section-card,
+    .stat-card,
+    .soft-inset,
+    .app-shell-mobile-dock {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+
+    /* Increase background opacity in Dark Mode so cards remain highly legible without blur */
+    &.dark .hero-panel,
+    .dark .hero-panel {
+      background: rgba(10, 11, 13, 0.95) !important;
+    }
+
+    &.dark .section-card,
+    .dark .section-card {
+      background: rgba(10, 11, 13, 0.93) !important;
+    }
+
+    &.dark .stat-card,
+    .dark .stat-card {
+      background: rgba(10, 11, 13, 0.94) !important;
+    }
+
+    &.dark .soft-inset,
+    .dark .soft-inset {
+      background: rgba(16, 26, 52, 0.92) !important;
+    }
+
+    &.dark .app-shell-mobile-dock,
+    .dark .app-shell-mobile-dock {
+      background: rgba(15, 23, 42, 0.98) !important;
+    }
+
+    /* Simplify Recharts tooltips to prevent redraw lag */
+    .recharts-tooltip-wrapper {
+      backdrop-filter: none !important;
+      -webkit-backdrop-filter: none !important;
+    }
+  }
+
+  /* Disable hover micro-interactions on mobile/touch screen devices to prevent sticky taps and layout recalculations */
+  @media (hover: none) {
+    .hover-bounce:hover {
+      transform: none !important;
+      animation: none !important;
+    }
+    .hover-glow:hover {
+      transform: none !important;
+      box-shadow: none !important;
+      border-color: var(--stroke) !important;
+    }
+    .icon-spin-hover:hover svg {
+      transform: none !important;
+    }
+    
+    /* Avoid visual transitions when dragging or scrolling past cards */
+    .dark .section-card:hover,
+    .dark .stat-card:hover {
+      transform: none !important;
+      box-shadow: 0 20px 44px -28px rgba(0, 0, 0, 0.85) !important;
+    }
+  }
+
+  /* ── CSS Native List Virtualization (GPU & Render Optimization) ── */
+  .table-shell article.soft-inset {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 120px;
+  }
 }
+
+
+  /* ── Smooth Theme Transitions ── */
+  html,
+  body,
+  header,
+  footer,
+  .section-card,
+  .stat-card,
+  .hero-panel,
+  .input-base,
+  .select-base,
+  .textarea-base,
+  .btn-primary,
+  .btn-secondary {
+    transition: background-color 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+                border-color 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+                color 300ms cubic-bezier(0.4, 0, 0.2, 1), 
+                box-shadow 300ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* ── Dashboard Stats Cards Micro-Interactions ── */
+  @media (hover: hover) {
+    .stat-card {
+      transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  box-shadow 0.22s cubic-bezier(0.34, 1.56, 0.64, 1), 
+                  background-color 300ms ease, 
+                  border-color 300ms ease;
+    }
+    .stat-card:hover {
+      transform: translateY(-3px) scale(1.005);
+      box-shadow: 0 10px 20px -8px rgba(0, 0, 0, 0.06);
+    }
+    .dark .stat-card:hover {
+      box-shadow: 0 10px 20px -8px rgba(255, 255, 255, 0.02);
+    }
+  }
+
+  /* Active press scale effect for all viewports (tactile feedback) */
+  .stat-card:active {
+    transform: scale(0.99);
+    transition: transform 0.1s ease;
+  }
 
 @media (prefers-reduced-motion: reduce) {
   *,
@@ -1002,3 +1119,4 @@ button,
     scroll-behavior: auto !important;
   }
 }
+

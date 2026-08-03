@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getCurrentMonth, pad2 } from "./date";
+import { getCurrentMonth, pad2 } from "./utils/date";
 
 function getNextMonth(month: string) {
   const [year, monthNum] = month.split("-").map(Number);

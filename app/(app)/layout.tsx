@@ -1,11 +1,8 @@
 import type { ReactNode } from "react";
 import DesktopSidebar from "@/components/layout/desktop-sidebar";
 import { requireUser } from "@/lib/supabase/auth";
-import { syncRolloversAndAdminFees } from "@/lib/rollover";
-
 export default async function ProtectedAppLayout({ children }: { children: ReactNode }) {
   const { supabase, user } = await requireUser();
-  await syncRolloversAndAdminFees(supabase, user.id);
 
   return (
     <main className="page-shell app-shell-page">

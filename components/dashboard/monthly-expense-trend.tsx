@@ -9,7 +9,7 @@ import {
   Tooltip,
   CartesianGrid,
 } from "recharts";
-import { convertFromIDR, formatCurrency } from "@/lib/currency";
+import { convertFromIDR, formatCurrency } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import { useEffect, useState } from "react";
 
@@ -52,10 +52,15 @@ function ExpenseTrendTooltip({
   if (!active || !payload?.length) return null;
 
   const amount = Number(payload[0]?.value ?? 0);
+  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
 
   return (
     <div
-      className="rounded-xl border border-slate-200/50 bg-white/75 px-3 py-2 shadow-md backdrop-blur-md dark:border-white/5 dark:bg-[#0a0c10]/75"
+      className={`rounded-xl border border-slate-200/50 px-3 py-2 shadow-md ${
+        isAndroid
+          ? "bg-white dark:bg-[#0a0c10]"
+          : "bg-white/75 backdrop-blur-md dark:bg-[#0a0c10]/75"
+      } dark:border-white/5`}
     >
       <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
         {String(label ?? "")}
@@ -140,7 +145,7 @@ export default function MonthlyExpenseTrend({
                 dataKey="expenseConverted"
                 fill={barFill}
                 radius={[10, 10, 0, 0]}
-                animationDuration={250}
+                animationDuration={typeof navigator !== "undefined" && /android/i.test(navigator.userAgent) ? 0 : 250}
               />
             </BarChart>
           </ResponsiveContainer>

@@ -13,7 +13,7 @@ async function revalidateWalletRelatedPaths() {
 }
 
 import MonthFilter from "@/components/ui/month-filter";
-import { getCurrentMonth, getMonthRange } from "@/lib/date";
+import { getCurrentMonth, getMonthRange } from "@/lib/utils/date";
 
 export type WalletsPageProps = {
   searchParams?: Promise<{

@@ -10,9 +10,10 @@ import DeleteTransactionButton from "@/components/transactions/delete-transactio
 import DuplicateTransactionButton from "@/components/transactions/duplicate-transaction-button";
 import TransactionsSearch from "@/components/transactions/transactions-search";
 import TransactionsFilterControls from "@/components/transactions/transactions-filter-controls";
-import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/date";
+import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 import TransactionMobileFilter from "@/components/transactions/transaction-mobile-filter";
+import SwipeableRow from "@/components/ui/swipeable-row";
 
 type TransactionsPageProps = {
   searchParams?: Promise<{
@@ -205,8 +206,11 @@ async function deleteTransaction(formData: FormData) {
   revalidatePath("/budgets");
 }
 
+import { syncRolloversAndAdminFees } from "@/lib/rollover";
+
 export default async function TransactionsPage({ searchParams }: TransactionsPageProps) {
   const { supabase, user } = await requireUser();
+  await syncRolloversAndAdminFees(supabase, user.id);
   const params = await searchParams;
 
   const selectedMonth = isMonthValue(params?.month ?? "") ? (params?.month as string) : getCurrentMonth();
@@ -454,58 +458,66 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                 const useCompactAmount = Math.abs(amountValue) >= 100000;
 
                 return (
-                  <article key={transaction.id} className="soft-inset">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                          {formatDate(transaction.transaction_date)}
-                        </p>
-                        <p className="mt-1 truncate font-semibold text-slate-900 dark:text-slate-100">
-                          {transaction.type === "transfer" 
-                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
-                            : transaction.type === "adjustment"
-                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
-                            : category?.name
-                            ? highlightText(category.name, highlightQuery)
-                            : "Tanpa kategori"}
-                        </p>
-                        <p className="mt-1 text-sm text-slate-500 break-words dark:text-slate-300">
-                          {transaction.note
-                            ? highlightText(transaction.note, highlightQuery)
-                            : "-"}
-                        </p>
-                      </div>
-
-                      <span className={
-                        transaction.type === "income" ? "chip-income" : 
-                        transaction.type === "expense" ? "chip-expense" : 
-                        "inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                      }>
-                        {transaction.type === "income" ? "Pemasukan" : 
-                         transaction.type === "expense" ? "Pengeluaran" : 
-                         transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
-                      </span>
-                    </div>
-
-                    <div className="mt-4 flex items-center justify-between gap-3">
-                      <p
-                        className={`min-w-0 whitespace-nowrap text-lg font-semibold ${
-                          transaction.type === "income" ? "text-emerald-600" : 
-                          transaction.type === "expense" ? "text-rose-600" : 
-                          "text-slate-700 dark:text-slate-300"
-                        }`}
-                      >
-                        {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
-                        <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
-                      </p>
-
-                      <div className="flex shrink-0 items-center gap-2">
+                  <SwipeableRow
+                    key={transaction.id}
+                    actions={
+                      <>
                         <DuplicateTransactionButton id={transaction.id} />
                         <EditTransactionButton id={transaction.id} />
                         <DeleteTransactionButton id={transaction.id} action={deleteTransaction} />
-                      </div>
-                    </div>
-                  </article>
+                      </>
+                    }
+                    actionWidth={160}
+                  >
+                    <Link href={`/transactions/${transaction.id}/edit`} className="block active:opacity-75">
+                      <article className="soft-inset select-none">
+                        <div className="flex items-start justify-between gap-3">
+                          <div className="min-w-0">
+                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
+                              {formatDate(transaction.transaction_date)}
+                            </p>
+                            <p className="mt-1 truncate font-semibold text-slate-900 dark:text-slate-100">
+                              {transaction.type === "transfer" 
+                                ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
+                                : transaction.type === "adjustment"
+                                ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
+                                : category?.name
+                                ? highlightText(category.name, highlightQuery)
+                                : "Tanpa kategori"}
+                            </p>
+                            <p className="mt-1 text-sm text-slate-500 break-words dark:text-slate-300">
+                              {transaction.note
+                                ? highlightText(transaction.note, highlightQuery)
+                                : "-"}
+                            </p>
+                          </div>
+
+                          <span className={
+                            transaction.type === "income" ? "chip-income" : 
+                            transaction.type === "expense" ? "chip-expense" : 
+                            "inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                          }>
+                            {transaction.type === "income" ? "Pemasukan" : 
+                             transaction.type === "expense" ? "Pengeluaran" : 
+                             transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
+                          </span>
+                        </div>
+
+                        <div className="mt-4 flex items-center justify-between gap-3">
+                          <p
+                            className={`min-w-0 whitespace-nowrap text-lg font-semibold ${
+                              transaction.type === "income" ? "text-emerald-600" : 
+                              transaction.type === "expense" ? "text-rose-600" : 
+                              "text-slate-700 dark:text-slate-300"
+                            }`}
+                          >
+                            {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
+                            <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
+                          </p>
+                        </div>
+                      </article>
+                    </Link>
+                  </SwipeableRow>
                 );
               })}
             </div>

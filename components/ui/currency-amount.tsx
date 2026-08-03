@@ -1,6 +1,6 @@
 "use client";
 
-import { convertFromIDR, getCurrencySymbol } from "@/lib/currency";
+import { convertFromIDR, getCurrencySymbol } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 
 type CurrencyAmountProps = {

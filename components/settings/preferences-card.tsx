@@ -27,93 +27,64 @@ export default function PreferencesCard() {
   };
 
   return (
-    <article className="section-card">
-      <div className="flex items-start gap-3">
-        <span className="inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-700 dark:text-slate-200">
-          <SlidersHorizontal size={18} />
-        </span>
-        <div>
-          <h2 className="text-lg font-semibold">Preferences</h2>
-          <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-            Preferensi bawaan aplikasi (read-only).
-          </p>
+    <section>
+      <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+        Bahasa & Mata Uang
+      </h3>
+      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
+        <div className="p-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div className="min-w-0">
+              <label className="text-[15px] font-medium text-slate-900 dark:text-slate-100">
+                Mata Uang Layar
+              </label>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Pilih mata uang untuk menampilkan nominal di dashboard.
+              </p>
+            </div>
+            <div className="w-full sm:w-48 shrink-0">
+              <FormSelect
+                name="display_currency"
+                value={currency}
+                onValueChange={(nextValue) =>
+                  setCurrency(
+                    nextValue as (typeof SUPPORTED_CURRENCIES)[number],
+                  )
+                }
+                options={SUPPORTED_CURRENCIES.map((currencyCode) => ({
+                  value: currencyCode,
+                  label: currencyLabels[currencyCode],
+                }))}
+                required
+              />
+            </div>
+          </div>
+          
+          <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800">
+            <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Simulasi Konversi</h4>
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <span className="text-slate-500 dark:text-slate-400">Rp 1.000.000 =</span>
+              <span className="font-bold text-slate-900 dark:text-white text-lg">
+                {isRateLoading ? "..." : formatFromIDR(1_000_000)}
+              </span>
+            </div>
+            
+            {/* Status Information */}
+            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3 space-y-1">
+              {lastUpdated && (
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Kurs referensi terakhir: {lastUpdated}
+                </p>
+              )}
+              {isFallbackToIDR && (
+                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                  Kurs belum tersedia, kembali ke IDR.
+                </p>
+              )}
+            </div>
+          </div>
         </div>
       </div>
-
-      <div className="mt-4 space-y-3">
-        <div className="soft-inset">
-          <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
-            Display currency
-          </label>
-          <FormSelect
-            name="display_currency"
-            value={currency}
-            onValueChange={(nextValue) =>
-              setCurrency(
-                nextValue as (typeof SUPPORTED_CURRENCIES)[number],
-              )
-            }
-            options={SUPPORTED_CURRENCIES.map((currencyCode) => ({
-              value: currencyCode,
-              label: currencyLabels[currencyCode],
-            }))}
-            required
-          />
-          <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-            Data tetap disimpan dalam Rupiah. Mata uang ini hanya mengubah tampilan berdasarkan kurs terbaru.
-          </p>
-          <p className="mt-2 text-xs font-medium text-slate-600 dark:text-slate-300">
-            Rp1.000.000 ~ {formatFromIDR(1_000_000)}
-          </p>
-          {isRateLoading ? (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Memuat kurs terbaru...
-            </p>
-          ) : null}
-          {lastUpdated ? (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Kurs referensi terakhir: {lastUpdated}
-            </p>
-          ) : null}
-          {isFallbackToIDR ? (
-            <p className="mt-1 text-xs text-amber-600 dark:text-amber-300">
-              Kurs belum tersedia, tampilan sementara kembali ke IDR.
-            </p>
-          ) : null}
-          {effectiveCurrency !== currency ? (
-            <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-              Tampilan aktif: {effectiveCurrency}
-            </p>
-          ) : null}
-        </div>
-
-        <div className="soft-inset flex items-center justify-between gap-3">
-          <span className="text-slate-500 dark:text-slate-400">Currency (active)</span>
-          <span className="font-semibold text-slate-900 dark:text-slate-100">
-            {effectiveCurrency}
-          </span>
-        </div>
-        <div className="soft-inset flex items-center justify-between gap-3">
-          <span className="text-slate-500 dark:text-slate-400">Locale</span>
-          <span className="font-semibold text-slate-900 dark:text-slate-100">
-            Indonesia / id-ID
-          </span>
-        </div>
-        <div className="soft-inset flex items-center justify-between gap-3">
-          <span className="text-slate-500 dark:text-slate-400">Date format</span>
-          <span className="font-semibold text-slate-900 dark:text-slate-100">
-            DD MMM YYYY
-          </span>
-        </div>
-        <div className="soft-inset flex items-center justify-between gap-3">
-          <span className="text-slate-500 dark:text-slate-400">
-            Default dashboard period
-          </span>
-          <span className="font-semibold text-slate-900 dark:text-slate-100">
-            Current month
-          </span>
-        </div>
-      </div>
-    </article>
+    </section>
   );
 }

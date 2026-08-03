@@ -35,7 +35,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
 
   const isAndroid = useMemo(() => {
     if (typeof navigator === "undefined") return false;
-    return /android/i.test(navigator.userAgent);
+    return /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   }, []);
 
   useEffect(() => {

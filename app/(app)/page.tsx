@@ -19,6 +19,10 @@ import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowUpRight, Wallet, Settings } from "lucide-react";
 import { syncRolloversAndAdminFees } from "@/lib/rollover";
+import SwipeableRow from "@/components/ui/swipeable-row";
+import EditTransactionButton from "@/components/transactions/edit-transaction-button";
+import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
+import { deleteTransaction } from "@/app/(app)/transactions/actions";
 
 type HomeProps = {
   searchParams?: Promise<{
@@ -215,7 +219,7 @@ export default async function Home({ searchParams }: HomeProps) {
     bank: 0,
     receivable: 0,
   };
-  
+
   const walletTypeMap = new Map<string, string>();
   wallets?.forEach(w => walletTypeMap.set(w.id, w.type));
 
@@ -351,8 +355,8 @@ export default async function Home({ searchParams }: HomeProps) {
         change_pct:
           (previousExpenseMap.get(category_name) ?? 0) > 0
             ? ((value.amount - (previousExpenseMap.get(category_name) ?? 0)) /
-                (previousExpenseMap.get(category_name) ?? 0)) *
-              100
+              (previousExpenseMap.get(category_name) ?? 0)) *
+            100
             : null,
         category_name,
         amount: value.amount,
@@ -366,18 +370,27 @@ export default async function Home({ searchParams }: HomeProps) {
       .sort((a, b) => b.amount - a.amount)
       .slice(0, 5) ?? [];
 
+  const hour = new Date().getHours();
+  let greeting = "Selamat Malam";
+  if (hour < 11) greeting = "Selamat Pagi";
+  else if (hour < 15) greeting = "Selamat Siang";
+  else if (hour < 19) greeting = "Selamat Sore";
+
+  const fullName = user.user_metadata?.full_name || user.user_metadata?.name;
+  const firstName = fullName ? fullName.split(" ")[0] : user.email?.split("@")[0] || "Teman";
+
   return (
     <AppShell
       className="journal-dashboard"
       activeNav="dashboard"
       month={selectedMonth}
-      title="Finance Tracker"
-      description="Dashboard untuk memantau arus kas dan pola pengeluaran bulanan."
+      title={`${greeting}, ${firstName}`}
+      description="Pantau arus kas dan pola pengeluaran bulananmu di sini."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
         <>
           <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
-          <Link href="/transactions/new" className="btn-primary h-10 px-5">
+          <Link href="/transactions/new" className="btn-primary h-10 px-5 active:scale-95 transition-transform">
             + Transaksi
           </Link>
         </>
@@ -388,7 +401,7 @@ export default async function Home({ searchParams }: HomeProps) {
             <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
             <LogoutButton
               iconOnly
-              className="btn-secondary h-10 w-10 shrink-0 justify-center px-0"
+              className="btn-secondary h-10 w-10 shrink-0 justify-center px-0 active:scale-95 transition-transform"
             />
           </div>
           <QuickAddTransaction
@@ -402,6 +415,18 @@ export default async function Home({ searchParams }: HomeProps) {
         </>
       }
     >
+      {(!wallets || wallets.length === 0) && (
+        <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/80 p-5 shadow-sm backdrop-blur-sm dark:border-blue-900/50 dark:bg-blue-950/40">
+          <h2 className="text-lg font-bold text-blue-900 dark:text-blue-100">Selamat Datang di Finance Tracker! 🎉</h2>
+          <p className="mt-1 text-[13px] text-blue-700 dark:text-blue-300">
+            Kelihatannya kamu belum punya dompet (wallet) untuk mulai mencatat. Yuk, buat dompet pertamamu sekarang!
+          </p>
+          <Link href="/wallets/new" className="mt-4 inline-block rounded-xl bg-blue-600 px-5 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-blue-700 active:scale-95">
+            + Buat Dompet Pertama
+          </Link>
+        </div>
+      )}
+
       <MaskedAmountProvider>
         {/* Mobile & Tablet Layout */}
         <div className="lg:hidden space-y-7">
@@ -424,7 +449,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 showLabel="Tampilkan saldo"
                 hideLabel="Sembunyikan saldo"
               />
-              
+
               <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
                 <div className="flex flex-col">
                   <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
@@ -501,7 +526,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 hideLabel="Sembunyikan saldo"
               />
             </div>
-            
+
             <div className="mt-6 grid grid-cols-3 gap-4 border-t border-slate-200 pt-4 dark:border-slate-700">
               <div className="flex flex-col">
                 <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
@@ -578,43 +603,51 @@ export default async function Home({ searchParams }: HomeProps) {
 
 
         <InteractiveDotPanel className="section-card min-w-0 w-full mt-6 lg:hidden">
-            <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
-              <h2 className="text-xl font-semibold">5 Transaksi Terbaru</h2>
-              <Link
-                href={`/transactions?month=${selectedMonth}`}
-                className="text-sm font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
-              >
-                Lihat semua
-              </Link>
-            </div>
+          <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
+            <h2 className="text-xl font-semibold">5 Transaksi Terbaru</h2>
+            <Link
+              href={`/transactions?month=${selectedMonth}`}
+              className="text-sm font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
+            >
+              Lihat semua
+            </Link>
+          </div>
 
-            {error ? (
-              <p className="text-rose-600">Error: {error.message}</p>
-            ) : !transactions || transactions.length === 0 ? (
-              <div>
-                <p className="text-slate-600 dark:text-slate-300">
-                  Belum ada transaksi di bulan ini.
-                </p>
-                <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                  <Link href="/transactions/new" className="btn-primary">
-                    + Tambah Transaksi
-                  </Link>
-                  <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary">
-                    Lihat daftar
-                  </Link>
-                </div>
+          {error ? (
+            <p className="text-rose-600">Error: {error.message}</p>
+          ) : !transactions || transactions.length === 0 ? (
+            <div>
+              <p className="text-slate-600 dark:text-slate-300">
+                Belum ada transaksi di bulan ini.
+              </p>
+              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+                <Link href="/transactions/new" className="btn-primary">
+                  + Tambah Transaksi
+                </Link>
+                <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary">
+                  Lihat daftar
+                </Link>
               </div>
-            ) : (
-              <div className="space-y-3">
-                {transactions.map((transaction) => {
-                  const category = Array.isArray(transaction.categories)
-                    ? transaction.categories[0]
-                    : transaction.categories;
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {transactions.map((transaction) => {
+                const category = Array.isArray(transaction.categories)
+                  ? transaction.categories[0]
+                  : transaction.categories;
 
-                  return (
+                return (
+                  <SwipeableRow
+                    key={transaction.id}
+                    actions={
+                      <div className="flex h-full min-w-max items-stretch rounded-2xl overflow-hidden ml-3 border border-slate-100 dark:border-slate-800 shadow-sm bg-white dark:bg-slate-900">
+                        <EditTransactionButton id={transaction.id} className="h-full px-5 hover:bg-slate-50 dark:hover:bg-slate-800 border-r border-slate-100 dark:border-slate-800" label="Edit" />
+                        <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:bg-rose-50 text-rose-600 dark:hover:bg-rose-500/10 dark:text-rose-400" label="Hapus" />
+                      </div>
+                    }
+                  >
                     <div
-                      key={transaction.id}
-                      className="soft-inset flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between"
+                      className="soft-inset flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between w-full h-full"
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
@@ -634,20 +667,20 @@ export default async function Home({ searchParams }: HomeProps) {
                       </div>
 
                       <p
-                        className={`text-lg font-semibold sm:text-base ${
-                          transaction.type === "income"
+                        className={`text-lg font-semibold sm:text-base ${transaction.type === "income"
                             ? "text-emerald-600"
                             : "text-rose-600"
-                        }`}
+                          }`}
                       >
                         {transaction.type === "income" ? "+" : "-"}
                         <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                       </p>
                     </div>
-                  );
-                })}
-              </div>
-            )}
+                  </SwipeableRow>
+                );
+              })}
+            </div>
+          )}
         </InteractiveDotPanel>
       </MaskedAmountProvider>
     </AppShell>

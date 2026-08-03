@@ -379,6 +379,18 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
     .filter((t) => t.type === "expense")
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
+  // Group transactions by date for mobile view
+  const groupedTransactions = paginatedTransactions.reduce((groups, transaction) => {
+    const date = transaction.transaction_date;
+    if (!groups[date]) {
+      groups[date] = [];
+    }
+    groups[date].push(transaction);
+    return groups;
+  }, {} as Record<string, TransactionRow[]>);
+  
+  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+
   return (
     <AppShell
       className="transactions-page journal-transactions"
@@ -451,75 +463,80 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
           </div>
         ) : (
           <>
-            <div className="space-y-3 p-3 md:hidden">
-              {paginatedTransactions.map((transaction) => {
-                const category = toCategory(transaction.categories);
-                const amountValue = Number(transaction.amount);
-                const useCompactAmount = Math.abs(amountValue) >= 100000;
+            <div className="space-y-6 p-3 md:hidden">
+              {sortedDates.map((date) => (
+                <section key={date} className="space-y-2">
+                  <h3 className="px-2 text-[13px] font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                    {formatDate(date)}
+                  </h3>
+                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+                    {groupedTransactions[date].map((transaction) => {
+                      const category = toCategory(transaction.categories);
+                      const amountValue = Number(transaction.amount);
+                      const useCompactAmount = Math.abs(amountValue) >= 100000;
 
-                return (
-                  <SwipeableRow
-                    key={transaction.id}
-                    actions={
-                      <>
-                        <DuplicateTransactionButton id={transaction.id} />
-                        <EditTransactionButton id={transaction.id} />
-                        <DeleteTransactionButton id={transaction.id} action={deleteTransaction} />
-                      </>
-                    }
-                    actionWidth={160}
-                  >
-                    <Link href={`/transactions/${transaction.id}/edit`} className="block active:opacity-75">
-                      <article className="soft-inset select-none">
-                        <div className="flex items-start justify-between gap-3">
-                          <div className="min-w-0">
-                            <p className="text-xs font-medium uppercase tracking-wide text-slate-500 dark:text-slate-400">
-                              {formatDate(transaction.transaction_date)}
-                            </p>
-                            <p className="mt-1 truncate font-semibold text-slate-900 dark:text-slate-100">
-                              {transaction.type === "transfer" 
-                                ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
-                                : transaction.type === "adjustment"
-                                ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
-                                : category?.name
-                                ? highlightText(category.name, highlightQuery)
-                                : "Tanpa kategori"}
-                            </p>
-                            <p className="mt-1 text-sm text-slate-500 break-words dark:text-slate-300">
-                              {transaction.note
-                                ? highlightText(transaction.note, highlightQuery)
-                                : "-"}
-                            </p>
-                          </div>
+                      return (
+                        <SwipeableRow
+                          key={transaction.id}
+                          actions={
+                            <div className="flex h-full min-w-max items-stretch rounded-r-2xl overflow-hidden shadow-sm bg-white dark:bg-slate-900 border-y border-r border-slate-200 dark:border-slate-800">
+                              <DuplicateTransactionButton id={transaction.id} className="h-full px-5 hover:bg-slate-50 dark:hover:bg-slate-800 border-r border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300" label="" />
+                              <EditTransactionButton id={transaction.id} className="h-full px-5 hover:bg-slate-50 dark:hover:bg-slate-800 border-r border-slate-100 dark:border-slate-800 text-blue-600 dark:text-blue-400" label="" />
+                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:bg-rose-50 text-rose-600 dark:hover:bg-rose-500/10 dark:text-rose-400" label="" />
+                            </div>
+                          }
+                          actionWidth={200}
+                        >
+                          <Link href={`/transactions/${transaction.id}/edit`} className="block active:opacity-75 bg-transparent hover:bg-slate-50 transition-colors dark:hover:bg-slate-800/50">
+                            <article className="px-4 py-3 select-none">
+                              <div className="flex items-start justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p className="truncate font-semibold text-[15px] text-slate-900 dark:text-slate-100">
+                                    {transaction.type === "transfer" 
+                                      ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
+                                      : transaction.type === "adjustment"
+                                      ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
+                                      : category?.name
+                                      ? highlightText(category.name, highlightQuery)
+                                      : "Tanpa kategori"}
+                                  </p>
+                                  <p className="mt-0.5 text-xs text-slate-500 break-words dark:text-slate-400 line-clamp-1">
+                                    {transaction.note
+                                      ? highlightText(transaction.note, highlightQuery)
+                                      : <span className="italic opacity-50">Tanpa catatan</span>}
+                                  </p>
+                                </div>
 
-                          <span className={
-                            transaction.type === "income" ? "chip-income" : 
-                            transaction.type === "expense" ? "chip-expense" : 
-                            "inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
-                          }>
-                            {transaction.type === "income" ? "Pemasukan" : 
-                             transaction.type === "expense" ? "Pengeluaran" : 
-                             transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
-                          </span>
-                        </div>
-
-                        <div className="mt-4 flex items-center justify-between gap-3">
-                          <p
-                            className={`min-w-0 whitespace-nowrap text-lg font-semibold ${
-                              transaction.type === "income" ? "text-emerald-600" : 
-                              transaction.type === "expense" ? "text-rose-600" : 
-                              "text-slate-700 dark:text-slate-300"
-                            }`}
-                          >
-                            {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
-                            <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
-                          </p>
-                        </div>
-                      </article>
-                    </Link>
-                  </SwipeableRow>
-                );
-              })}
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                  <p
+                                    className={`whitespace-nowrap text-[15px] font-semibold ${
+                                      transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" : 
+                                      transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" : 
+                                      "text-slate-700 dark:text-slate-300"
+                                    }`}
+                                  >
+                                    {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
+                                    <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
+                                  </p>
+                                  <span className={
+                                    transaction.type === "income" ? "inline-flex rounded bg-emerald-100/50 px-1.5 py-[2px] text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" : 
+                                    transaction.type === "expense" ? "inline-flex rounded bg-rose-100/50 px-1.5 py-[2px] text-[10px] font-semibold text-rose-700 dark:bg-rose-950/30 dark:text-rose-400" : 
+                                    "inline-flex rounded bg-slate-100 px-1.5 py-[2px] text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                  }>
+                                    {transaction.type === "income" ? "Pemasukan" : 
+                                     transaction.type === "expense" ? "Pengeluaran" : 
+                                     transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
+                                  </span>
+                                </div>
+                              </div>
+                            </article>
+                          </Link>
+                        </SwipeableRow>
+                      );
+                    })}
+                  </div>
+                </section>
+              ))}
             </div>
 
             <div className="hidden overflow-x-auto md:block">

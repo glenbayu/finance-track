@@ -1,5 +1,4 @@
 import AppShell from "@/components/layout/app-shell";
-import LoadingSpinner from "@/components/ui/loading-spinner";
 
 export default function Loading() {
   return (
@@ -7,32 +6,45 @@ export default function Loading() {
       className="journal-dashboard"
       activeNav={null}
       title="Memuat Halaman"
-      description="Menyiapkan konten terbaru untuk halaman yang kamu buka."
-      titleClassName="opacity-90"
+      description="Menyiapkan data keuangan terbarumu..."
+      titleClassName="opacity-70 animate-pulse"
     >
-      <div className="space-y-5">
-        <div className="route-loading-bar" aria-hidden="true" />
+      <div className="space-y-6">
+        
+        {/* Skeleton Top Cards */}
+        <section className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {[1, 2, 3, 4].map((i) => (
+            <div key={i} className="flex h-[110px] w-full flex-col justify-between rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+              <div className="flex items-center gap-3">
+                <div className="h-10 w-10 shrink-0 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                <div className="h-4 w-20 animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />
+              </div>
+              <div className="h-7 w-32 animate-pulse rounded-lg bg-slate-200 dark:bg-slate-800" />
+            </div>
+          ))}
+        </section>
 
-        <section className="section-card min-h-[40vh]">
-          <div className="flex min-h-[32vh] flex-col items-center justify-center gap-4 text-center">
-            <div className="rounded-full border border-[color:var(--stroke)] bg-[color:var(--surface)]/90 p-4 shadow-[0_18px_32px_-24px_rgba(38,30,13,0.32)]">
-              <LoadingSpinner size="lg" className="text-slate-700 dark:text-slate-200" />
-            </div>
-            <div className="space-y-2">
-              <p className="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500 dark:text-slate-400">
-                Memuat Konten
-              </p>
-              <p className="mx-auto max-w-xl text-sm text-slate-500 dark:text-slate-400">
-                Tunggu sebentar, kami sedang mengambil data dan merapikan tampilan halaman ini.
-              </p>
-            </div>
-            <div className="mt-3 flex flex-wrap items-center justify-center gap-2">
-              <div className="route-loading-block h-9 w-28 rounded-full" />
-              <div className="route-loading-block route-loading-delay-1 h-9 w-36 rounded-full" />
-              <div className="route-loading-block route-loading-delay-2 h-9 w-24 rounded-full" />
-            </div>
+        {/* Skeleton Main Section (List/Chart Placeholder) */}
+        <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900/60">
+          <div className="mb-6 flex items-center justify-between">
+            <div className="h-6 w-40 animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />
+            <div className="h-8 w-24 animate-pulse rounded-xl bg-slate-200 dark:bg-slate-800" />
+          </div>
+          
+          <div className="space-y-5">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center gap-4 border-b border-slate-100 pb-5 dark:border-slate-800/60">
+                <div className="h-12 w-12 shrink-0 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800" />
+                <div className="flex-1 space-y-3">
+                  <div className="h-4 w-1/3 animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />
+                  <div className="h-3 w-1/5 animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />
+                </div>
+                <div className="h-6 w-20 shrink-0 animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />
+              </div>
+            ))}
           </div>
         </section>
+
       </div>
     </AppShell>
   );

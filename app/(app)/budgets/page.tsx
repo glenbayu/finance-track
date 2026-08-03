@@ -284,134 +284,164 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
           </section>
 
           {!hasAnyBudget ? (
-            <section className="section-card mt-6">
-              <h3 className="text-lg font-semibold">Belum ada budget tersimpan</h3>
-              <p className="mt-2 text-sm text-slate-600 dark:text-slate-300">
-                Isi nominal budget pada kategori di bawah, lalu klik Simpan. Sistem akan bandingkan realisasi pengeluaranmu secara otomatis.
+            <section className="mt-6 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white">Belum ada budget tersimpan</h3>
+              <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
+                Isi nominal budget pada kategori di bawah, lalu klik Simpan. Sistem akan membandingkan realisasi pengeluaranmu secara otomatis.
               </p>
             </section>
-          ) : null}
+          ) : (
+            <section className="mt-6">
+              <div className="mb-3 px-4">
+                <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">Daftar Anggaran</h2>
+              </div>
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+                {budgetCards.map((item) => {
+                  const tone = progressTone(item.usedPct);
+                  const clampedPct = Math.min(100, Math.max(0, item.usedPct));
+                  const isDanger = tone === "danger";
 
-          <section className="mt-6 grid gap-4 xl:grid-cols-2">
-            {budgetCards.map((item) => {
-              const tone = progressTone(item.usedPct);
-              const clampedPct = Math.min(100, Math.max(0, item.usedPct));
-              return (
-                <article key={item.category.id} className="section-card">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <h3 className="truncate text-lg font-semibold">{item.category.name}</h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-400">
-                        Budget bulan {selectedMonth}
-                      </p>
-                    </div>
-                    <span
-                      className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                        tone === "danger"
-                          ? "bg-rose-100 text-rose-700 dark:bg-rose-950/35 dark:text-rose-300"
-                          : tone === "warn"
-                            ? "bg-amber-100 text-amber-700 dark:bg-amber-950/35 dark:text-amber-300"
-                            : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/35 dark:text-emerald-300"
-                      }`}
+                  return (
+                    <details
+                      key={item.category.id}
+                      className={`group hover:bg-slate-50 dark:hover:bg-slate-800/50 ${isDanger ? "bg-rose-50/30 dark:bg-rose-950/10" : ""}`}
                     >
-                      {item.budgetAmount > 0 ? `${Math.round(item.usedPct)}% terpakai` : "Belum set budget"}
-                    </span>
-                  </div>
+                      <summary className="flex cursor-pointer list-none items-center justify-between p-4 outline-none [&::-webkit-details-marker]:hidden">
+                        <div className="flex w-full items-center justify-between gap-3 pr-4">
+                          <div className="min-w-0 flex-1">
+                            <h3 className={`truncate text-[15px] font-medium ${isDanger ? "text-rose-700 dark:text-rose-400" : "text-slate-900 dark:text-slate-100"}`}>
+                              {item.category.name}
+                            </h3>
+                            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                              {item.budgetAmount > 0 ? (
+                                <CurrencyAmount amountIDR={item.spentAmount} />
+                              ) : (
+                                "Belum diset"
+                              )}
+                              {item.budgetAmount > 0 && " terpakai"}
+                            </p>
+                          </div>
+                          
+                          <div className="flex flex-col items-end gap-1.5 shrink-0">
+                            {item.budgetAmount > 0 ? (
+                              <div className="flex flex-col items-end">
+                                <span className={`text-[13px] font-bold ${isDanger ? "text-rose-600 dark:text-rose-400" : "text-slate-700 dark:text-slate-200"}`}>
+                                  {Math.round(item.usedPct)}%
+                                </span>
+                                <div className="w-16 h-1.5 mt-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
+                                  <div
+                                    className={`h-full rounded-full transition-all duration-500 ${
+                                      isDanger ? "bg-rose-500 animate-pulse" : tone === "warn" ? "bg-amber-500" : "bg-emerald-500"
+                                    }`}
+                                    style={{ width: `${clampedPct}%` }}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="text-[13px] font-medium text-slate-400 dark:text-slate-500">
+                                -
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="text-slate-300 transition-transform group-open:rotate-90 dark:text-slate-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                        </div>
+                      </summary>
 
-                  <div className="mt-4 space-y-2 text-sm">
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500 dark:text-slate-400">Budget</span>
-                      <span className="font-semibold text-slate-900 dark:text-slate-100">
-                        {item.budgetAmount > 0 ? <CurrencyAmount amountIDR={item.budgetAmount} /> : "-"}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500 dark:text-slate-400">Terpakai</span>
-                      <span className="font-semibold text-rose-600">
-                        <CurrencyAmount amountIDR={item.spentAmount} />
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between gap-2">
-                      <span className="text-slate-500 dark:text-slate-400">Sisa</span>
-                      <span className={`font-semibold ${item.remaining >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-                        <CurrencyAmount amountIDR={item.remaining} />
-                      </span>
-                    </div>
-                  </div>
+                      {/* Expanded Content */}
+                      <div className={`mx-4 mb-4 mt-1 rounded-xl border-t px-4 pb-4 pt-3 ${isDanger ? "border-rose-100 bg-rose-50/50 dark:border-rose-900/30 dark:bg-rose-950/20" : "border-slate-100 bg-slate-50/50 dark:border-slate-800/60 dark:bg-slate-900/50"}`}>
+                        <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4 bg-white dark:bg-slate-900/80 rounded-lg py-2 shadow-sm border border-slate-100 dark:border-slate-800/50">
+                          <div>
+                            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Budget</p>
+                            <p className="font-semibold text-slate-700 dark:text-slate-200">
+                              {item.budgetAmount > 0 ? <CurrencyAmount amountIDR={item.budgetAmount} /> : "-"}
+                            </p>
+                          </div>
+                          <div className="border-x border-slate-100 dark:border-slate-800/50">
+                            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Terpakai</p>
+                            <p className="font-semibold text-rose-600">
+                              <CurrencyAmount amountIDR={item.spentAmount} />
+                            </p>
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-medium text-slate-500 uppercase tracking-wider mb-0.5">Sisa</p>
+                            <p className={`font-semibold ${item.remaining >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+                              <CurrencyAmount amountIDR={item.remaining} />
+                            </p>
+                          </div>
+                        </div>
 
-                  <div className="mt-4 h-2.5 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
-                    <div
-                      className={`h-full rounded-full ${
-                        tone === "danger" ? "bg-rose-500" : tone === "warn" ? "bg-amber-500" : "bg-emerald-500"
-                      }`}
-                      style={{ width: `${clampedPct}%` }}
-                    />
-                  </div>
-
-                  <form action={upsertBudget} className="mt-5 grid gap-3 sm:grid-cols-[1fr_auto]">
-                    <div>
-                      <input type="hidden" name="category_id" value={item.category.id} />
-                      <input type="hidden" name="month" value={selectedMonth} />
-                      <BudgetAmountInput
-                        defaultValue={item.budgetAmount}
-                        className="input-base"
-                        placeholder="Nominal budget"
-                      />
-                      <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                        Nominal budget disimpan dalam Rupiah (IDR).
-                      </p>
-                    </div>
-                    <SubmitButton className="btn-primary h-11 px-4" pendingText="Menyimpan...">
-                      {item.budget ? "Update" : "Simpan"}
-                    </SubmitButton>
-                  </form>
-
-                  {item.budget ? (
-                    <form action={deleteBudget} className="mt-2">
-                      <input type="hidden" name="budget_id" value={item.budget.id} />
-                      <SubmitButton className="btn-secondary h-10 px-4" pendingText="Menghapus...">
-                        Hapus Budget
-                      </SubmitButton>
-                    </form>
-                  ) : null}
-                </article>
-              );
-            })}
-          </section>
+                        <form action={upsertBudget} className="grid gap-3 sm:grid-cols-[1fr_auto]">
+                          <div>
+                            <input type="hidden" name="category_id" value={item.category.id} />
+                            <input type="hidden" name="month" value={selectedMonth} />
+                            <BudgetAmountInput
+                              defaultValue={item.budgetAmount}
+                              className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-[15px] outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white"
+                              placeholder="Nominal budget"
+                            />
+                          </div>
+                          <div className="flex gap-2">
+                            <SubmitButton className="btn-primary h-11 px-5 rounded-xl font-semibold" pendingText="...">
+                              {item.budget ? "Update" : "Simpan"}
+                            </SubmitButton>
+                            
+                            {item.budget && (
+                              <button 
+                                formAction={deleteBudget} 
+                                className="inline-flex h-11 items-center justify-center rounded-xl bg-rose-100 px-4 text-sm font-semibold text-rose-700 transition-colors hover:bg-rose-200 dark:bg-rose-500/20 dark:text-rose-400 dark:hover:bg-rose-500/30"
+                              >
+                                Hapus
+                              </button>
+                            )}
+                          </div>
+                        </form>
+                      </div>
+                    </details>
+                  );
+                })}
+              </div>
+            </section>
+          )}
 
           {archivedBudgetCards.length ? (
-            <section className="section-card mt-6">
-              <h3 className="text-lg font-semibold">Budget Dari Kategori Arsip</h3>
-              <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-                Data lama tetap ditampilkan agar riwayat budget tetap terbaca.
-              </p>
-              <div className="mt-4 grid gap-3">
+            <section className="mt-6">
+              <div className="mb-3 px-4">
+                <h3 className="text-[15px] font-semibold text-slate-900 dark:text-white">Anggaran Kategori Arsip</h3>
+                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  Data lama tetap ditampilkan agar riwayat pengeluaran tetap terbaca.
+                </p>
+              </div>
+              <div className="overflow-hidden rounded-2xl border border-slate-200 bg-slate-50/50 shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900/30">
                 {archivedBudgetCards.map((item, index) => (
-                  <article key={`${item.categoryName}-${index}`} className="soft-inset">
+                  <div key={`${item.categoryName}-${index}`} className="flex flex-col gap-2 p-4 hover:bg-slate-50 dark:hover:bg-slate-800/50">
                     <div className="flex items-center justify-between gap-2">
-                      <p className="font-semibold text-slate-900 dark:text-slate-100">
+                      <p className="font-medium text-[15px] text-slate-700 dark:text-slate-300">
                         {item.categoryName}
                       </p>
-                      <span className="chip-neutral">Arsip</span>
+                      <span className="inline-flex rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-semibold text-slate-500 dark:bg-slate-800 dark:text-slate-400">
+                        Arsip
+                      </span>
                     </div>
-                    <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] text-slate-400 dark:text-slate-500">
                       {item.archivedAt ? `Diarsipkan: ${formatDate(item.archivedAt)}` : "Kategori sudah tidak aktif"}
                     </p>
-                    <div className="mt-3 grid gap-1 text-sm">
-                      <p className="text-slate-600 dark:text-slate-300">
-                        Budget: <span className="font-semibold"><CurrencyAmount amountIDR={item.budgetAmount} /></span>
-                      </p>
-                      <p className="text-slate-600 dark:text-slate-300">
-                        Terpakai: <span className="font-semibold text-rose-600"><CurrencyAmount amountIDR={item.spentAmount} /></span>
-                      </p>
-                      <p className="text-slate-600 dark:text-slate-300">
-                        Sisa: <span className={`font-semibold ${item.remaining >= 0 ? "text-emerald-600" : "text-rose-600"}`}><CurrencyAmount amountIDR={item.remaining} /></span>
-                      </p>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Terpakai {Math.round(item.usedPct)}%
-                      </p>
+                    <div className="mt-2 grid grid-cols-2 gap-4 rounded-xl bg-white p-3 shadow-sm border border-slate-100 dark:border-slate-800/50 dark:bg-slate-900">
+                      <div>
+                        <span className="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Budget</span>
+                        <span className="font-semibold text-slate-600 dark:text-slate-300">
+                          {item.budgetAmount > 0 ? <CurrencyAmount amountIDR={item.budgetAmount} /> : "-"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="block text-[11px] font-medium text-slate-400 uppercase tracking-wider mb-0.5">Terpakai</span>
+                        <span className="font-semibold text-rose-500 dark:text-rose-400">
+                          <CurrencyAmount amountIDR={item.spentAmount} />
+                        </span>
+                      </div>
                     </div>
-                  </article>
+                  </div>
                 ))}
               </div>
             </section>

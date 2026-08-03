@@ -5,7 +5,7 @@ import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import Link from "next/link";
-import { Plus, Edit2, Trash2, Wallet, Landmark, HandCoins, X, ArrowRightLeft, SlidersHorizontal } from "lucide-react";
+import { Plus, Edit2, Trash2, Wallet, Landmark, HandCoins, X, ArrowRightLeft, SlidersHorizontal, ChevronRight } from "lucide-react";
 import ConfirmationModal from "@/components/ui/confirmation-modal";
 
 type WalletRow = {
@@ -142,57 +142,66 @@ export default function WalletManager({ wallets, createAction, editAction, delet
     if (list.length === 0) return null;
     return (
       <div className="mb-6">
-        <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">{title} ({list.length})</h3>
-        <div className="space-y-3">
+        <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+          {title} ({list.length})
+        </h3>
+        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
           {list.map((wallet) => (
-            <div key={wallet.id} className="soft-inset flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-start gap-4">
-                <span className="mt-1 flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
-                  {getWalletIcon(wallet.type)}
-                </span>
-                <div className="min-w-0">
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">{wallet.name}</p>
-                  <div className={`mt-1 text-xl font-bold ${wallet.balance < 0 ? 'text-rose-600' : 'text-slate-900 dark:text-white'}`}>
+            <details key={wallet.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50">
+              <summary className="flex cursor-pointer items-center justify-between gap-4 p-4 active:bg-slate-100 outline-none list-none [&::-webkit-details-marker]:hidden dark:active:bg-slate-800">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+                    {getWalletIcon(wallet.type)}
+                  </div>
+                  <div className="min-w-0">
+                    <p className="truncate text-[15px] font-semibold text-slate-900 dark:text-slate-100">{wallet.name}</p>
+                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                      {wallet.usageCount > 0 ? `${wallet.usageCount} transaksi` : "Belum dipakai"}
+                    </p>
+                  </div>
+                </div>
+                <div className="flex shrink-0 items-center gap-3">
+                  <div className={`text-[15px] font-bold ${wallet.balance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
                     <CurrencyAmount amountIDR={wallet.balance} />
                   </div>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                    {wallet.usageCount > 0 ? `${wallet.usageCount} transaksi` : "Belum dipakai"}
-                  </p>
+                  <div className="text-slate-300 transition-transform group-open:rotate-90 dark:text-slate-600">
+                    <ChevronRight size={18} />
+                  </div>
                 </div>
-              </div>
+              </summary>
               
-              <div className="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3 md:border-t-0 md:pt-0 dark:border-slate-800">
+              <div className="mx-4 mb-4 mt-1 flex flex-wrap gap-2 rounded-xl border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 dark:border-slate-800/60 dark:bg-slate-900/50">
                 <Link 
                   href={`/transactions/new?type=transfer&source_id=${wallet.id}`}
-                  className="flex items-center gap-2 rounded-lg bg-indigo-50 px-3 py-2 text-xs font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-50 px-3 py-2.5 text-[13px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
                 >
-                  <ArrowRightLeft size={14} /> Pindah Saldo
+                  <ArrowRightLeft size={14} /> Pindah
                 </Link>
                 <button
                   type="button"
                   onClick={() => openAdjustModal(wallet)}
-                  className="flex items-center gap-2 rounded-lg bg-slate-100 px-3 py-2 text-xs font-semibold text-slate-700 hover:bg-slate-200 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-slate-200 px-3 py-2.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-300 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
                 >
-                  <SlidersHorizontal size={14} /> Sesuaikan Saldo
+                  <SlidersHorizontal size={14} /> Sesuaikan
                 </button>
-                <div className="ml-auto flex items-center gap-1 md:ml-2">
+                <div className="flex w-full sm:w-auto items-center gap-2">
                   <button
                     type="button"
                     onClick={() => openEditModal(wallet)}
-                    className="rounded-lg p-2 text-slate-500 hover:bg-slate-100 hover:text-slate-900 dark:hover:bg-slate-800 dark:hover:text-slate-100 transition-colors"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-slate-200 px-3 py-2.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
                   >
-                    <Edit2 size={16} />
+                    <Edit2 size={16} /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => setWalletToDelete(wallet)}
-                    className="rounded-lg p-2 text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/30 transition-colors"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-rose-100 px-3 py-2.5 text-[13px] font-semibold text-rose-600 hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-colors"
                   >
-                    <Trash2 size={16} />
+                    <Trash2 size={16} /> Hapus
                   </button>
                 </div>
               </div>
-            </div>
+            </details>
           ))}
         </div>
       </div>
@@ -201,16 +210,16 @@ export default function WalletManager({ wallets, createAction, editAction, delet
 
   return (
     <>
-      <div className="section-card flex flex-col gap-6">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pb-6 border-b border-slate-100 dark:border-slate-800">
-          <div>
-            <h2 className="text-xl font-semibold">Daftar Dompet</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
+      <div className="flex flex-col gap-6">
+        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 mx-2 sm:mx-0">
+          <div className="flex flex-col gap-2 pb-4">
+            <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white">Daftar Dompet & Rekening</h2>
+            <p className="text-[13px] text-slate-500 dark:text-slate-400">
               Pusat kontrol sebaran saldo Anda.
             </p>
           </div>
-          <button onClick={openCreateModal} className="btn-primary flex items-center gap-2">
-            <Plus size={16} /> Tambah Dompet
+          <button onClick={openCreateModal} className="btn-primary flex w-full justify-center items-center gap-2 py-3 rounded-xl text-[14px]">
+            <Plus size={16} /> Tambah Dompet Baru
           </button>
         </div>
 

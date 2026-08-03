@@ -163,10 +163,10 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
 
   return (
     <AppShell
-      className="journal-wallets"
+      className="bg-slate-50/50 dark:bg-slate-950/50"
       activeNav="wallets"
       month={selectedMonth}
-      title="Manajemen Dompet"
+      title="Dompet & Rekening"
       description="Kelola daftar rekening, dompet fisik, dan saldo tertahan Anda."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={

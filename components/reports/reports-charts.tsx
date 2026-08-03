@@ -110,7 +110,7 @@ function CustomTooltip({
   const chartHeight = Number(viewBox?.height ?? 280);
   const pointX = Number(coordinate?.x ?? chartWidth / 2);
   const pointY = Number(coordinate?.y ?? chartHeight / 2);
-  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 
   const tooltipWidth = Math.min(180, Math.max(140, chartWidth - 16));
   const tooltipHeight = Math.min(90, Math.max(72, 44 + payload.length * 22));
@@ -187,7 +187,7 @@ export default function ReportsCharts({
   forecastCategoryData,
 }: ReportsChartsProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
-  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -227,7 +227,7 @@ export default function ReportsCharts({
           <div className="mt-4 h-[280px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
         ) : (
           <div className="relative mt-4 h-[280px] w-full min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <LineChart
                 data={convertedTrendData}
                 accessibilityLayer={false}
@@ -300,7 +300,7 @@ export default function ReportsCharts({
           <div className="mt-3 h-[280px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-full animate-pulse max-w-[240px] mx-auto" />
         ) : (
           <div className="mt-3 h-[280px] w-full min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <PieChart accessibilityLayer={false}>
                 <Pie
                   data={convertedCategoryData}
@@ -342,7 +342,7 @@ export default function ReportsCharts({
           <div className="mt-4 h-[240px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
         ) : (
           <div className="mt-4 h-[240px] w-full min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%">
+            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <BarChart data={convertedTrendData} accessibilityLayer={false}>
                 <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
                 <XAxis
@@ -420,7 +420,7 @@ export default function ReportsCharts({
               {!mounted ? (
                 <div className="h-full w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
               ) : (
-                <ResponsiveContainer width="100%" height="100%">
+                <ResponsiveContainer width="100%" height="100%" minHeight={200}>
                   <BarChart
                     layout="vertical"
                     data={forecastBars}

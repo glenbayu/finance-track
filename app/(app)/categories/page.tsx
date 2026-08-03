@@ -5,7 +5,7 @@ import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
 import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
-import { Archive, FolderSearch } from "lucide-react";
+import { Archive, FolderSearch, Tags, ChevronRight, Edit2, GripHorizontal, Check, X } from "lucide-react";
 
 type CategoryType = "income" | "expense";
 
@@ -356,143 +356,202 @@ export default async function CategoriesPage() {
     );
 
     return (
-      <article
+      <details
         key={category.id}
-        className="soft-inset space-y-3"
+        className="group hover:bg-slate-50 dark:hover:bg-slate-800/50"
       >
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">{category.name}</p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              {category.type === "income" ? "Kategori pemasukan" : "Kategori pengeluaran"}
-            </p>
-            {archived && category.archived_at ? (
-              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
-                Diarsipkan: {formatDate(category.archived_at)}
+        <summary className="flex cursor-pointer items-center justify-between gap-4 p-4 active:bg-slate-100 outline-none list-none [&::-webkit-details-marker]:hidden dark:active:bg-slate-800">
+          <div className="flex min-w-0 items-center gap-3">
+            <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${category.type === "income" ? "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400" : "bg-rose-100 text-rose-600 dark:bg-rose-500/20 dark:text-rose-400"}`}>
+               <Tags size={20} strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0">
+              <p className="truncate text-[15px] font-semibold text-slate-900 dark:text-slate-100">{category.name}</p>
+              <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                {isOwned ? usageSummaryText(usage) : "Kategori Sistem"}
               </p>
-            ) : null}
+            </div>
           </div>
+          <div className="flex shrink-0 items-center gap-2">
+            {archived && category.archived_at ? (
+              <span className="inline-flex items-center rounded-full bg-slate-200 px-2 py-0.5 text-[10px] font-bold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
+                ARSIP
+              </span>
+            ) : null}
+            <div className="text-slate-300 transition-transform group-open:rotate-90 dark:text-slate-600">
+              <ChevronRight size={18} />
+            </div>
+          </div>
+        </summary>
+        
+        {/* Content Details */}
+        <div className="mx-4 mb-4 mt-1 space-y-4 rounded-xl border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 dark:border-slate-800/60 dark:bg-slate-900/50">
           <div className="flex flex-wrap items-center gap-2">
             <span className={category.type === "income" ? "chip-income" : "chip-expense"}>
               {category.type === "income" ? "Pemasukan" : "Pengeluaran"}
             </span>
             <span className={isOwned ? "chip-neutral" : "chip-neutral"}>
-              {isOwned ? "Punya kamu" : "Default"}
+              {isOwned ? "Kustom" : "Default"}
             </span>
-            {archived ? <span className="chip-neutral">Archived</span> : null}
           </div>
+
+          {isOwned ? (
+            <p className="text-[13px] text-slate-500 dark:text-slate-400">
+              Terpakai di: {usage.transactions} Transaksi • {usage.budgets} Anggaran • {usage.templates} Template
+            </p>
+          ) : (
+            <p className="text-[13px] text-slate-500 dark:text-slate-400">
+              Kategori bawaan dari sistem ini bersifat statis (tidak bisa diubah/dihapus).
+            </p>
+          )}
+
+          {isOwned ? (
+            <div className="flex gap-2">
+              {archived ? (
+                <form action={unarchiveCategory} className="flex-1">
+                  <input type="hidden" name="id" value={category.id} />
+                  <SubmitButton className="btn-secondary h-9 w-full text-[13px]" pendingText="Proses...">
+                    Batal Arsip
+                  </SubmitButton>
+                </form>
+              ) : (
+                <form action={archiveCategory} className="flex-1">
+                  <input type="hidden" name="id" value={category.id} />
+                  <SubmitButton className="btn-secondary h-9 w-full text-[13px]" pendingText="Proses...">
+                    Arsipkan
+                  </SubmitButton>
+                </form>
+              )}
+
+              <form action={deleteCategory} className="flex-1">
+                <input type="hidden" name="id" value={category.id} />
+                <SubmitButton className="btn-secondary h-9 w-full text-[13px] text-rose-600 dark:text-rose-400" pendingText="Menghapus...">
+                  Hapus
+                </SubmitButton>
+              </form>
+            </div>
+          ) : null}
+
+          {isOwned ? (
+            <details className="group/merge rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+              <summary className="flex cursor-pointer list-none items-center justify-between outline-none [&::-webkit-details-marker]:hidden text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                <span>Gabungkan (Merge) Kategori</span>
+                <ChevronRight size={14} className="text-slate-400 transition-transform group-open/merge:rotate-90" />
+              </summary>
+              <form action={mergeCategory} className="mt-3 space-y-3">
+                <input type="hidden" name="source_id" value={category.id} />
+                <div>
+                  <FormSelect
+                    name="target_id"
+                    defaultValue=""
+                    placeholder="Pilih kategori tujuan..."
+                    options={[
+                      { value: "", label: "Pilih kategori tujuan...", disabled: true },
+                      ...mergeTargets.map((target) => ({
+                        value: target.id,
+                        label: target.name,
+                      })),
+                    ]}
+                    required
+                  />
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                  Data yang memakai kategori ini akan dipindahkan ke kategori tujuan di atas.
+                </p>
+                <SubmitButton
+                  className="btn-primary h-8 px-3 text-[12px]"
+                  pendingText="Merge..."
+                  disabled={mergeTargets.length === 0}
+                >
+                  Merge Sekarang
+                </SubmitButton>
+              </form>
+            </details>
+          ) : null}
         </div>
-
-        {isOwned ? (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            {usageSummaryText(usage)} - Transaksi: {usage.transactions} - Budget: {usage.budgets} - Template: {usage.templates}
-          </p>
-        ) : (
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Kategori default bersifat read-only.
-          </p>
-        )}
-
-        {isOwned ? (
-          <div className="grid gap-2 sm:grid-cols-3">
-            {archived ? (
-              <form action={unarchiveCategory}>
-                <input type="hidden" name="id" value={category.id} />
-                <SubmitButton className="btn-secondary h-10 w-full" pendingText="Memproses...">
-                  Unarchive
-                </SubmitButton>
-              </form>
-            ) : (
-              <form action={archiveCategory}>
-                <input type="hidden" name="id" value={category.id} />
-                <SubmitButton className="btn-secondary h-10 w-full" pendingText="Memproses...">
-                  Archive
-                </SubmitButton>
-              </form>
-            )}
-
-            <form action={deleteCategory}>
-              <input type="hidden" name="id" value={category.id} />
-              <SubmitButton className="btn-secondary h-10 w-full text-rose-600 dark:text-rose-300" pendingText="Menghapus...">
-                Hapus
-              </SubmitButton>
-            </form>
-          </div>
-        ) : null}
-
-        {isOwned ? (
-          <details className="group">
-            <summary className="cursor-pointer text-sm font-semibold text-slate-700 dark:text-slate-200">
-              Merge
-            </summary>
-            <form action={mergeCategory} className="mt-3 space-y-3">
-              <input type="hidden" name="source_id" value={category.id} />
-              <div>
-                <label className="mb-2 block text-xs font-semibold text-slate-600 dark:text-slate-300">
-                  Kategori tujuan
-                </label>
-                <FormSelect
-                  name="target_id"
-                  defaultValue=""
-                  placeholder="Pilih kategori tujuan"
-                  options={[
-                    { value: "", label: "Pilih kategori tujuan", disabled: true },
-                    ...mergeTargets.map((target) => ({
-                      value: target.id,
-                      label: target.name,
-                    })),
-                  ]}
-                  required
-                />
-              </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Semua transaksi, budget, dan template yang memakai kategori ini akan dipindahkan ke kategori tujuan.
-              </p>
-              <SubmitButton
-                className="btn-primary h-10 px-4"
-                pendingText="Merge..."
-                disabled={mergeTargets.length === 0}
-              >
-                Merge Category
-              </SubmitButton>
-            </form>
-          </details>
-        ) : null}
-      </article>
+      </details>
     );
   };
 
   return (
     <AppShell
-      className="journal-categories"
+      className="bg-slate-50/50 dark:bg-slate-950/50"
       activeNav="categories"
-      title="Kategori"
-      description="Kelola kategori pemasukan dan pengeluaran dengan lebih rapi."
+      title="Kategori Transaksi"
+      description="Kelola kategori pemasukan dan pengeluaran dengan rapi."
     >
-      <div className="grid gap-6 lg:grid-cols-[380px_minmax(0,1fr)] lg:items-start">
-        <div className="space-y-6">
-          <section className="section-card">
-            <h2 className="text-xl font-semibold">Tambah Kategori</h2>
+      <div className="mx-auto max-w-md space-y-7 pb-24 sm:pb-8">
+        
+        {/* Active Categories Section */}
+        <section>
+          <div className="mb-4 px-2">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white">Kategori Aktif</h2>
             <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Tambah kategori baru sesuai kebutuhan kamu.
+              Gunakan fitur <span className="font-medium text-slate-700 dark:text-slate-300">arsip</span> untuk menyembunyikan kategori tanpa menghapus riwayat transaksinya.
             </p>
+          </div>
 
+          {!activeCategories.length ? (
+            <div className="mx-2 flex flex-col items-center rounded-2xl border border-slate-200 bg-white p-8 text-center shadow-sm dark:border-slate-800 dark:bg-slate-900">
+              <span className="mb-4 inline-flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-600 dark:bg-slate-800 dark:text-slate-300">
+                <FolderSearch size={24} />
+              </span>
+              <p className="text-sm font-medium text-slate-900 dark:text-white">Belum ada kategori aktif.</p>
+              <div className="mt-6 flex flex-col w-full gap-3">
+                <Link href="/transactions/new" className="btn-primary flex items-center justify-center gap-2">
+                  <span>+</span> Tambah Transaksi
+                </Link>
+                <Link href="/" className="btn-secondary flex items-center justify-center">
+                  Kembali ke Dashboard
+                </Link>
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Pemasukan Group */}
+              <div>
+                <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+                  Pemasukan ({activeByType.income.length})
+                </h3>
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+                  {activeByType.income.map((category) => renderCategoryCard(category))}
+                </div>
+              </div>
+              
+              {/* Pengeluaran Group */}
+              <div>
+                <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+                  Pengeluaran ({activeByType.expense.length})
+                </h3>
+                <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+                  {activeByType.expense.map((category) => renderCategoryCard(category))}
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        {/* Add New Category Section */}
+        <section className="px-2 mt-8">
+          <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
+            <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white">Buat Kategori Baru</h2>
+            
             <form action={createCategory} className="mt-5 space-y-4">
               <div>
-                <label className="mb-2 block text-sm font-medium">
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                   Nama kategori
                 </label>
                 <input
                   type="text"
                   name="name"
-                  placeholder="Contoh: Saham"
-                  className="input-base"
+                  placeholder="Contoh: Belanja Bulanan"
+                  className="input-base bg-slate-50 dark:bg-slate-950"
                   required
                 />
               </div>
 
               <div>
-                <label className="mb-2 block text-sm font-medium">Tipe</label>
+                <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">Tipe</label>
                 <FormSelect
                   name="type"
                   defaultValue="expense"
@@ -504,82 +563,29 @@ export default async function CategoriesPage() {
                 />
               </div>
 
-              <SubmitButton className="btn-primary w-full py-3" pendingText="Menyimpan...">
-                Simpan Kategori
+              <SubmitButton className="btn-primary w-full py-3.5 mt-2 rounded-xl text-[15px] font-semibold" pendingText="Menyimpan...">
+                Simpan Kategori Baru
               </SubmitButton>
             </form>
-          </section>
+          </div>
+        </section>
 
-          <section className="section-card">
-            <div className="mb-4">
-              <h2 className="text-xl font-semibold">Archived Categories</h2>
-              <p className="text-sm text-slate-500 dark:text-slate-400">
-                Kategori arsip disembunyikan dari form transaksi/budget/template baru.
-              </p>
-            </div>
-
-            {!archivedCategories.length ? (
-              <div className="text-sm text-slate-500 dark:text-slate-400">
-                <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-600 dark:text-slate-300">
-                  <Archive size={18} />
-                </span>
-                <p>Belum ada kategori yang diarsipkan.</p>
-              </div>
-            ) : (
-              <div className="space-y-3 lg:max-h-[calc(100dvh-24rem)] lg:overflow-y-auto lg:pr-1">
-                {archivedCategories.map((category) => renderCategoryCard(category, true))}
-              </div>
-            )}
-          </section>
-        </div>
-
-        <div className="section-card">
-          <div className="mb-4">
-            <h2 className="text-xl font-semibold">Active Categories</h2>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Gunakan archive untuk menyembunyikan kategori tanpa menghapus riwayat transaksi.
-            </p>
-            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-              Gunakan merge untuk merapikan kategori duplikat.
-            </p>
+        {/* Archived Categories Section */}
+        <section className="mt-6">
+          <div className="mb-3 px-4">
+            <h2 className="text-[15px] font-semibold text-slate-900 dark:text-white">Arsip Kategori</h2>
           </div>
 
-          {!activeCategories.length ? (
-            <div className="text-sm text-slate-500 dark:text-slate-400">
-              <span className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-600 dark:text-slate-300">
-                <FolderSearch size={18} />
-              </span>
-              <p>Belum ada kategori aktif.</p>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <Link href="/transactions/new" className="btn-primary">
-                  + Tambah Transaksi
-                </Link>
-                <Link href="/" className="btn-secondary">
-                  Ke Dashboard
-                </Link>
-              </div>
+          {!archivedCategories.length ? (
+            <div className="mx-4 text-sm text-slate-500 dark:text-slate-400">
+              <p>Tidak ada kategori yang diarsipkan saat ini.</p>
             </div>
           ) : (
-            <div className="space-y-5 lg:max-h-[calc(100dvh-26rem)] lg:overflow-y-auto lg:pr-1">
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                  Pemasukan ({activeByType.income.length})
-                </h3>
-                <div className="space-y-3">
-                  {activeByType.income.map((category) => renderCategoryCard(category))}
-                </div>
-              </div>
-              <div>
-                <h3 className="mb-3 text-sm font-semibold text-slate-600 dark:text-slate-300">
-                  Pengeluaran ({activeByType.expense.length})
-                </h3>
-                <div className="space-y-3">
-                  {activeByType.expense.map((category) => renderCategoryCard(category))}
-                </div>
-              </div>
+            <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+              {archivedCategories.map((category) => renderCategoryCard(category, true))}
             </div>
           )}
-        </div>
+        </section>
       </div>
     </AppShell>
   );

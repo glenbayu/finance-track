@@ -52,7 +52,7 @@ function ExpenseTrendTooltip({
   if (!active || !payload?.length) return null;
 
   const amount = Number(payload[0]?.value ?? 0);
-  const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
+  const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
 
   return (
     <div
@@ -115,7 +115,7 @@ export default function MonthlyExpenseTrend({
         <div className="h-[250px] w-full md:h-[280px] bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
       ) : (
         <div className="h-[250px] w-full md:h-[280px]">
-          <ResponsiveContainer width="100%" height="100%">
+          <ResponsiveContainer width="100%" height="100%" minHeight={160}>
             <BarChart data={chartData} accessibilityLayer={false}>
               <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
               <XAxis

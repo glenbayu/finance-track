@@ -376,24 +376,24 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       }
       mobileActions={<MonthFilter selectedMonth={selectedMonth} compact className="w-full" />}
     >
-      <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-        <article className="stat-card">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Total Income</p>
-          <p className="mt-2 text-xl font-semibold text-emerald-600"><CurrencyAmount amountIDR={totalIncome} /></p>
+      <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/60 dark:bg-slate-900 grid sm:grid-cols-2 xl:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/60">
+        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Income</p>
+          <p className="mt-2 text-[22px] font-bold tracking-tight text-emerald-600 dark:text-emerald-400"><CurrencyAmount amountIDR={totalIncome} /></p>
         </article>
-        <article className="stat-card">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Total Expense</p>
-          <p className="mt-2 text-xl font-semibold text-rose-600"><CurrencyAmount amountIDR={totalExpense} /></p>
+        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Expense</p>
+          <p className="mt-2 text-[22px] font-bold tracking-tight text-rose-600 dark:text-rose-400"><CurrencyAmount amountIDR={totalExpense} /></p>
         </article>
-        <article className="stat-card">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Net Cashflow</p>
-          <p className={`mt-2 text-xl font-semibold ${netCashflow >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
+        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Net Cashflow</p>
+          <p className={`mt-2 text-[22px] font-bold tracking-tight ${netCashflow >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
             <CurrencyAmount amountIDR={netCashflow} />
           </p>
         </article>
-        <article className="stat-card">
-          <p className="text-sm text-slate-500 dark:text-slate-400">Jumlah Transaksi</p>
-          <p className="mt-2 text-xl font-semibold text-slate-900 dark:text-slate-100">{transactionCount}</p>
+        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Jumlah Transaksi</p>
+          <p className="mt-2 text-[22px] font-bold tracking-tight text-slate-900 dark:text-slate-100">{transactionCount} <span className="text-sm font-normal text-slate-500">kali</span></p>
         </article>
       </section>
 
@@ -419,87 +419,108 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </div>
         ) : null}
 
-        <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Rata-rata expense per transaksi</p>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
+        <div className="mt-4 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:border-slate-800/60 dark:bg-slate-900 dark:divide-slate-800/60 grid md:grid-cols-2 xl:grid-cols-3 md:divide-y-0 md:divide-x">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Rata-rata expense per transaksi</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               <CurrencyAmount amountIDR={averageExpensePerTransaction} />
             </p>
           </article>
 
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Kategori expense terbesar</p>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Kategori expense terbesar</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {biggestExpenseCategory
-                ? `${biggestExpenseCategory.name} (${new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format((biggestExpenseCategory.value / Math.max(totalExpense, 1)) * 100)}%)`
+                ? `${biggestExpenseCategory.name}`
                 : "Belum ada"}
             </p>
+            {biggestExpenseCategory && (
+              <p className="text-[11px] font-medium text-slate-500 mt-1">
+                Mewakili {new Intl.NumberFormat("id-ID", { maximumFractionDigits: 1 }).format((biggestExpenseCategory.value / Math.max(totalExpense, 1)) * 100)}% dari total
+              </p>
+            )}
           </article>
 
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Transaksi expense terbesar</p>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Transaksi expense terbesar</p>
+            <p className="text-lg font-semibold text-rose-600 dark:text-rose-400">
               {largestExpenseTransaction ? <CurrencyAmount amountIDR={Number(largestExpenseTransaction.amount)} /> : "Belum ada"}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] font-medium text-slate-500 mt-1 line-clamp-1">
               {largestExpenseTransaction ? largestExpenseTransaction.note || getCategoryName(largestExpenseTransaction.categories) : "-"}
             </p>
           </article>
 
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Hari pengeluaran tertinggi</p>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between border-t md:border-t-0 xl:border-t border-slate-100 dark:border-slate-800/60">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Hari pengeluaran tertinggi</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {highestSpendingDay ? `${formatDate(highestSpendingDay[0])}` : "Belum ada"}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
               {highestSpendingDay ? <CurrencyAmount amountIDR={highestSpendingDay[1].total} /> : "-"}
             </p>
           </article>
 
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Hari transaksi expense tersibuk</p>
-            <p className="font-semibold text-slate-900 dark:text-slate-100">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between border-t border-slate-100 dark:border-slate-800/60">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Hari transaksi expense tersibuk</p>
+            <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
               {busiestSpendingDay ? `${formatDate(busiestSpendingDay[0])}` : "Belum ada"}
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {busiestSpendingDay ? `${busiestSpendingDay[1].count} transaksi` : "-"}
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              {busiestSpendingDay ? `${busiestSpendingDay[1].count} transaksi dilakukan` : "-"}
             </p>
           </article>
 
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Perubahan net cashflow</p>
-            <p className={`font-semibold ${netChange.delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              {netChange.direction.toUpperCase()} <CurrencyAmount amountIDR={netChange.delta} />
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between border-t border-slate-100 dark:border-slate-800/60">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Perubahan net cashflow</p>
+            <div className="flex items-center gap-2">
+              <span className={`inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-bold uppercase ${netChange.delta >= 0 ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/40 dark:text-emerald-400" : "bg-rose-100 text-rose-700 dark:bg-rose-950/40 dark:text-rose-400"}`}>
+                {netChange.direction}
+              </span>
+              <p className={`text-lg font-semibold ${netChange.delta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+                <CurrencyAmount amountIDR={netChange.delta} />
+              </p>
+            </div>
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
               {netChange.pct === null ? "Persentase belum tersedia" : `${netChange.pct.toFixed(1)}% vs bulan lalu`}
             </p>
           </article>
         </div>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-3">
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Income vs bulan lalu</p>
-            <p className={`font-semibold ${incomeChange.delta >= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              <CurrencyAmount amountIDR={incomeChange.delta} />
+        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:border-slate-800/60 dark:bg-slate-900 dark:divide-slate-800/60 grid md:grid-cols-3 md:divide-y-0 md:divide-x">
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Income vs bulan lalu</p>
+            <p className={`text-lg font-semibold ${incomeChange.delta >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+              {incomeChange.delta >= 0 ? "+" : ""}<CurrencyAmount amountIDR={incomeChange.delta} />
             </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {incomeChange.pct === null ? "Persentase belum tersedia" : `${incomeChange.pct.toFixed(1)}%`}
-            </p>
-          </article>
-          <article className="soft-inset space-y-2">
-            <p className="text-sm text-slate-500 dark:text-slate-400">Expense vs bulan lalu</p>
-            <p className={`font-semibold ${expenseChange.delta <= 0 ? "text-emerald-600" : "text-rose-600"}`}>
-              <CurrencyAmount amountIDR={expenseChange.delta} />
-            </p>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              {expenseChange.pct === null ? "Persentase belum tersedia" : `${expenseChange.pct.toFixed(1)}%`}
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              {incomeChange.pct === null ? "Persentase belum tersedia" : `${incomeChange.delta >= 0 ? "Naik" : "Turun"} ${Math.abs(incomeChange.pct).toFixed(1)}%`}
             </p>
           </article>
-          <article className={`soft-inset space-y-2 ${totalExpense > totalIncome ? "border-rose-300 bg-rose-50/60 dark:border-rose-900 dark:bg-rose-950/20" : ""}`}>
-            <p className="text-sm text-slate-500 dark:text-slate-400">Status bulan ini</p>
-            <p className={`font-semibold ${totalExpense > totalIncome ? "text-rose-600" : "text-emerald-600"}`}>
-              {totalExpense > totalIncome ? "Waspada: expense > income" : "Aman: cashflow masih positif"}
+          
+          <article className="p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between border-t md:border-t-0 border-slate-100 dark:border-slate-800/60">
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Expense vs bulan lalu</p>
+            <p className={`text-lg font-semibold ${expenseChange.delta <= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+              {expenseChange.delta > 0 ? "+" : ""}<CurrencyAmount amountIDR={expenseChange.delta} />
+            </p>
+            <p className="text-[11px] font-medium text-slate-500 mt-1">
+              {expenseChange.pct === null ? "Persentase belum tersedia" : `${expenseChange.delta >= 0 ? "Naik" : "Turun"} ${Math.abs(expenseChange.pct).toFixed(1)}%`}
+            </p>
+          </article>
+          
+          <article className={`p-4 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30 flex flex-col justify-between border-t md:border-t-0 border-slate-100 dark:border-slate-800/60 ${totalExpense > totalIncome ? "bg-rose-50/50 dark:bg-rose-900/10" : ""}`}>
+            <p className="text-[13px] font-medium text-slate-500 dark:text-slate-400 mb-1">Status bulan ini</p>
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2.5 w-2.5 mt-0.5">
+                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75 ${totalExpense > totalIncome ? "bg-rose-400" : "bg-emerald-400"}`}></span>
+                <span className={`relative inline-flex h-2.5 w-2.5 rounded-full ${totalExpense > totalIncome ? "bg-rose-500" : "bg-emerald-500"}`}></span>
+              </span>
+              <p className={`text-lg font-semibold ${totalExpense > totalIncome ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                {totalExpense > totalIncome ? "Defisit" : "Surplus"}
+              </p>
+            </div>
+            <p className="text-[11px] font-medium text-slate-500 mt-1 line-clamp-1">
+              {totalExpense > totalIncome ? "Pengeluaran melebihi pemasukan!" : "Keuangan dalam kondisi sehat"}
             </p>
           </article>
         </div>

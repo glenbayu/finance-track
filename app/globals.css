@@ -7,6 +7,29 @@ html {
 }
 
 /* ══════════════════════════════════════════════
+   iOS SAFARI PERFORMANCE OPTIMIZATIONS
+   ══════════════════════════════════════════════ */
+
+/* Force GPU compositing for animated/transformed elements */
+@supports (-webkit-touch-callout: none) {
+  /* Reduce backdrop-blur intensity on iOS to prevent GPU overdraw */
+  .backdrop-blur-md {
+    -webkit-backdrop-filter: blur(6px) !important;
+    backdrop-filter: blur(6px) !important;
+  }
+  .backdrop-blur-sm {
+    -webkit-backdrop-filter: blur(2px) !important;
+    backdrop-filter: blur(2px) !important;
+  }
+  /* Promote animated elements to their own compositing layer */
+  [style*="translate3d"],
+  [style*="transform"] {
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+  }
+}
+
+/* ══════════════════════════════════════════════
    LIGHT MODE — Warm Cream-Green Minimalist
    (preserved from original, untouched)
    ══════════════════════════════════════════════ */
@@ -16,8 +39,8 @@ html {
   --surface: #fffdf8;
   --surface-soft: #f4ece0;
   --stroke: #ddd2bf;
-  --brand: #2f4c43;
-  --brand-strong: #263c35;
+  --brand: #0f172a;
+  --brand-strong: #1e293b;
   --danger: #b7493a;
   --ink-soft: #645c54;
   --income-soft: #dcefe4;
@@ -38,8 +61,8 @@ html {
   --surface: #0a0b0d;
   --surface-soft: #050506;
   --stroke: rgba(255, 255, 255, 0.05);
-  --brand: #3b82f6;
-  --brand-strong: #1e40af;
+  --brand: #2563eb;
+  --brand-strong: #1d4ed8;
   --danger: #dc2626;
   --ink-soft: #94a3b8;
 
@@ -56,7 +79,7 @@ html {
   --glass-highlight: rgba(255, 255, 255, 0.02);
 
   /* Finance accent palette */
-  --primary: #1e40af;
+  --primary: #2563eb;
   --primary-light: #3b82f6;
   --accent-profit: #059669;
   --accent-profit-light: #34d399;
@@ -66,7 +89,7 @@ html {
   --accent-amber-light: #fbbf24;
 
   /* Glow effects */
-  --glow-blue: rgba(59, 130, 246, 0.22);
+  --glow-blue: rgba(37, 99, 235, 0.22);
   --glow-green: rgba(16, 185, 129, 0.22);
   --glow-red: rgba(239, 68, 68, 0.18);
 
@@ -86,8 +109,8 @@ body {
   min-height: 100svh;
   min-height: 100dvh;
   background:
-    radial-gradient(circle at 11% -10%, #d9e8dc 0%, rgba(217, 232, 220, 0) 47%),
-    radial-gradient(circle at 95% 1%, #ffe7c8 0%, rgba(255, 231, 200, 0) 39%),
+    radial-gradient(circle at 11% -10%, #e2e8f0 0%, rgba(226, 232, 240, 0) 47%),
+    radial-gradient(circle at 95% 1%, #f1f5f9 0%, rgba(241, 245, 249, 0) 39%),
     repeating-linear-gradient(
       0deg,
       rgba(67, 52, 28, 0.03) 0px,
@@ -112,9 +135,9 @@ body {
 /* ── Dark mode body (OLED dark + blue/green nebula gradients) ── */
 .dark body {
   background:
-    radial-gradient(ellipse at 10% -5%, rgba(30, 64, 175, 0.35) 0%, rgba(30, 64, 175, 0) 50%),
+    radial-gradient(ellipse at 10% -5%, rgba(30, 58, 138, 0.35) 0%, rgba(30, 58, 138, 0) 50%),
     radial-gradient(ellipse at 92% 5%, rgba(5, 150, 105, 0.18) 0%, rgba(5, 150, 105, 0) 44%),
-    radial-gradient(ellipse at 50% 100%, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0) 60%),
+    radial-gradient(ellipse at 50% 100%, rgba(37, 99, 235, 0.12) 0%, rgba(37, 99, 235, 0) 60%),
     repeating-linear-gradient(
       0deg,
       rgba(255, 255, 255, 0.016) 0px,
@@ -491,6 +514,11 @@ button,
       rgba(16, 26, 52, 0.65) 100%
     );
     border-color: var(--glass-border);
+  }
+
+  .btn-primary:active, .btn-secondary:active {
+    transform: scale(0.95);
+    transition: transform 0.1s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Metric card glow utilities (dark mode only) */

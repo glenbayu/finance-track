@@ -58,6 +58,7 @@ export default function FormSelect({
   const menuRef = useRef<HTMLUListElement>(null);
   const listboxId = useId();
   const [menuStyle, setMenuStyle] = useState<CSSProperties | null>(null);
+  const [isMobile, setIsMobile] = useState(false);
   const isControlled = typeof value === "string";
   const selectedValue = isControlled ? value : internalValue;
 
@@ -93,14 +94,15 @@ export default function FormSelect({
       if (!root) return;
 
       const rect = root.getBoundingClientRect();
-      const isMobileViewport = window.innerWidth < 768;
+      const mobileCheck = window.innerWidth < 768;
+      setIsMobile(mobileCheck);
       const viewportPadding = 8;
       const gap = 8;
       const defaultMaxHeight = 256;
       const availableBelow = window.innerHeight - rect.bottom - viewportPadding;
       const availableAbove = rect.top - viewportPadding;
       const availableWidth = window.innerWidth - viewportPadding * 2;
-      const menuWidth = isMobileViewport
+      const menuWidth = mobileCheck
         ? Math.min(availableWidth, Math.max(rect.width, 240))
         : rect.width;
       const openUpward = availableBelow < 220 && availableAbove > availableBelow;
@@ -112,7 +114,7 @@ export default function FormSelect({
       const top = openUpward
         ? Math.max(viewportPadding, rect.top - gap - maxHeight)
         : Math.min(window.innerHeight - viewportPadding - maxHeight, rect.bottom + gap);
-      const left = isMobileViewport
+      const left = mobileCheck
         ? Math.min(
             Math.max(viewportPadding, rect.left),
             window.innerWidth - viewportPadding - menuWidth,
@@ -255,15 +257,25 @@ export default function FormSelect({
         </div>
       </button>
 
-      {isOpen && menuStyle && typeof document !== "undefined"
+      {isOpen && typeof document !== "undefined"
         ? createPortal(
-            <ul
-              id={listboxId}
-              ref={menuRef}
-              role="listbox"
-              style={menuStyle}
-              className="overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_24px_48px_-24px_rgba(15,23,42,0.4)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_28px_52px_-28px_rgba(2,6,23,0.95)]"
-            >
+            <>
+              {isMobile && (
+                <div 
+                  className="fixed inset-0 z-[9998] bg-slate-900/40 backdrop-blur-sm animate-in fade-in"
+                  onClick={(e) => { e.stopPropagation(); setIsOpen(false); }}
+                />
+              )}
+              <ul
+                id={listboxId}
+                ref={menuRef}
+                role="listbox"
+                style={isMobile ? { zIndex: 9999 } : (menuStyle || undefined)}
+                className={isMobile
+                  ? "fixed bottom-0 left-0 right-0 z-[9999] w-full max-h-[60vh] overflow-y-auto rounded-t-3xl border-t border-slate-200 bg-white p-4 shadow-[0_-10px_40px_rgba(0,0,0,0.1)] dark:border-slate-800 dark:bg-slate-900 animate-in slide-in-from-bottom-full"
+                  : "overflow-y-auto rounded-2xl border border-slate-200 bg-white p-1.5 shadow-[0_24px_48px_-24px_rgba(15,23,42,0.4)] dark:border-slate-700 dark:bg-slate-900 dark:shadow-[0_28px_52px_-28px_rgba(2,6,23,0.95)] z-[9999]"
+                }
+              >
               {options.map((option, index) => {
                 const isSelected = option.value === selectedValue;
                 const isActive = index === activeIndex;
@@ -295,7 +307,8 @@ export default function FormSelect({
                   </li>
                 );
               })}
-            </ul>,
+            </ul>
+            </>,
             document.body,
           )
         : null}

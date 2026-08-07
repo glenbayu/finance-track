@@ -163,7 +163,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
 
   return (
     <AppShell
-      className="bg-slate-50/50 dark:bg-slate-950/50"
+      className="bg-[var(--lk-bg)]"
       activeNav="wallets"
       month={selectedMonth}
       title="Dompet & Rekening"
@@ -183,7 +183,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
         </div>
       }
     >
-      <div className="mx-auto max-w-4xl space-y-6">
+      <div className="mx-auto max-w-5xl">
         <WalletManager
           wallets={walletsWithUsage}
           createAction={createWallet}

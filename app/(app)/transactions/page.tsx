@@ -14,6 +14,8 @@ import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 import TransactionMobileFilter from "@/components/transactions/transaction-mobile-filter";
 import SwipeableRow from "@/components/ui/swipeable-row";
+import SubmitButton from "@/components/ui/submit-button";
+import { runMonthlyRollover } from "@/app/(app)/transactions/actions";
 
 type TransactionsPageProps = {
   searchParams?: Promise<{
@@ -206,14 +208,48 @@ async function deleteTransaction(formData: FormData) {
   revalidatePath("/budgets");
 }
 
-import { syncRolloversAndAdminFees } from "@/lib/rollover";
-
 export default async function TransactionsPage({ searchParams }: TransactionsPageProps) {
   const { supabase, user } = await requireUser();
-  await syncRolloversAndAdminFees(supabase, user.id);
   const params = await searchParams;
 
-  const selectedMonth = isMonthValue(params?.month ?? "") ? (params?.month as string) : getCurrentMonth();
+  const currentMonth = getCurrentMonth();
+  const selectedMonth = isMonthValue(params?.month ?? "") ? (params?.month as string) : currentMonth;
+  const isViewingCurrentMonth = selectedMonth === currentMonth;
+
+  let hasRolloverThisMonth = true;
+  if (isViewingCurrentMonth) {
+    // Cek rollover di tanggal 1 bulan ini
+    const { data: rolloverMarkers } = await supabase
+      .from("transactions")
+      .select("id")
+      .eq("user_id", user.id)
+      .eq("transaction_date", `${currentMonth}-01`)
+      .in("note", ["Sisa uang bulan kemarin (Rollover)", "Defisit uang bulan kemarin (Rollover)"])
+      .limit(1);
+
+    if (rolloverMarkers && rolloverMarkers.length > 0) {
+      hasRolloverThisMonth = true;
+    } else {
+      // Cek admin fee di akhir bulan lalu sebagai alternatif
+      const { getPreviousMonth } = await import("@/lib/utils/date");
+      const { pad2 } = await import("@/lib/utils/date");
+      const prevMonth = getPreviousMonth(currentMonth);
+
+      const [prevYear, prevMonthNum] = prevMonth.split("-").map(Number);
+      const lastDayDate = new Date(Date.UTC(prevYear, prevMonthNum, 0));
+      const lastDayOfPreviousMonth = `${prevYear}-${pad2(prevMonthNum)}-${pad2(lastDayDate.getUTCDate())}`;
+
+      const { data: adminFeeMarkers } = await supabase
+        .from("transactions")
+        .select("id")
+        .eq("user_id", user.id)
+        .eq("transaction_date", lastDayOfPreviousMonth)
+        .eq("note", "Biaya Admin Rekening")
+        .limit(1);
+
+      hasRolloverThisMonth = !!(adminFeeMarkers && adminFeeMarkers.length > 0);
+    }
+  }
   const searchValue = String(params?.search ?? "");
   const searchQuery = searchValue.trim();
   const selectedType = parseTypeFilter(params?.type);
@@ -266,14 +302,6 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
   if (categoriesResult.error) {
     throw new Error(`Gagal memuat kategori: ${categoriesResult.error.message}`);
   }
-
-  // Temporary Data Cleanup: fix expense of 6.106.000 to transfer
-  await supabase
-    .from("transactions")
-    .update({ type: "transfer" })
-    .eq("user_id", user.id)
-    .eq("amount", 6106000)
-    .eq("type", "expense");
 
   const allTransactions = (transactionsResult.data ?? []) as TransactionRow[];
   const categories = (categoriesResult.data ?? []) as CategoryOption[];
@@ -439,6 +467,29 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         </>
       }
     >
+      {!hasRolloverThisMonth && (
+        <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: "var(--lk-primary-dim)", border: "1px solid var(--lk-primary)" }}>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h3 className="text-sm font-semibold" style={{ color: "var(--lk-primary-light)" }}>
+                Rollover saldo belum diterapkan
+              </h3>
+              <p className="mt-1 text-xs" style={{ color: "var(--lk-text-muted)" }}>
+                Terapkan rollover saldo sisa bulan lalu dan potong biaya admin Rp 6.000 otomatis untuk dompet bank kamu.
+              </p>
+            </div>
+            <form action={runMonthlyRollover} className="shrink-0">
+              <SubmitButton
+                className="btn-primary h-9 rounded-md px-4 text-xs font-semibold border-none shadow-sm"
+                pendingText="Memproses..."
+              >
+                Terapkan Rollover
+              </SubmitButton>
+            </form>
+          </div>
+        </div>
+      )}
+
       <section className="table-shell">
         {paginatedTransactions.length === 0 ? (
           <div className="p-6">
@@ -466,10 +517,10 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
             <div className="space-y-6 p-3 md:hidden">
               {sortedDates.map((date) => (
                 <section key={date} className="space-y-2">
-                  <h3 className="px-2 text-[13px] font-semibold text-slate-500 uppercase tracking-wider dark:text-slate-400">
+                  <h3 className="px-2 text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--lk-text-muted)" }}>
                     {formatDate(date)}
                   </h3>
-                  <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+                  <div className="overflow-hidden rounded-lg shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
                     {groupedTransactions[date].map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
@@ -479,19 +530,19 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         <SwipeableRow
                           key={transaction.id}
                           actions={
-                            <div className="flex h-full min-w-max items-stretch rounded-r-2xl overflow-hidden shadow-sm bg-white dark:bg-slate-900 border-y border-r border-slate-200 dark:border-slate-800">
-                              <DuplicateTransactionButton id={transaction.id} className="h-full px-5 hover:bg-slate-50 dark:hover:bg-slate-800 border-r border-slate-100 dark:border-slate-800 text-slate-700 dark:text-slate-300" label="" />
-                              <EditTransactionButton id={transaction.id} className="h-full px-5 hover:bg-slate-50 dark:hover:bg-slate-800 border-r border-slate-100 dark:border-slate-800 text-blue-600 dark:text-blue-400" label="" />
-                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:bg-rose-50 text-rose-600 dark:hover:bg-rose-500/10 dark:text-rose-400" label="" />
+                            <div className="flex h-full min-w-max items-stretch rounded-r-lg overflow-hidden shadow-sm border-y border-r" style={{ backgroundColor: "var(--lk-bg)", borderColor: "var(--lk-border)" }}>
+                              <DuplicateTransactionButton id={transaction.id} className="h-full px-5 border-r hover:opacity-80 transition-opacity border-[var(--lk-border)] text-[var(--lk-text)]" label="" />
+                              <EditTransactionButton id={transaction.id} className="h-full px-5 border-r hover:opacity-80 transition-opacity border-[var(--lk-border)] text-[var(--lk-primary-light)]" label="" />
+                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:opacity-80 transition-opacity text-[var(--lk-expense)]" label="" />
                             </div>
                           }
                           actionWidth={200}
                         >
-                          <Link href={`/transactions/${transaction.id}/edit`} className="block active:opacity-75 bg-transparent hover:bg-slate-50 transition-colors dark:hover:bg-slate-800/50">
-                            <article className="px-4 py-3 select-none">
+                          <Link href={`/transactions/${transaction.id}/edit`} className="block active:opacity-75 transition-colors" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+                            <article className="px-4 py-3 select-none hover-bg-surface-hover">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <p className="truncate font-semibold text-[15px] text-slate-900 dark:text-slate-100">
+                                  <p className="truncate font-semibold text-[15px]" style={{ color: "var(--lk-text)" }}>
                                     {transaction.type === "transfer" 
                                       ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
                                       : transaction.type === "adjustment"
@@ -500,7 +551,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                                       ? highlightText(category.name, highlightQuery)
                                       : "Tanpa kategori"}
                                   </p>
-                                  <p className="mt-0.5 text-xs text-slate-500 break-words dark:text-slate-400 line-clamp-1">
+                                  <p className="mt-0.5 text-xs break-words line-clamp-1" style={{ color: "var(--lk-text-muted)" }}>
                                     {transaction.note
                                       ? highlightText(transaction.note, highlightQuery)
                                       : <span className="italic opacity-50">Tanpa catatan</span>}
@@ -509,23 +560,24 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
                                 <div className="flex flex-col items-end gap-1 shrink-0">
                                   <p
-                                    className={`whitespace-nowrap text-[15px] font-semibold ${
-                                      transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" : 
-                                      transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" : 
-                                      "text-slate-700 dark:text-slate-300"
-                                    }`}
+                                    className="whitespace-nowrap text-[15px] font-semibold"
+                                    style={{
+                                      color: transaction.type === "income" ? "var(--lk-income)" :
+                                        transaction.type === "expense" ? "var(--lk-expense)" :
+                                          "var(--lk-text)"
+                                    }}
                                   >
                                     {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                                     <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
                                   </p>
                                   <span className={
-                                    transaction.type === "income" ? "inline-flex rounded bg-emerald-100/50 px-1.5 py-[2px] text-[10px] font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400" : 
-                                    transaction.type === "expense" ? "inline-flex rounded bg-rose-100/50 px-1.5 py-[2px] text-[10px] font-semibold text-rose-700 dark:bg-rose-950/30 dark:text-rose-400" : 
-                                    "inline-flex rounded bg-slate-100 px-1.5 py-[2px] text-[10px] font-semibold text-slate-600 dark:bg-slate-800 dark:text-slate-400"
+                                    transaction.type === "income" ? "chip-income text-[10px] py-[2px]" :
+                                      transaction.type === "expense" ? "chip-expense text-[10px] py-[2px]" :
+                                        "chip-default text-[10px] py-[2px]"
                                   }>
-                                    {transaction.type === "income" ? "Pemasukan" : 
-                                     transaction.type === "expense" ? "Pengeluaran" : 
-                                     transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
+                                    {transaction.type === "income" ? "Pemasukan" :
+                                      transaction.type === "expense" ? "Pengeluaran" :
+                                        transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
                                   </span>
                                 </div>
                               </div>
@@ -541,36 +593,36 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
             <div className="hidden overflow-x-auto md:block">
               <table className="min-w-full text-sm">
-                <thead className="bg-slate-100/80 text-left dark:bg-slate-800/90">
+                <thead className="text-left" style={{ backgroundColor: "var(--lk-surface)", borderBottom: "1px solid var(--lk-border)" }}>
                   <tr>
-                    <th className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">Tanggal</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">Tipe</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">Kategori</th>
-                    <th className="px-4 py-3 font-semibold text-slate-700 dark:text-slate-200">Catatan</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">Jumlah</th>
-                    <th className="px-4 py-3 text-right font-semibold text-slate-700 dark:text-slate-200">Aksi</th>
+                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Tanggal</th>
+                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Tipe</th>
+                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Kategori</th>
+                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Catatan</th>
+                    <th className="px-4 py-3 text-right font-semibold" style={{ color: "var(--lk-text)" }}>Jumlah</th>
+                    <th className="px-4 py-3 text-right font-semibold" style={{ color: "var(--lk-text)" }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody>
                   {paginatedTransactions.map((transaction) => {
                     const category = toCategory(transaction.categories);
                     return (
-                      <tr key={transaction.id} className="border-t border-slate-200 dark:border-slate-800">
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                      <tr key={transaction.id} style={{ borderBottom: "1px solid var(--lk-border)" }}>
+                        <td className="px-4 py-3" style={{ color: "var(--lk-text)" }}>
                           {formatDate(transaction.transaction_date)}
                         </td>
                         <td className="px-4 py-3">
                           <span className={
                             transaction.type === "income" ? "chip-income" : 
                             transaction.type === "expense" ? "chip-expense" : 
-                            "inline-flex items-center rounded-full bg-slate-100 px-2.5 py-0.5 text-xs font-semibold text-slate-700 dark:bg-slate-800 dark:text-slate-300"
+                            "chip-default"
                           }>
                             {transaction.type === "income" ? "Pemasukan" : 
                              transaction.type === "expense" ? "Pengeluaran" : 
                              transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
                           </span>
                         </td>
-                        <td className="px-4 py-3 text-slate-700 dark:text-slate-200">
+                        <td className="px-4 py-3" style={{ color: "var(--lk-text)" }}>
                           {transaction.type === "transfer" 
                             ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
                             : transaction.type === "adjustment"
@@ -579,14 +631,14 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                             ? highlightText(category.name, highlightQuery)
                             : "Tanpa kategori"}
                         </td>
-                        <td className="px-4 py-3 text-slate-500 dark:text-slate-300">
+                        <td className="px-4 py-3" style={{ color: "var(--lk-text-muted)" }}>
                           {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}
                         </td>
-                        <td className={`px-4 py-3 text-right font-semibold ${
-                          transaction.type === "income" ? "text-emerald-600" : 
-                          transaction.type === "expense" ? "text-rose-600" : 
-                          "text-slate-700 dark:text-slate-300"
-                        }`}>
+                        <td className="px-4 py-3 text-right font-semibold" style={{
+                          color: transaction.type === "income" ? "var(--lk-income)" : 
+                          transaction.type === "expense" ? "var(--lk-expense)" : 
+                          "var(--lk-text)"
+                        }}>
                           {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                           <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                         </td>
@@ -604,9 +656,9 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               </table>
             </div>
 
-            <div className="border-t border-slate-200 p-4 dark:border-slate-800">
+            <div className="p-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                <p className="text-xs text-slate-600 dark:text-slate-300 md:text-sm">
+                <p className="text-xs md:text-sm" style={{ color: "var(--lk-text-muted)" }}>
                   <span className="md:hidden">
                     Hal. {currentPage}/{totalPages} &bull; {totalCount} transaksi
                   </span>

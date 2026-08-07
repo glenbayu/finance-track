@@ -5,7 +5,11 @@ import FormSelect from "@/components/ui/form-select";
 import { SUPPORTED_CURRENCIES } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 
-export default function PreferencesCard() {
+type PreferencesCardProps = {
+  flat?: boolean;
+};
+
+export default function PreferencesCard({ flat = false }: PreferencesCardProps) {
   const {
     currency,
     effectiveCurrency,
@@ -26,19 +30,15 @@ export default function PreferencesCard() {
     MYR: "Ringgit Malaysia (MYR)",
   };
 
-  return (
-    <section>
-      <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
-        Bahasa & Mata Uang
-      </h3>
-      <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800 dark:bg-slate-900">
-        <div className="p-4">
+  const content = (
+    <div className={flat ? "" : "overflow-hidden rounded-lg shadow-sm"} style={!flat ? { backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" } : {}}>
+      <div className="p-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div className="min-w-0">
-              <label className="text-[15px] font-medium text-slate-900 dark:text-slate-100">
+              <label className="text-[15px] font-medium" style={{ color: "var(--lk-text)" }}>
                 Mata Uang Layar
               </label>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>
                 Pilih mata uang untuk menampilkan nominal di dashboard.
               </p>
             </div>
@@ -60,24 +60,24 @@ export default function PreferencesCard() {
             </div>
           </div>
           
-          <div className="mt-5 rounded-xl bg-slate-50 p-4 text-sm dark:bg-slate-950/50 border border-slate-100 dark:border-slate-800">
-            <h4 className="font-semibold text-slate-800 dark:text-slate-200 mb-2">Simulasi Konversi</h4>
+          <div className="mt-5 rounded-lg p-4 text-sm" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+            <h4 className="font-semibold mb-2" style={{ color: "var(--lk-text)" }}>Simulasi Konversi</h4>
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-              <span className="text-slate-500 dark:text-slate-400">Rp 1.000.000 =</span>
-              <span className="font-bold text-slate-900 dark:text-white text-lg">
+              <span style={{ color: "var(--lk-text-muted)" }}>Rp 1.000.000 =</span>
+              <span className="font-bold text-lg" style={{ color: "var(--lk-text)" }}>
                 {isRateLoading ? "..." : formatFromIDR(1_000_000)}
               </span>
             </div>
             
             {/* Status Information */}
-            <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3 space-y-1">
+            <div className="mt-4 pt-3 space-y-1" style={{ borderTop: "1px solid var(--lk-border)" }}>
               {lastUpdated && (
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                <p className="text-[11px]" style={{ color: "var(--lk-text-muted)" }}>
                   Kurs referensi terakhir: {lastUpdated}
                 </p>
               )}
               {isFallbackToIDR && (
-                <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
+                <p className="text-[11px] font-medium" style={{ color: "var(--lk-expense)" }}>
                   Kurs belum tersedia, kembali ke IDR.
                 </p>
               )}
@@ -85,6 +85,16 @@ export default function PreferencesCard() {
           </div>
         </div>
       </div>
+  );
+
+  if (flat) return content;
+
+  return (
+    <section>
+      <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider uppercase" style={{ color: "var(--lk-text-muted)" }}>
+        Bahasa & Mata Uang
+      </h3>
+      {content}
     </section>
   );
 }

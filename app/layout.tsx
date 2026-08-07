@@ -53,10 +53,9 @@ export default function RootLayout({
             __html: `
               (function () {
                 try {
-                  var stored = localStorage.getItem("theme");
-                  var isDark = stored === "dark";
-                  document.documentElement.classList.toggle("dark", isDark);
-                  document.documentElement.style.colorScheme = isDark ? "dark" : "light";
+                  // Lensa Keuangan is dark-only
+                  document.documentElement.classList.add("dark");
+                  document.documentElement.style.colorScheme = "dark";
                   
                   var ua = navigator.userAgent || "";
                   if (/android/i.test(ua)) {

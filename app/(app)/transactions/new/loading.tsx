@@ -8,9 +8,34 @@ export default function Loading() {
       title="Tambah Transaksi"
       description="Catat pemasukan atau pengeluaran baru."
     >
-      <div className="flex min-h-[400px] w-full flex-col items-center justify-center gap-4 rounded-[26px] border border-[color:var(--stroke)] bg-[color:var(--surface)]/95 p-8 shadow-[0_26px_44px_-32px_rgba(47,35,16,0.4)] backdrop-blur">
-        <LoadingSpinner size="lg" className="text-emerald-600 dark:text-emerald-400" />
-        <p className="text-sm font-medium text-slate-500 animate-pulse">Menyiapkan form...</p>
+      <div className="flex w-full flex-col gap-6 rounded-lg p-6 shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+        
+        {/* Tabs Skeleton */}
+        <div className="flex w-full rounded-md p-1" style={{ backgroundColor: "var(--lk-bg)" }}>
+          <div className="h-9 w-1/3 animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-surface)" }} />
+          <div className="h-9 w-1/3 animate-pulse rounded-md bg-transparent" />
+          <div className="h-9 w-1/3 animate-pulse rounded-md bg-transparent" />
+        </div>
+
+        {/* Input Skeletons */}
+        <div className="space-y-4 mt-2">
+          <div>
+            <div className="mb-2 h-4 w-20 animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+            <div className="h-11 w-full animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+          </div>
+          <div>
+            <div className="mb-2 h-4 w-24 animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+            <div className="h-11 w-full animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+          </div>
+          <div>
+            <div className="mb-2 h-4 w-32 animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+            <div className="h-24 w-full animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+          </div>
+        </div>
+
+        {/* Button Skeleton */}
+        <div className="mt-4 h-12 w-full animate-pulse rounded-md" style={{ backgroundColor: "var(--lk-bg)" }} />
+        
       </div>
     </AppShell>
   );

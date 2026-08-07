@@ -44,71 +44,87 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
   const params = await searchParams;
 
   return (
-    <main className="relative flex min-h-screen items-center justify-center overflow-hidden bg-slate-50 p-4 dark:bg-slate-950">
-      {/* Background Blobs for Glassmorphism Effect */}
-      <div className="pointer-events-none absolute inset-0 z-0 overflow-hidden">
-        <div className="absolute -left-[10%] -top-[10%] h-[40%] w-[40%] rounded-full bg-blue-500/20 blur-[100px]" />
-        <div className="absolute -bottom-[10%] -right-[10%] h-[40%] w-[40%] rounded-full bg-rose-500/20 blur-[100px]" />
-      </div>
-
-      <div className="relative z-10 w-full max-w-[400px]">
-        <section className="overflow-hidden rounded-[2rem] border border-white/60 bg-white/70 p-8 shadow-[0_8px_40px_rgb(0,0,0,0.08)] backdrop-blur-xl dark:border-slate-800/60 dark:bg-slate-900/70 dark:shadow-[0_8px_40px_rgb(0,0,0,0.4)]">
-          <div className="mb-8 text-center">
-            <div className="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-tr from-blue-600 to-blue-400 text-white shadow-lg shadow-blue-500/30">
-              <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
-            </div>
-            <h1 className="text-2xl font-bold tracking-tight text-slate-900 dark:text-white">Daftar Akun Baru</h1>
-            <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-              Buat akun untuk mulai mencatat keuanganmu
-            </p>
+    <main
+      className="flex min-h-screen items-center justify-center p-4"
+      style={{ backgroundColor: "var(--lk-bg)" }}
+    >
+      <div className="w-full max-w-[380px]">
+        {/* Logo */}
+        <div className="mb-8 text-center">
+          <div
+            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg"
+            style={{ backgroundColor: "var(--lk-primary)" }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
           </div>
+          <h1 className="text-xl font-bold" style={{ color: "var(--lk-text)" }}>Daftar Akun Baru</h1>
+          <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
+            Buat akun untuk mencatat keuanganmu
+          </p>
+        </div>
 
+        <div
+          className="rounded-lg p-6"
+          style={{
+            backgroundColor: "var(--lk-surface)",
+            border: "1px solid var(--lk-border-strong)",
+          }}
+        >
           {params?.error && (
-            <div className="mb-6 rounded-2xl border border-rose-200 bg-rose-50/80 px-4 py-3 text-sm text-rose-700 backdrop-blur-md dark:border-rose-900/50 dark:bg-rose-950/40 dark:text-rose-400">
+            <div
+              className="mb-5 rounded-md px-4 py-3 text-sm"
+              style={{ backgroundColor: "var(--lk-expense-bg)", color: "var(--lk-expense)", border: "1px solid rgba(255,180,171,0.2)" }}
+            >
               {params.error}
             </div>
           )}
 
-          <form action={signup} className="space-y-5">
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-slate-700 dark:text-slate-300">
+          <form action={signup} className="space-y-4">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Alamat Email
               </label>
               <input
                 type="email"
                 name="email"
+                id="email"
                 placeholder="nama@email.com"
-                className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-[15px] outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:focus:border-blue-500 dark:focus:bg-slate-800"
+                className="input-base"
                 required
               />
             </div>
 
-            <div className="space-y-1.5">
-              <label className="text-[13px] font-semibold text-slate-700 dark:text-slate-300">
+            <div>
+              <label className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Kata Sandi
               </label>
               <input
                 type="password"
                 name="password"
+                id="password"
                 placeholder="Minimal 6 karakter"
-                className="w-full rounded-xl border border-slate-200 bg-white/50 px-4 py-3 text-[15px] outline-none transition-all placeholder:text-slate-400 focus:border-blue-500 focus:bg-white focus:ring-4 focus:ring-blue-500/10 dark:border-slate-700/50 dark:bg-slate-800/50 dark:text-white dark:focus:border-blue-500 dark:focus:bg-slate-800"
+                className="input-base"
                 minLength={6}
                 required
               />
             </div>
 
-            <SubmitButton className="mt-2 w-full rounded-xl bg-blue-600 px-4 py-3.5 text-[15px] font-semibold text-white transition-colors hover:bg-blue-700 active:bg-blue-800" pendingText="Membuat Akun...">
+            <SubmitButton className="btn-primary mt-2 w-full py-2.5 text-sm font-semibold rounded-md" pendingText="Membuat Akun...">
               Buat Akun
             </SubmitButton>
           </form>
 
-          <p className="mt-8 text-center text-[13px] text-slate-500 dark:text-slate-400">
+          <p className="mt-6 text-center text-xs" style={{ color: "var(--lk-text-muted)" }}>
             Sudah punya akun?{" "}
-            <Link href="/login" className="font-semibold text-blue-600 hover:underline dark:text-blue-400">
+            <Link
+              href="/login"
+              className="font-semibold hover:underline"
+              style={{ color: "var(--lk-primary-light)" }}
+            >
               Login Sekarang
             </Link>
           </p>
-        </section>
+        </div>
       </div>
     </main>
   );

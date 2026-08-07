@@ -20,3 +20,15 @@ export async function deleteTransaction(formData: FormData) {
   revalidatePath("/reports");
   revalidatePath("/budgets");
 }
+
+import { forceRecalculateRollovers } from "@/lib/rollover";
+
+export async function runMonthlyRollover() {
+  const { supabase, user } = await requireUser();
+  await forceRecalculateRollovers(supabase, user.id);
+
+  revalidatePath("/");
+  revalidatePath("/transactions");
+  revalidatePath("/reports");
+  revalidatePath("/budgets");
+}

@@ -142,45 +142,48 @@ export default function WalletManager({ wallets, createAction, editAction, delet
     if (list.length === 0) return null;
     return (
       <div className="mb-6">
-        <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+        <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider uppercase" style={{ color: "var(--lk-text-muted)" }}>
           {title} ({list.length})
         </h3>
-        <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+        <div className="overflow-hidden rounded-lg shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
           {list.map((wallet) => (
-            <details key={wallet.id} className="group hover:bg-slate-50 dark:hover:bg-slate-800/50">
-              <summary className="flex cursor-pointer items-center justify-between gap-4 p-4 active:bg-slate-100 outline-none list-none [&::-webkit-details-marker]:hidden dark:active:bg-slate-800">
+            <details key={wallet.id} className="group hover-bg-surface-hover" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+              <summary className="flex cursor-pointer items-center justify-between gap-4 p-4 outline-none list-none [&::-webkit-details-marker]:hidden">
                 <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: "var(--lk-bg)" }}>
                     {getWalletIcon(wallet.type)}
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-[15px] font-semibold text-slate-900 dark:text-slate-100">{wallet.name}</p>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">
+                    <p className="truncate text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>{wallet.name}</p>
+                    <p className="truncate text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
                       {wallet.usageCount > 0 ? `${wallet.usageCount} transaksi` : "Belum dipakai"}
                     </p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <div className={`text-[15px] font-bold ${wallet.balance < 0 ? 'text-rose-600 dark:text-rose-400' : 'text-slate-900 dark:text-white'}`}>
+                  <div className="text-[15px] font-bold" style={{ color: wallet.balance < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                     <CurrencyAmount amountIDR={wallet.balance} />
                   </div>
-                  <div className="text-slate-300 transition-transform group-open:rotate-90 dark:text-slate-600">
+                  <div className="transition-transform group-open:rotate-90" style={{ color: "var(--lk-text-muted)" }}>
                     <ChevronRight size={18} />
                   </div>
                 </div>
               </summary>
               
-              <div className="mx-4 mb-4 mt-1 flex flex-wrap gap-2 rounded-xl border-t border-slate-100 bg-slate-50/50 px-4 pb-4 pt-3 dark:border-slate-800/60 dark:bg-slate-900/50">
+              
+              <div className="mx-4 mb-4 mt-1 flex flex-wrap gap-2 rounded-lg px-4 pb-4 pt-3" style={{ backgroundColor: "var(--lk-bg)", borderTop: "1px solid var(--lk-border)" }}>
                 <Link 
                   href={`/transactions/new?type=transfer&source_id=${wallet.id}`}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-indigo-50 px-3 py-2.5 text-[13px] font-semibold text-indigo-700 hover:bg-indigo-100 transition-colors dark:bg-indigo-900/30 dark:text-indigo-300 dark:hover:bg-indigo-900/50"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                  style={{ backgroundColor: "var(--lk-income-dim)", color: "var(--lk-income)" }}
                 >
                   <ArrowRightLeft size={14} /> Pindah
                 </Link>
                 <button
                   type="button"
                   onClick={() => openAdjustModal(wallet)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-lg bg-slate-200 px-3 py-2.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-300 transition-colors dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                  style={{ backgroundColor: "var(--lk-surface)", color: "var(--lk-text)", border: "1px solid var(--lk-border)" }}
                 >
                   <SlidersHorizontal size={14} /> Sesuaikan
                 </button>
@@ -188,14 +191,16 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                   <button
                     type="button"
                     onClick={() => openEditModal(wallet)}
-                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-slate-200 px-3 py-2.5 text-[13px] font-semibold text-slate-700 hover:bg-slate-300 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                    style={{ backgroundColor: "var(--lk-surface)", color: "var(--lk-text)", border: "1px solid var(--lk-border)" }}
                   >
                     <Edit2 size={16} /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => setWalletToDelete(wallet)}
-                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg bg-rose-100 px-3 py-2.5 text-[13px] font-semibold text-rose-600 hover:bg-rose-200 dark:bg-rose-950/30 dark:text-rose-400 dark:hover:bg-rose-900/50 transition-colors"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                    style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}
                   >
                     <Trash2 size={16} /> Hapus
                   </button>
@@ -210,31 +215,37 @@ export default function WalletManager({ wallets, createAction, editAction, delet
 
   return (
     <>
-      <div className="flex flex-col gap-6">
-        <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900 mx-2 sm:mx-0">
-          <div className="flex flex-col gap-2 pb-4">
-            <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white">Daftar Dompet & Rekening</h2>
-            <p className="text-[13px] text-slate-500 dark:text-slate-400">
-              Pusat kontrol sebaran saldo Anda.
-            </p>
+      <div className="grid gap-6 lg:grid-cols-12 items-start">
+        {/* Kolom Kiri: Header & Tambah Dompet Baru */}
+        <div className="lg:col-span-4">
+          <div className="rounded-lg p-5 shadow-sm mx-2 sm:mx-0" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+            <div className="flex flex-col gap-2 pb-4">
+              <h2 className="text-[17px] font-semibold" style={{ color: "var(--lk-text)" }}>Daftar Dompet & Rekening</h2>
+              <p className="text-[13px]" style={{ color: "var(--lk-text-muted)" }}>
+                Pusat kontrol sebaran saldo Anda.
+              </p>
+            </div>
+            <button onClick={openCreateModal} className="btn-primary flex w-full justify-center items-center gap-2 py-3 rounded-md text-[14px]">
+              <Plus size={16} /> Tambah Dompet Baru
+            </button>
           </div>
-          <button onClick={openCreateModal} className="btn-primary flex w-full justify-center items-center gap-2 py-3 rounded-xl text-[14px]">
-            <Plus size={16} /> Tambah Dompet Baru
-          </button>
         </div>
 
-        <div>
-          {renderWalletList("Cash / Tunai", groupedWallets.cash)}
-          {renderWalletList("Bank & E-Wallet", groupedWallets.bank)}
-          {renderWalletList("Saldo Tertahan / Piutang", groupedWallets.receivable)}
-          {renderWalletList("Lainnya", groupedWallets.other)}
-          
-          {wallets.length === 0 && (
-            <div className="text-center py-10 text-slate-500 dark:text-slate-400">
-              <Wallet size={48} className="mx-auto mb-3 opacity-20" />
-              <p>Belum ada dompet.</p>
-            </div>
-          )}
+        {/* Kolom Kanan: Daftar Dompet Aktif */}
+        <div className="lg:col-span-8 space-y-6">
+          <div>
+            {renderWalletList("Cash / Tunai", groupedWallets.cash)}
+            {renderWalletList("Bank & E-Wallet", groupedWallets.bank)}
+            {renderWalletList("Saldo Tertahan / Piutang", groupedWallets.receivable)}
+            {renderWalletList("Lainnya", groupedWallets.other)}
+            
+            {wallets.length === 0 && (
+              <div className="text-center py-10" style={{ color: "var(--lk-text-muted)" }}>
+                <Wallet size={48} className="mx-auto mb-3 opacity-20" />
+                <p>Belum ada dompet.</p>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
@@ -243,16 +254,17 @@ export default function WalletManager({ wallets, createAction, editAction, delet
           <div className="modal-card relative w-full max-w-md" role="dialog" aria-modal="true">
             <button
               onClick={closeModal}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="absolute right-4 top-4 hover-opacity"
+              style={{ color: "var(--lk-text-muted)" }}
             >
               <X size={20} />
             </button>
-            <h3 className="mb-4 text-lg font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="mb-4 text-lg font-bold" style={{ color: "var(--lk-text)" }}>
               {editingWallet ? "Edit Dompet" : "Tambah Dompet Baru"}
             </h3>
             
             {errorMsg && (
-              <div className="mb-4 rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/25 dark:text-rose-300">
+              <div className="mb-4 rounded p-3 text-sm" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)", border: "1px solid var(--lk-expense)" }}>
                 {errorMsg}
               </div>
             )}
@@ -295,19 +307,20 @@ export default function WalletManager({ wallets, createAction, editAction, delet
           <div className="modal-card relative w-full max-w-md" role="dialog" aria-modal="true">
             <button
               onClick={closeAdjustModal}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+              className="absolute right-4 top-4 hover-opacity"
+              style={{ color: "var(--lk-text-muted)" }}
             >
               <X size={20} />
             </button>
-            <h3 className="mb-1 text-lg font-bold text-slate-900 dark:text-slate-100">
+            <h3 className="mb-1 text-lg font-bold" style={{ color: "var(--lk-text)" }}>
               Sesuaikan Saldo
             </h3>
-            <p className="mb-4 text-sm text-slate-500 dark:text-slate-400">
+            <p className="mb-4 text-sm" style={{ color: "var(--lk-text-muted)" }}>
               Koreksi saldo <strong>{walletToAdjust?.name}</strong> tanpa mempengaruhi laporan pengeluaran.
             </p>
             
             {errorMsg && (
-              <div className="mb-4 rounded border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700 dark:border-rose-900/50 dark:bg-rose-950/25 dark:text-rose-300">
+              <div className="mb-4 rounded p-3 text-sm" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)", border: "1px solid var(--lk-expense)" }}>
                 {errorMsg}
               </div>
             )}
@@ -349,15 +362,15 @@ export default function WalletManager({ wallets, createAction, editAction, delet
         onClose={() => setWalletToDelete(null)}
         title="Hapus Dompet"
         description={`Apakah Anda yakin ingin menghapus dompet "${walletToDelete?.name}"?`}
-        icon={<div className="flex h-12 w-12 items-center justify-center rounded-full bg-rose-100 text-rose-600 dark:bg-rose-950/50 dark:text-rose-400"><Trash2 size={24} /></div>}
+        icon={<div className="flex h-12 w-12 items-center justify-center rounded-full" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}><Trash2 size={24} /></div>}
       >
         {walletToDelete?.usageCount && walletToDelete.usageCount > 0 ? (
-          <div className="mb-6 rounded-lg bg-amber-50 p-4 text-amber-800 dark:bg-amber-950/30 dark:text-amber-300">
+          <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: "#fffbeb", color: "#b45309" }}>
             <p className="text-sm font-medium">Dompet tidak dapat dihapus</p>
             <p className="mt-1 text-xs">Dompet ini sedang digunakan dalam {walletToDelete.usageCount} transaksi. Harap pindahkan atau hapus transaksi tersebut terlebih dahulu.</p>
           </div>
         ) : (
-          <p className="mb-6 text-sm text-slate-600 dark:text-slate-300">Tindakan ini tidak dapat dibatalkan.</p>
+          <p className="mb-6 text-sm" style={{ color: "var(--lk-text-muted)" }}>Tindakan ini tidak dapat dibatalkan.</p>
         )}
         
         <div className="flex gap-3">
@@ -373,7 +386,7 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                 setWalletToDelete(null);
               }
             }} className="flex-1">
-              <SubmitButton className="btn-primary w-full bg-rose-600 hover:bg-rose-700 dark:text-white" pendingText="Menghapus...">
+              <SubmitButton className="w-full text-white rounded-md py-2.5 font-semibold transition-colors hover:opacity-80 bg-[var(--lk-expense)]" pendingText="Menghapus...">
                 Hapus
               </SubmitButton>
             </form>

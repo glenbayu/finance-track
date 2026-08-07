@@ -18,7 +18,7 @@ import { formatDate as formatDateLabel } from "@/lib/utils/format";
 import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowUpRight, Wallet, Settings } from "lucide-react";
-import { syncRolloversAndAdminFees } from "@/lib/rollover";
+import { forceRecalculateRollovers } from "@/lib/rollover";
 import SwipeableRow from "@/components/ui/swipeable-row";
 import EditTransactionButton from "@/components/transactions/edit-transaction-button";
 import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
@@ -80,7 +80,7 @@ async function quickAddTransaction(formData: FormData) {
 
 export default async function Home({ searchParams }: HomeProps) {
   const { supabase, user } = await requireUser();
-  await syncRolloversAndAdminFees(supabase, user.id);
+  await forceRecalculateRollovers(supabase, user.id);
   const params = await searchParams;
   const selectedMonth =
     params?.month ?? getCurrentMonth();
@@ -416,12 +416,12 @@ export default async function Home({ searchParams }: HomeProps) {
       }
     >
       {(!wallets || wallets.length === 0) && (
-        <div className="mb-6 rounded-2xl border border-blue-200 bg-blue-50/80 p-5 shadow-sm backdrop-blur-sm dark:border-blue-900/50 dark:bg-blue-950/40">
-          <h2 className="text-lg font-bold text-blue-900 dark:text-blue-100">Selamat Datang di Finance Tracker! 🎉</h2>
-          <p className="mt-1 text-[13px] text-blue-700 dark:text-blue-300">
+        <div className="mb-6 rounded-lg p-5" style={{ backgroundColor: "var(--lk-primary-dim)", border: "1px solid var(--lk-primary)" }}>
+          <h2 className="text-base font-bold" style={{ color: "var(--lk-primary-light)" }}>Selamat Datang di Finance Journal! 🎉</h2>
+          <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
             Kelihatannya kamu belum punya dompet (wallet) untuk mulai mencatat. Yuk, buat dompet pertamamu sekarang!
           </p>
-          <Link href="/wallets/new" className="mt-4 inline-block rounded-xl bg-blue-600 px-5 py-2.5 text-[13px] font-semibold text-white transition-all hover:bg-blue-700 active:scale-95">
+          <Link href="/wallets/new" className="btn-primary mt-4 inline-flex">
             + Buat Dompet Pertama
           </Link>
         </div>
@@ -431,57 +431,57 @@ export default async function Home({ searchParams }: HomeProps) {
         {/* Mobile & Tablet Layout */}
         <div className="lg:hidden space-y-7">
           <section className="grid gap-4 md:grid-cols-2 [&>*]:min-w-0 [&>*]:w-full">
-            <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-blue">
+            <InteractiveDotPanel className="stat-card self-start h-fit">
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
-                  <Link href="/wallets" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors" title="Atur Dompet">
+                  <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Sisa Saldo</p>
+                  <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="hover:opacity-70 transition-opacity" title="Atur Dompet">
                     <Settings size={14} />
                   </Link>
                 </div>
-                <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-surface-hover)", color: "var(--lk-text-muted)" }}>
                   <Wallet size={14} />
                 </span>
               </div>
               <MaskedCurrencyAmount
                 amountIDR={balance}
-                valueClassName="text-2xl font-bold text-slate-900 dark:text-slate-100"
+                valueClassName="text-2xl font-bold"
                 showLabel="Tampilkan saldo"
                 hideLabel="Sembunyikan saldo"
               />
 
-              <div className="mt-4 grid grid-cols-3 gap-2 border-t border-slate-200 pt-4 dark:border-slate-700">
+              <div className="mt-4 grid grid-cols-3 gap-2 pt-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
                 <div className="flex flex-col">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
-                  <span className={`text-sm font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Cash</span>
+                  <span className="text-sm font-semibold" style={{ color: walletBalances.cash < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                     <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} />
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">M-Bank/E-Wallet</span>
-                  <span className={`text-sm font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Bank/E-Wallet</span>
+                  <span className="text-sm font-semibold" style={{ color: walletBalances.bank < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                     <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} />
                   </span>
                 </div>
                 <div className="flex flex-col">
-                  <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Tertahan</span>
-                  <span className={`text-sm font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                  <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Tertahan</span>
+                  <span className="text-sm font-semibold" style={{ color: walletBalances.receivable < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                     <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} />
                   </span>
                 </div>
               </div>
             </InteractiveDotPanel>
 
-            <InteractiveDotPanel className="stat-card self-start h-fit metric-glow-green">
+            <InteractiveDotPanel className="stat-card self-start h-fit">
               <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan</p>
-                <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+                <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Pemasukan</p>
+                <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-income-bg)", color: "var(--lk-income)" }}>
                   <ArrowUpRight size={14} />
                 </span>
               </div>
               <MaskedCurrencyAmount
                 amountIDR={totalIncome}
-                valueClassName="text-2xl font-bold text-emerald-600"
+                valueClassName="text-2xl font-bold"
                 showToggle={false}
               />
             </InteractiveDotPanel>
@@ -506,43 +506,43 @@ export default async function Home({ searchParams }: HomeProps) {
         {/* Desktop Bento Grid Layout */}
         <div className="hidden lg:grid lg:grid-cols-12 gap-5 mt-6 items-stretch [&>*]:min-w-0 [&>*]:w-full">
           {/* Bento Item 1: Sisa Saldo & Rincian Dompet (lg:col-span-8) */}
-          <InteractiveDotPanel className="stat-card lg:col-span-8 flex flex-col justify-between metric-glow-blue stagger-1">
+          <InteractiveDotPanel className="stat-card lg:col-span-8 flex flex-col justify-between stagger-1">
             <div>
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <p className="text-sm text-slate-500 dark:text-slate-400">Sisa Saldo Bulan Ini</p>
-                  <Link href="/wallets" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors icon-spin-hover" title="Atur Dompet">
+                  <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Sisa Saldo Bulan Ini</p>
+                  <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="hover:opacity-70 transition-opacity" title="Atur Dompet">
                     <Settings size={14} />
                   </Link>
                 </div>
-                <span className="rounded-full bg-slate-200 p-2 text-slate-700 dark:bg-slate-700 dark:text-slate-200">
+                <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-surface-hover)", color: "var(--lk-text-muted)" }}>
                   <Wallet size={14} />
                 </span>
               </div>
               <MaskedCurrencyAmount
                 amountIDR={balance}
-                valueClassName="text-3xl font-bold text-slate-900 dark:text-slate-100"
+                valueClassName="text-3xl font-bold"
                 showLabel="Tampilkan saldo"
                 hideLabel="Sembunyikan saldo"
               />
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-4 border-t border-slate-200 pt-4 dark:border-slate-700">
+            <div className="mt-6 grid grid-cols-3 gap-4 pt-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
               <div className="flex flex-col">
-                <span className="text-xs text-slate-500 dark:text-slate-400">Cash on Hand</span>
-                <span className={`text-base font-semibold ${walletBalances.cash < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Cash on Hand</span>
+                <span className="text-base font-semibold" style={{ color: walletBalances.cash < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                   <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} />
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs text-slate-500 dark:text-slate-400">M-Bank/E-Wallet</span>
-                <span className={`text-base font-semibold ${walletBalances.bank < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>M-Bank/E-Wallet</span>
+                <span className="text-base font-semibold" style={{ color: walletBalances.bank < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                   <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} />
                 </span>
               </div>
               <div className="flex flex-col">
-                <span className="text-xs text-slate-500 dark:text-slate-400">Saldo Tertahan</span>
-                <span className={`text-base font-semibold ${walletBalances.receivable < 0 ? 'text-rose-600' : 'text-slate-700 dark:text-slate-300'}`}>
+                <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Saldo Tertahan</span>
+                <span className="text-base font-semibold" style={{ color: walletBalances.receivable < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                   <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} />
                 </span>
               </div>
@@ -550,23 +550,25 @@ export default async function Home({ searchParams }: HomeProps) {
           </InteractiveDotPanel>
 
           {/* Bento Item 2: Pemasukan Bulan Ini (lg:col-span-4) */}
-          <InteractiveDotPanel className="stat-card lg:col-span-4 flex flex-col justify-between metric-glow-green stagger-2">
+          <InteractiveDotPanel className="stat-card lg:col-span-4 flex flex-col justify-between stagger-2">
             <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400">Pemasukan Bulan Ini</p>
-              <span className="rounded-full bg-emerald-100 p-2 text-emerald-700">
+              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Pemasukan Bulan Ini</p>
+              <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-income-bg)", color: "var(--lk-income)" }}>
                 <ArrowUpRight size={14} />
               </span>
             </div>
             <div className="mb-4">
               <MaskedCurrencyAmount
                 amountIDR={totalIncome}
-                valueClassName="text-3xl font-bold text-emerald-600"
+                valueClassName="text-3xl font-bold"
                 showToggle={false}
               />
             </div>
-            <div className="border-t border-slate-200 pt-4 dark:border-slate-700">
-              <span className="text-xs text-slate-500 dark:text-slate-400">Status Finansial</span>
-              <p className="text-sm font-semibold text-emerald-600 mt-1">Surplus Profit</p>
+            <div className="pt-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
+              <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Status Finansial</span>
+              <p className="text-sm font-semibold mt-1" style={{ color: totalIncome >= totalExpense ? "var(--lk-income)" : "var(--lk-expense)" }}>
+                {totalIncome >= totalExpense ? "Surplus" : "Defisit"}
+              </p>
             </div>
           </InteractiveDotPanel>
 
@@ -604,10 +606,11 @@ export default async function Home({ searchParams }: HomeProps) {
 
         <InteractiveDotPanel className="section-card min-w-0 w-full mt-6 lg:hidden">
           <div className="mb-4 flex flex-col items-start gap-1 sm:flex-row sm:items-center sm:justify-between">
-            <h2 className="text-xl font-semibold">5 Transaksi Terbaru</h2>
+            <h2 className="text-base font-semibold" style={{ color: "var(--lk-text)" }}>5 Transaksi Terbaru</h2>
             <Link
               href={`/transactions?month=${selectedMonth}`}
-              className="text-sm font-semibold text-slate-700 underline underline-offset-4 dark:text-slate-200"
+              className="text-sm font-semibold underline underline-offset-4"
+              style={{ color: "var(--lk-primary-light)" }}
             >
               Lihat semua
             </Link>
@@ -651,26 +654,24 @@ export default async function Home({ searchParams }: HomeProps) {
                     >
                       <div className="min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate font-semibold text-slate-900 dark:text-slate-100">
+                          <p className="truncate font-semibold" style={{ color: "var(--lk-text)" }}>
                             {category?.name ?? "Tanpa kategori"}
                           </p>
                           <span className={transaction.type === "income" ? "chip-income" : "chip-expense"}>
                             {transaction.type === "income" ? "Pemasukan" : "Pengeluaran"}
                           </span>
                         </div>
-                        <p className="text-sm text-slate-500 break-words dark:text-slate-300">
+                        <p className="text-sm break-words" style={{ color: "var(--lk-text-muted)" }}>
                           {transaction.note || "Tidak ada catatan"}
                         </p>
-                        <p className="mt-1 text-xs font-medium uppercase tracking-wide text-slate-400 dark:text-slate-500">
+                        <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--lk-text-faint)" }}>
                           {formatDateLabel(transaction.transaction_date)}
                         </p>
                       </div>
 
                       <p
-                        className={`text-lg font-semibold sm:text-base ${transaction.type === "income"
-                            ? "text-emerald-600"
-                            : "text-rose-600"
-                          }`}
+                        className="text-lg font-semibold sm:text-base"
+                        style={{ color: transaction.type === "income" ? "var(--lk-income)" : "var(--lk-expense)" }}
                       >
                         {transaction.type === "income" ? "+" : "-"}
                         <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />

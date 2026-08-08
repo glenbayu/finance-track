@@ -5,6 +5,7 @@ import IdleSessionGuard from "@/components/auth/idle-session-guard";
 import PwaRegistration from "@/components/pwa/pwa-registration";
 import ThemeProvider from "@/components/ui/theme-provider";
 import ToastQueryListener from "@/components/ui/toast-query-listener";
+import { Suspense } from "react";
 
 export const metadata: Metadata = {
   applicationName: "Finance Tracker",
@@ -80,7 +81,9 @@ export default function RootLayout({
         <ThemeProvider>
           <IdleSessionGuard />
           <PwaRegistration />
-          <ToastQueryListener />
+          <Suspense>
+            <ToastQueryListener />
+          </Suspense>
           {children}
           <Toaster position="bottom-center" toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
         </ThemeProvider>

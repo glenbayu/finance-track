@@ -8,6 +8,7 @@ import CurrencyAmount from "@/components/ui/currency-amount";
 import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
 import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
+import { Suspense } from "react";
 
 type BudgetsPageProps = {
   searchParams?: Promise<{
@@ -237,11 +238,16 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
       description="Atur limit pengeluaran per kategori agar cashflow tetap sehat."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
-        <>
+        <Suspense fallback={<div className="h-10 w-[210px] animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
           <MonthFilter selectedMonth={selectedMonth} className="min-w-[210px]" />
-        </>
+        </Suspense>
       }
-      mobileActions={<MonthFilter selectedMonth={selectedMonth} className="w-full" />}
+      mobileActions={
+        <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+          <MonthFilter selectedMonth={selectedMonth} className="w-full" />
+        </Suspense>
+      }
+
     >
       {!activeCategories.length ? (
         <section className="section-card">
@@ -323,7 +329,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
                               {item.budgetAmount > 0 && " terpakai"}
                             </p>
                           </div>
-                          
+
                           <div className="flex flex-col items-end gap-1.5 shrink-0">
                             {item.budgetAmount > 0 ? (
                               <div className="flex flex-col items-end">
@@ -345,7 +351,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
                           </div>
                         </div>
                         <div className="transition-transform group-open:rotate-90" style={{ color: "var(--lk-text-muted)" }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
                         </div>
                       </summary>
 
@@ -386,10 +392,10 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
                             <SubmitButton className="btn-primary h-11 px-5 rounded-md font-semibold" pendingText="...">
                               {item.budget ? "Update" : "Simpan"}
                             </SubmitButton>
-                            
+
                             {item.budget && (
-                              <button 
-                                formAction={deleteBudget} 
+                              <button
+                                formAction={deleteBudget}
                                 className="inline-flex h-11 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors hover:opacity-80"
                                 style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}
                               >

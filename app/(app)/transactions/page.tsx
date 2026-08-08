@@ -2,6 +2,7 @@ import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, SearchX, ReceiptText } from "lucide-react";
+import { Suspense } from "react";
 import AppShell from "@/components/layout/app-shell";
 import MonthFilter from "@/components/ui/month-filter";
 import CurrencyAmount from "@/components/ui/currency-amount";
@@ -433,22 +434,28 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         <div className="flex w-full max-w-[540px] flex-col gap-2">
           {/* Baris Atas: Date & Search */}
           <div className="flex w-full gap-2">
-            <MonthFilter selectedMonth={selectedMonth} className="w-[160px] shrink-0" />
-            <TransactionsSearch
-              defaultValue={searchValue}
-              className="flex-1"
-              placeholder="Cari catatan, kategori..."
-            />
+            <Suspense fallback={<div className="h-10 w-[160px] animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+              <MonthFilter selectedMonth={selectedMonth} className="w-[160px] shrink-0" />
+            </Suspense>
+            <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+              <TransactionsSearch
+                defaultValue={searchValue}
+                className="flex-1"
+                placeholder="Cari catatan, kategori..."
+              />
+            </Suspense>
           </div>
           {/* Baris Bawah: 3 Dropdown & Tambah */}
           <div className="flex w-full gap-2 items-center">
             <div className="flex-1 min-w-0">
-              <TransactionsFilterControls
-                categories={filterCategories}
-                selectedType={selectedType}
-                selectedCategoryId={selectedCategoryId}
-                selectedSort={selectedSort}
-              />
+              <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+                <TransactionsFilterControls
+                  categories={filterCategories}
+                  selectedType={selectedType}
+                  selectedCategoryId={selectedCategoryId}
+                  selectedSort={selectedSort}
+                />
+              </Suspense>
             </div>
             <Link
               href="/transactions/new"
@@ -462,22 +469,26 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       }
       mobileActions={
         <>
-          <TransactionsSearch
-            defaultValue={searchValue}
-            className="w-full"
-            placeholder="Cari catatan, kategori, tipe, atau nominal..."
-            smallScreenPlaceholder="Cari transaksi..."
-            useSmallScreenPlaceholder
-          />
-          <TransactionMobileFilter
-            selectedMonth={selectedMonth}
-            totalIncome={monthlyIncome}
-            totalExpense={monthlyExpense}
-            categories={filterCategories}
-            selectedType={selectedType}
-            selectedCategoryId={selectedCategoryId}
-            selectedSort={selectedSort}
-          />
+          <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+            <TransactionsSearch
+              defaultValue={searchValue}
+              className="w-full"
+              placeholder="Cari catatan, kategori, tipe, atau nominal..."
+              smallScreenPlaceholder="Cari transaksi..."
+              useSmallScreenPlaceholder
+            />
+          </Suspense>
+          <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+            <TransactionMobileFilter
+              selectedMonth={selectedMonth}
+              totalIncome={monthlyIncome}
+              totalExpense={monthlyExpense}
+              categories={filterCategories}
+              selectedType={selectedType}
+              selectedCategoryId={selectedCategoryId}
+              selectedSort={selectedSort}
+            />
+          </Suspense>
         </>
       }
     >

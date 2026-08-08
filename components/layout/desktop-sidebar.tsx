@@ -2,6 +2,7 @@ import { BookOpen } from "lucide-react";
 import LogoutButton from "@/components/auth/logout-button";
 import DesktopSidebarLinks from "@/components/layout/desktop-sidebar-links";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
+import { Suspense } from "react";
 
 export default function DesktopSidebar() {
   return (
@@ -74,7 +75,9 @@ export default function DesktopSidebar() {
         aria-label="Navigasi utama"
         style={{ padding: "0.625rem 0.625rem", flex: 1 }}
       >
-        <DesktopSidebarLinks section="main" />
+        <Suspense fallback={<div className="h-40 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-md m-2" />}>
+          <DesktopSidebarLinks section="main" />
+        </Suspense>
       </nav>
 
       {/* Bottom area */}
@@ -87,7 +90,9 @@ export default function DesktopSidebar() {
           gap: "0.125rem",
         }}
       >
-        <DesktopSidebarLinks section="bottom" />
+        <Suspense fallback={<div className="h-10 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-md" />}>
+          <DesktopSidebarLinks section="bottom" />
+        </Suspense>
         <ThemeToggleButton
           className="app-shell-nav-link w-full"
           showLabel

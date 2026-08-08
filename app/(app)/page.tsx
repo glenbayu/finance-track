@@ -12,6 +12,7 @@ import { MaskedAmountProvider } from "@/components/ui/masked-amount";
 import MaskedCurrencyAmount from "@/components/ui/masked-currency-amount";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import MonthFilter from "@/components/ui/month-filter";
+import { Suspense } from "react";
 import { createTransactionFromTemplate, undoQuickAddTransaction } from "@/lib/transactions/quick-add-actions";
 import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths } from "@/lib/utils/date";
 import { formatDate as formatDateLabel, formatMonthLabel } from "@/lib/utils/format";
@@ -382,7 +383,9 @@ export default async function Home({ searchParams }: HomeProps) {
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
         <>
-          <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
+          <Suspense fallback={<div className="h-10 w-[170px] animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+            <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
+          </Suspense>
           <Link href="/transactions/new" className="btn-primary h-10 px-5 active:scale-95 transition-transform">
             + Transaksi
           </Link>
@@ -391,7 +394,9 @@ export default async function Home({ searchParams }: HomeProps) {
       mobileActions={
         <>
           <div className="flex w-full min-w-0 items-center gap-2">
-            <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
+            <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+              <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
+            </Suspense>
             <LogoutButton
               iconOnly
               className="btn-secondary h-10 w-10 shrink-0 justify-center px-0 active:scale-95 transition-transform"

@@ -3,6 +3,7 @@ import AppShell from "@/components/layout/app-shell";
 import ReportsCharts from "@/components/reports/dynamic-reports-charts";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import MonthFilter from "@/components/ui/month-filter";
+import { Suspense } from "react";
 import {
   addMonths,
   calculateCategoryForecast,
@@ -367,9 +368,15 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       description="Lihat rekap bulanan, tren pengeluaran, dan estimasi bulan berikutnya berdasarkan data transaksi kamu."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
-        <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
+        <Suspense fallback={<div className="h-10 w-[170px] animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+          <MonthFilter selectedMonth={selectedMonth} compact className="min-w-[170px]" />
+        </Suspense>
       }
-      mobileActions={<MonthFilter selectedMonth={selectedMonth} compact className="w-full" />}
+      mobileActions={
+        <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+          <MonthFilter selectedMonth={selectedMonth} compact className="w-full" />
+        </Suspense>
+      }
     >
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/60 dark:bg-slate-900 grid sm:grid-cols-2 xl:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/60">
         <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">

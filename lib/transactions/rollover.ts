@@ -1,5 +1,5 @@
 import { SupabaseClient } from "@supabase/supabase-js";
-import { getCurrentMonth, pad2 } from "./utils/date";
+import { getCurrentMonth, pad2 } from "@/lib/utils/date";
 
 function getLastDayOfMonth(monthStr: string) {
   const [year, month] = monthStr.split("-").map(Number);

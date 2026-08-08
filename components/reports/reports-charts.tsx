@@ -36,6 +36,7 @@ type ReportsChartsProps = {
   trendData: ReportsTrendItem[];
   categoryData: ReportsCategoryItem[];
   forecastCategoryData: CategoryForecastResult[];
+  trendMonths: number;
 };
 
 const CATEGORY_COLORS = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
@@ -185,16 +186,22 @@ export default function ReportsCharts({
   trendData,
   categoryData,
   forecastCategoryData,
+  trendMonths,
 }: ReportsChartsProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
   const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   const [mounted, setMounted] = useState(false);
+  const [localTrendMonths, setLocalTrendMonths] = useState(trendMonths);
+  const [visibleLines, setVisibleLines] = useState({ income: true, expense: true });
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
   }, []);
 
-  const convertedTrendData = trendData.map((item) => ({
+  const visibleTrendData = trendData.slice(-localTrendMonths);
+
+  const convertedTrendData = visibleTrendData.map((item) => ({
     ...item,
     income: convertFromIDR(item.income, effectiveCurrency, rateFromIDR),
     expense: convertFromIDR(item.expense, effectiveCurrency, rateFromIDR),
@@ -217,16 +224,30 @@ export default function ReportsCharts({
     <>
       <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-7">
         <h2 className="text-lg font-semibold">Trend Pemasukan vs Pengeluaran</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Pergerakan bulanan berdasarkan data transaksi tersimpan.
-        </p>
+        <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
+            Pergerakan bulanan berdasarkan data transaksi tersimpan.
+          </p>
+          <div className="relative z-10 flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5" aria-label="Rentang chart">
+            {[6, 10, 12].map((months) => (
+              <button
+                key={months}
+                type="button"
+                onClick={() => setLocalTrendMonths(months)}
+                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${localTrendMonths === months ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"}`}
+              >
+                {months}B
+              </button>
+            ))}
+          </div>
+        </div>
 
         {!trendData.length ? (
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Belum ada data trend.</p>
         ) : !mounted ? (
-          <div className="mt-4 h-[280px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
+          <div className="mt-4 h-[240px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
         ) : (
-          <div className="relative mt-4 h-[280px] w-full min-w-0 overflow-hidden">
+          <div className="relative mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <LineChart
                 data={convertedTrendData}
@@ -259,27 +280,43 @@ export default function ReportsCharts({
                   wrapperStyle={{ pointerEvents: "none", zIndex: 30 }}
                   cursor={{ stroke: "var(--stroke)", strokeDasharray: "4 4" }}
                 />
-                <Legend verticalAlign="top" height={36} />
-                <Line
-                  type="monotone"
-                  dataKey="income"
-                  name="Pemasukan"
-                  stroke="#10b981"
-                  strokeWidth={2.6}
-                  dot={false}
-                  activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
-                  isAnimationActive={!isAndroid}
+                <Legend
+                  verticalAlign="top"
+                  height={36}
+                  onClick={(entry) => {
+                    const key = String(entry.dataKey) as "income" | "expense";
+                    if (key === "income" || key === "expense") {
+                      setVisibleLines((current) => ({ ...current, [key]: !current[key] }));
+                    }
+                  }}
+                  formatter={(value, entry) => (
+                    <span className={visibleLines[String(entry.dataKey) as "income" | "expense"] === false ? "opacity-40 line-through" : ""}>{value}</span>
+                  )}
                 />
-                <Line
-                  type="monotone"
-                  dataKey="expense"
-                  name="Pengeluaran"
-                  stroke="#ef4444"
-                  strokeWidth={2.6}
-                  dot={false}
-                  activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
-                  isAnimationActive={!isAndroid}
-                />
+                {visibleLines.income ? (
+                  <Line
+                    type="monotone"
+                    dataKey="income"
+                    name="Pemasukan"
+                    stroke="#10b981"
+                    strokeWidth={2.6}
+                    dot={false}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
+                    isAnimationActive={!isAndroid}
+                  />
+                ) : null}
+                {visibleLines.expense ? (
+                  <Line
+                    type="monotone"
+                    dataKey="expense"
+                    name="Pengeluaran"
+                    stroke="#ef4444"
+                    strokeWidth={2.6}
+                    dot={false}
+                    activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
+                    isAnimationActive={!isAndroid}
+                  />
+                ) : null}
               </LineChart>
             </ResponsiveContainer>
           </div>

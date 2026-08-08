@@ -28,19 +28,19 @@ export default function LogoutButton({
           iconOnly ? (
             <span className="inline-flex items-center justify-center">
               <LoaderCircle size={16} className="animate-spin" />
-              <span className="sr-only">Logout...</span>
+              <span className="sr-only">Keluar...</span>
             </span>
           ) : (
             <span className="inline-flex items-center gap-2">
               <LoaderCircle size={16} className="animate-spin" />
-              Logout...
+              Keluar...
             </span>
           )
         }
       >
         <span className="inline-flex items-center gap-2">
           <LogOut size={16} />
-          {iconOnly ? <span className="sr-only">Logout</span> : <span>Logout</span>}
+          {iconOnly ? <span className="sr-only">Keluar</span> : <span>Keluar</span>}
         </span>
       </SubmitButton>
     </form>

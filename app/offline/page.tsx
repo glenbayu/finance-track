@@ -1,21 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { WifiOff, RefreshCw } from "lucide-react";
 
 export default function OfflinePage() {
-  const [isDark, setIsDark] = useState(false);
-
-  useEffect(() => {
-    // Sync dark mode state with root class
-    const checkDark = () =>
-      setIsDark(document.documentElement.classList.contains("dark"));
-    checkDark();
-    const obs = new MutationObserver(checkDark);
-    obs.observe(document.documentElement, { attributes: true, attributeFilter: ["class"] });
-    return () => obs.disconnect();
-  }, []);
-
   const handleRefresh = () => {
     window.location.href = "/";
   };

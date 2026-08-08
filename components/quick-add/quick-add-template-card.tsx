@@ -5,7 +5,7 @@ import { useRouter } from "next/navigation";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import TemplateIcon from "@/components/quick-add/template-icon";
 import LoadingSpinner from "@/components/ui/loading-spinner";
-import { formatTemplateTypeLabel, type QuickAddTemplate } from "@/lib/quick-add";
+import { formatTemplateTypeLabel, type QuickAddTemplate } from "@/lib/transactions/quick-add";
 
 type QuickAddTemplateCardProps = {
   template: QuickAddTemplate;

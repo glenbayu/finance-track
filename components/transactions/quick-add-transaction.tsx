@@ -9,7 +9,7 @@ import QuickAddTemplateCard from "@/components/quick-add/quick-add-template-card
 import QuickAddConfirmationModal from "@/components/quick-add/quick-add-confirmation-modal";
 import QuickAddToast from "@/components/quick-add/quick-add-toast";
 import { ChevronDown } from "lucide-react";
-import type { QuickAddTemplate } from "@/lib/quick-add";
+import type { QuickAddTemplate } from "@/lib/transactions/quick-add";
 import { isDateValue } from "@/lib/utils/date";
 
 type Category = {
@@ -141,28 +141,29 @@ export default function QuickAddTransaction({
         className="flex w-full items-center justify-between gap-3 text-left"
       >
         <div>
-          <h2 className="text-xl font-semibold">Quick Add</h2>
-          <p className="text-sm text-slate-500 dark:text-slate-400">
+          <h2 className="text-xl font-semibold">Tambah Cepat</h2>
+          <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>
             Catat transaksi cepat tanpa buka form lengkap.
           </p>
         </div>
         <ChevronDown
           size={18}
-          className={`shrink-0 text-slate-500 dark:text-slate-400 transition-transform ${
+          style={{ color: "var(--lk-text-muted)" }}
+          className={`shrink-0 transition-transform ${
             isExpanded ? "rotate-180" : ""
           }`}
         />
       </button>
       <div className="mt-4 border-t border-[color:var(--stroke)] pt-4">
         <div className="mb-3 flex items-center justify-between gap-2">
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Template Cepat</p>
+          <p className="text-sm font-semibold" style={{ color: "var(--lk-text)" }}>Template Cepat</p>
         </div>
 
         {templates.length === 0 ? (
           <div className="soft-inset">
-            <p className="text-sm text-slate-600 dark:text-slate-300">Belum ada template aktif.</p>
-            <Link href="/settings/templates" className="mt-2 inline-flex text-sm font-semibold text-emerald-700 dark:text-emerald-300">
-              + Add template
+            <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Belum ada template aktif.</p>
+            <Link href="/settings/templates" className="mt-2 inline-flex text-sm font-semibold" style={{ color: "var(--lk-primary-light)" }}>
+              + Tambah template
             </Link>
           </div>
         ) : (

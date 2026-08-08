@@ -3,9 +3,8 @@ import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
-import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
-import { Archive, FolderSearch, Tags, ChevronRight, Edit2, GripHorizontal, Check, X } from "lucide-react";
+import { FolderSearch, Tags, ChevronRight } from "lucide-react";
 
 type CategoryType = "income" | "expense";
 
@@ -485,6 +484,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
     <AppShell
       className="bg-slate-50/50 dark:bg-slate-950/50"
       activeNav="categories"
+      eyebrow="Organisasi Data"
       title="Kategori Transaksi"
       description="Kelola kategori pemasukan dan pengeluaran dengan rapi."
     >

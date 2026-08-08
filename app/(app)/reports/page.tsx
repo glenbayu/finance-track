@@ -8,17 +8,18 @@ import {
   calculateCategoryForecast,
   calculateWeightedForecast,
   getCompleteMonthWindow,
-  getForecastConfidence,
   type CategoryForecastResult,
   type ForecastConfidence,
 } from "@/lib/reports/forecast";
 import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths, isMonthValue } from "@/lib/utils/date";
 import { formatDate, formatMonthLabel } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
+import { BarChart3 } from "lucide-react";
 
 type ReportsPageProps = {
   searchParams?: Promise<{
     month?: string;
+    trend?: string;
   }>;
 };
 
@@ -78,12 +79,6 @@ function confidenceLabel(confidence: ForecastConfidence) {
   return "Butuh data";
 }
 
-function confidenceClass(confidence: ForecastConfidence) {
-  if (confidence === "medium") return "chip-income";
-  if (confidence === "medium-low") return "chip-neutral";
-  if (confidence === "low") return "chip-expense";
-  return "chip-neutral";
-}
 
 export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const { supabase, user } = await requireUser();
@@ -93,9 +88,10 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const currentMonthNow = getCurrentMonth();
   const today = getCurrentDate();
 
+
   const { start, end } = getMonthRange(selectedMonth);
   const { start: previousStart, end: previousEnd } = getMonthRange(previousMonth);
-  const recapMonthWindow = getRecentMonths(6, selectedMonth);
+  const recapMonthWindow = getRecentMonths(12, selectedMonth); // Always fetch 12 months for client-side local toggle
   const trendStart = getMonthRange(recapMonthWindow[0] ?? selectedMonth).start;
   const trendEnd = getMonthRange(addMonths(selectedMonth, 1)).start;
 
@@ -365,7 +361,9 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       className="journal-dashboard"
       activeNav="reports"
       month={selectedMonth}
-      title="Reports & Analytics"
+      eyebrow="Insight Keuangan"
+      heroIcon={<BarChart3 size={19} strokeWidth={2.2} />}
+      title="Laporan & Analisis"
       description="Lihat rekap bulanan, tren pengeluaran, dan estimasi bulan berikutnya berdasarkan data transaksi kamu."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
@@ -375,11 +373,11 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     >
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/60 dark:bg-slate-900 grid sm:grid-cols-2 xl:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/60">
         <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
-          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Income</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pemasukan</p>
           <p className="mt-2 text-[22px] font-bold tracking-tight text-emerald-600 dark:text-emerald-400"><CurrencyAmount amountIDR={totalIncome} /></p>
         </article>
         <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
-          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Expense</p>
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pengeluaran</p>
           <p className="mt-2 text-[22px] font-bold tracking-tight text-rose-600 dark:text-rose-400"><CurrencyAmount amountIDR={totalExpense} /></p>
         </article>
         <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
@@ -418,7 +416,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
         <div className="mt-4 overflow-hidden rounded-lg shadow-sm grid md:grid-cols-2 xl:grid-cols-3" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Rata-rata expense per transaksi</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Rata-rata pengeluaran per transaksi</p>
             <p className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>
               <CurrencyAmount amountIDR={averageExpensePerTransaction} />
             </p>
@@ -439,7 +437,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </article>
 
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Transaksi expense terbesar</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Transaksi pengeluaran terbesar</p>
             <p className="text-lg font-semibold" style={{ color: "var(--lk-expense)" }}>
               {largestExpenseTransaction ? <CurrencyAmount amountIDR={Number(largestExpenseTransaction.amount)} /> : "Belum ada"}
             </p>
@@ -459,7 +457,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </article>
 
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Hari transaksi expense tersibuk</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Hari transaksi pengeluaran tersibuk</p>
             <p className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>
               {busiestSpendingDay ? `${formatDate(busiestSpendingDay[0])}` : "Belum ada"}
             </p>
@@ -486,7 +484,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
         <div className="mt-5 overflow-hidden rounded-lg shadow-sm grid md:grid-cols-3" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Income vs bulan lalu</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Pemasukan vs bulan lalu</p>
             <p className="text-lg font-semibold" style={{ color: incomeChange.delta >= 0 ? "var(--lk-income)" : "var(--lk-expense)" }}>
               {incomeChange.delta >= 0 ? "+" : ""}<CurrencyAmount amountIDR={incomeChange.delta} />
             </p>
@@ -496,7 +494,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </article>
           
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Expense vs bulan lalu</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Pengeluaran vs bulan lalu</p>
             <p className="text-lg font-semibold" style={{ color: expenseChange.delta <= 0 ? "var(--lk-income)" : "var(--lk-expense)" }}>
               {expenseChange.delta > 0 ? "+" : ""}<CurrencyAmount amountIDR={expenseChange.delta} />
             </p>
@@ -532,53 +530,65 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           trendData={trendData}
           categoryData={expenseBreakdown}
           forecastCategoryData={categoryForecast}
+          trendMonths={12}
         />
       </section>
 
       <section className="mt-6 grid gap-4 xl:grid-cols-12">
-        <article className="rounded-lg p-5 shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Spending Forecast</h3>
+        <article className="rounded-lg p-5 shadow-sm xl:col-span-5" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Estimasi Pengeluaran</h3>
           {spendingForecast.forecastAmount === null ? (
             <div className="mt-3 rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
               <p className="font-semibold" style={{ color: "var(--lk-text)" }}>Butuh lebih banyak data.</p>
               <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
-                Forecast butuh minimal 2 bulan expense yang sudah selesai.
+                Estimasi butuh minimal 2 bulan pengeluaran yang sudah selesai.
               </p>
             </div>
           ) : (
             <div className="mt-3 space-y-3">
               <div className="rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Estimasi expense bulan {nextMonthLabel}</p>
+                <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Estimasi pengeluaran bulan {nextMonthLabel}</p>
                 <p className="mt-1 text-2xl font-semibold" style={{ color: "var(--lk-expense)" }}>
                   <CurrencyAmount amountIDR={spendingForecast.forecastAmount} />
                 </p>
-                <p className="mt-1 text-xs" style={{ color: "var(--lk-text-muted)" }}>
-                  Dihitung dari {spendingForecast.monthCount} bulan terakhir yang sudah selesai.
-                </p>
-                <p className="mt-1 text-xs" style={{ color: "var(--lk-text-muted)" }}>
-                  Metode: weighted moving average.
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <span className="inline-flex items-center rounded-full bg-slate-100 px-2 py-0.5 text-xs font-medium text-slate-800 dark:bg-slate-800 dark:text-slate-200">
+                    Histori: {spendingForecast.monthCount} bulan
+                  </span>
+                  {spendingForecast.monthCount < 4 ? (
+                    <span className="inline-flex items-center rounded-full bg-rose-50 px-2 py-0.5 text-xs font-semibold text-rose-700 dark:bg-rose-950/30 dark:text-rose-400 border border-rose-200/40">
+                      Akurasi Rendah
+                    </span>
+                  ) : spendingForecast.monthCount <= 5 ? (
+                    <span className="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-700 dark:bg-amber-950/30 dark:text-amber-400 border border-amber-200/40">
+                      Akurasi Sedang
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center rounded-full bg-emerald-50 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400 border border-emerald-200/40">
+                      Akurasi Stabil
+                    </span>
+                  )}
+                </div>
+                <p className="mt-2 text-xs" style={{ color: "var(--lk-text-muted)" }}>
+                  Metode: weighted moving average (bobot lebih tinggi pada bulan-bulan terdekat).
                 </p>
               </div>
-              <div className="rounded-lg p-4 flex items-center justify-between gap-3" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                <span className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Confidence</span>
-                <span className={confidenceClass(spendingForecast.confidence)}>
-                  {confidenceLabel(getForecastConfidence(spendingForecast.monthCount))}
-                </span>
+              <div className="rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                <p className="text-xs" style={{ color: "var(--lk-text-muted)", lineHeight: "1.4" }}>
+                  💡 <strong>Info Estimasi:</strong> Estimasi ini dihitung secara matematis menggunakan data histori transaksi pengeluaran. Ini bukan angka pasti, melainkan proyeksi tren pengeluaran Anda berikutnya. Akurasi akan meningkat seiring bertambahnya data bulanan yang lengkap.
+                </p>
               </div>
-              <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>
-                Estimasi dihitung dari transaksi expense yang sudah tersimpan. Akurasi akan membaik seiring bertambahnya data.
-              </p>
             </div>
           )}
         </article>
 
         <article className="rounded-lg p-5 shadow-sm xl:col-span-4" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Forecast Notes</h3>
+          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Catatan Estimasi</h3>
           <div className="mt-3 rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
             <ul className="space-y-2 text-sm" style={{ color: "var(--lk-text-muted)" }}>
               <li className="flex items-start gap-2">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-60" />
-                <span>Forecast menggunakan data expense dari bulan-bulan yang sudah selesai.</span>
+                <span>Estimasi menggunakan data pengeluaran dari bulan-bulan yang sudah selesai.</span>
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-60" />
@@ -590,22 +600,22 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               </li>
               <li className="flex items-start gap-2">
                 <span className="mt-2 h-1.5 w-1.5 shrink-0 rounded-full bg-current opacity-60" />
-                <span>Kategori yang jarang muncul diberi confidence lebih rendah.</span>
+                <span>Kategori yang jarang muncul diberi tingkat akurasi lebih rendah.</span>
               </li>
             </ul>
           </div>
         </article>
 
         <article className="rounded-lg p-5 shadow-sm xl:col-span-3" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Current Month Projection</h3>
+          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Proyeksi Bulan Ini</h3>
           {monthProjection ? (
             <div className="mt-3 space-y-2 text-sm">
               <div className="rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                <p style={{ color: "var(--lk-text-muted)" }}>Expense so far</p>
+                <p style={{ color: "var(--lk-text-muted)" }}>Pengeluaran sejauh ini</p>
                 <p className="mt-1 font-semibold" style={{ color: "var(--lk-expense)" }}><CurrencyAmount amountIDR={totalExpense} /></p>
               </div>
               <div className="rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                <p style={{ color: "var(--lk-text-muted)" }}>Projected end-of-month expense</p>
+                <p style={{ color: "var(--lk-text-muted)" }}>Proyeksi pengeluaran akhir bulan</p>
                 <p className="mt-1 font-semibold" style={{ color: "var(--lk-text)" }}>
                   <CurrencyAmount amountIDR={monthProjection.projected} />
                 </p>
@@ -615,7 +625,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               </div>
               {projectionVsForecastInsight ? (
                 <div className="rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                  <p style={{ color: "var(--lk-text-muted)" }}>Perbandingan proyeksi vs forecast</p>
+                  <p style={{ color: "var(--lk-text-muted)" }}>Perbandingan proyeksi vs estimasi</p>
                   <p className="mt-1 font-semibold" style={{ color: projectionVsForecastInsight.delta >= 0 ? "var(--lk-expense)" : "var(--lk-income)" }}>
                     <CurrencyAmount amountIDR={projectionVsForecastInsight.delta} />
                   </p>

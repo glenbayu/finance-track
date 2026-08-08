@@ -82,12 +82,27 @@ export async function createTransactionFromTemplate(input: {
 
   const transactionDate = normalizeTransactionDate(input.transactionDate);
 
+  // Fallback ke wallet pertama user jika template tidak menyimpan preferensi dompet.
+  const { data: firstWallet } = await supabase
+    .from("wallets")
+    .select("id")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .single();
+
+  const walletId = firstWallet?.id ?? null;
+  if (!walletId) {
+    return { ok: false, error: "Dompet tidak ditemukan untuk user ini." };
+  }
+
   const { data: inserted, error: insertError } = await supabase
     .from("transactions")
     .insert({
       user_id: user.id,
       type,
       category_id: categoryId,
+      wallet_id: walletId,
       amount,
       note: template.note ? String(template.note) : null,
       transaction_date: transactionDate,

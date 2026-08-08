@@ -14,8 +14,9 @@ export default function EditProfileModal({ currentName }: { currentName: string 
     try {
       await updateProfile(formData);
       setIsOpen(false);
-    } catch (err: any) {
-      setErrorMsg(err.message || "Gagal memperbarui profil.");
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Gagal memperbarui profil.";
+      setErrorMsg(message);
     }
   };
 

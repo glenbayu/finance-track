@@ -31,79 +31,69 @@ html {
    "The Quiet Advisor" — Professional, Calm, Trustworthy
    ══════════════════════════════════════════════ */
 :root {
-  /* ── Core Surfaces ── */
-  --lk-bg:              #0e0e0e;
-  --lk-surface:         #181818;
-  --lk-surface-raised:  #202020;
-  --lk-surface-hover:   #2a2a2a;
-
-  /* ── Borders ── */
-  --lk-border:          #2c2c2c;
-  --lk-border-strong:   #3a3a3a;
-
-  /* ── Brand / Primary ── */
+  /* Light — calm, precise finance workspace */
+  --lk-bg:              #f7f8f6;
+  --lk-surface:         #ffffff;
+  --lk-surface-raised:  #f0f2ef;
+  --lk-surface-hover:   #e8ece8;
+  --lk-border:          #d8ded9;
+  --lk-border-strong:   #b8c2ba;
   --lk-primary:         #2d6a4f;
-  --lk-primary-hover:   #355f47;
+  --lk-primary-hover:   #24573f;
+  --lk-primary-light:   #1f5a41;
+  --lk-primary-dim:     rgba(45, 106, 79, 0.12);
+  --lk-text:            #17221b;
+  --lk-text-muted:      #657067;
+  --lk-text-faint:      #8d978f;
+  --lk-income:          #18794e;
+  --lk-income-bg:       rgba(24, 121, 78, 0.10);
+  --lk-expense:         #ba3d35;
+  --lk-expense-bg:      rgba(186, 61, 53, 0.10);
+  --lk-amber:           #a86500;
+  --lk-amber-bg:        rgba(168, 101, 0, 0.10);
+
+  --background: var(--lk-bg);
+  --foreground: var(--lk-text);
+  --surface: var(--lk-surface);
+  --surface-soft: var(--lk-surface-raised);
+  --stroke: var(--lk-border);
+  --brand: var(--lk-primary);
+  --brand-strong: var(--lk-primary-hover);
+  --danger: var(--lk-expense);
+  --ink-soft: var(--lk-text-muted);
+  --income-soft: var(--lk-income-bg);
+  --income-text: var(--lk-income);
+  --expense-soft: var(--lk-expense-bg);
+  --expense-text: var(--lk-expense);
+  --primary: var(--lk-primary);
+  --primary-light: var(--lk-primary-light);
+  --glass-bg: var(--lk-surface);
+  --glass-border: var(--lk-border);
+  --glass-blur: 0px;
+  color-scheme: light;
+}
+
+.dark {
+  /* Dark — Stitch's Quiet Advisor palette */
+  --lk-bg:              #131313;
+  --lk-surface:         #1c1b1b;
+  --lk-surface-raised:  #201f1f;
+  --lk-surface-hover:   #2a2a2a;
+  --lk-border:          #404943;
+  --lk-border-strong:   #59635c;
+  --lk-primary:         #2d6a4f;
+  --lk-primary-hover:   #39795b;
   --lk-primary-light:   #95d4b3;
-  --lk-primary-dim:     rgba(45, 106, 79, 0.15);
-
-  /* ── Text ── */
+  --lk-primary-dim:     rgba(149, 212, 179, 0.12);
   --lk-text:            #e5e2e1;
-  --lk-text-muted:      #8a938c;
-  --lk-text-faint:      #555c58;
-
-  /* ── Semantic / Financial ── */
+  --lk-text-muted:      #bfc9c1;
+  --lk-text-faint:      #7f8982;
   --lk-income:          #75daa8;
   --lk-income-bg:       rgba(117, 218, 168, 0.10);
   --lk-expense:         #ffb4ab;
   --lk-expense-bg:      rgba(255, 180, 171, 0.10);
   --lk-amber:           #ffba27;
   --lk-amber-bg:        rgba(255, 186, 39, 0.10);
-
-  /* ── Legacy compatibility (still referenced by some components) ── */
-  --background:         var(--lk-bg);
-  --foreground:         var(--lk-text);
-  --surface:            var(--lk-surface);
-  --surface-soft:       var(--lk-surface-raised);
-  --stroke:             var(--lk-border);
-  --brand:              var(--lk-primary);
-  --brand-strong:       var(--lk-primary-hover);
-  --danger:             var(--lk-expense);
-  --ink-soft:           var(--lk-text-muted);
-  --income-soft:        var(--lk-income-bg);
-  --income-text:        var(--lk-income);
-  --expense-soft:       var(--lk-expense-bg);
-  --expense-text:       var(--lk-expense);
-  --primary:            var(--lk-primary);
-  --primary-light:      var(--lk-primary-light);
-  --glass-bg:           var(--lk-surface);
-  --glass-border:       var(--lk-border);
-  --glass-blur:         0px;
-
-  color-scheme: dark;
-}
-
-/* Dark class mirrors :root since we're dark-only */
-.dark {
-  --background:         var(--lk-bg);
-  --foreground:         var(--lk-text);
-  --surface:            var(--lk-surface);
-  --surface-soft:       var(--lk-surface-raised);
-  --stroke:             var(--lk-border);
-  --brand:              var(--lk-primary);
-  --brand-strong:       var(--lk-primary-hover);
-  --danger:             var(--lk-expense);
-  --ink-soft:           var(--lk-text-muted);
-  --income-soft:        var(--lk-income-bg);
-  --income-text:        var(--lk-income);
-  --expense-soft:       var(--lk-expense-bg);
-  --expense-text:       var(--lk-expense);
-  --primary:            var(--lk-primary);
-  --primary-light:      var(--lk-primary-light);
-  --glass-bg:           var(--lk-surface);
-  --glass-border:       var(--lk-border);
-  --glass-blur:         0px;
-
   color-scheme: dark;
 }
 
@@ -126,10 +116,7 @@ body {
   font-feature-settings: "ss01" 1, "cv03" 1;
 }
 
-/* Dark mode body — same as root since dark-only */
-.dark body {
-  background-color: var(--lk-bg);
-}
+/* Theme tokens are defined on :root and overridden by .dark. */
 
 * {
   border-color: var(--lk-border);
@@ -278,6 +265,138 @@ button,
     @apply w-full;
   }
 
+  /* ── Compact App Hero ── */
+  .app-hero {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 1rem;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--lk-border);
+    background:
+      radial-gradient(circle at 0% 0%, var(--lk-primary-dim), transparent 34rem),
+      linear-gradient(135deg, color-mix(in srgb, var(--lk-surface) 94%, var(--lk-primary) 6%), var(--lk-bg));
+  }
+
+  .app-hero--stacked {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .app-hero__main {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.85rem;
+  }
+
+  .app-hero__icon {
+    display: inline-flex;
+    height: 2.75rem;
+    width: 2.75rem;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    border-radius: 1rem;
+    color: var(--lk-primary-light);
+    background-color: var(--lk-primary-dim);
+    border: 1px solid color-mix(in srgb, var(--lk-primary) 28%, transparent);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.08);
+  }
+
+  .app-hero__eyebrow {
+    margin-bottom: 0.2rem;
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--lk-primary-light);
+  }
+
+  .app-hero__title {
+    color: var(--lk-text);
+    font-size: clamp(1.05rem, 1.45vw, 1.55rem);
+    font-weight: 850;
+    line-height: 1.12;
+    letter-spacing: -0.035em;
+  }
+
+  .app-hero__description {
+    margin-top: 0.25rem;
+    max-width: 52rem;
+    color: var(--lk-text-muted);
+    font-size: 0.78rem;
+    line-height: 1.45;
+  }
+
+  .app-hero__aside {
+    display: none;
+  }
+
+  .app-hero__actions,
+  .app-hero__stats {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .app-hero__stat {
+    min-width: 6.75rem;
+    border-radius: 0.85rem;
+    border: 1px solid var(--lk-border);
+    background-color: color-mix(in srgb, var(--lk-surface) 82%, transparent);
+    padding: 0.5rem 0.7rem;
+  }
+
+  .app-hero__stat-label {
+    color: var(--lk-text-muted);
+    font-size: 0.63rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .app-hero__stat-value {
+    margin-top: 0.12rem;
+    color: var(--lk-text);
+    font-size: 0.9rem;
+    font-weight: 800;
+  }
+
+  @media (min-width: 1024px) {
+    .app-hero__aside {
+      min-width: 0;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      gap: 0.75rem;
+    }
+
+    .app-hero--stacked .app-hero__aside {
+      width: 100%;
+      justify-content: flex-start;
+    }
+  }
+
+  @media (max-width: 640px) {
+    .app-hero {
+      padding: 0.9rem 1rem;
+    }
+
+    .app-hero__icon {
+      height: 2.35rem;
+      width: 2.35rem;
+      border-radius: 0.85rem;
+    }
+
+    .app-hero__description {
+      display: none;
+    }
+  }
+
   /* ── Lensa Keuangan Panel Classes ── */
   .lk-panel {
     background-color: var(--lk-surface);
@@ -295,7 +414,7 @@ button,
   .section-card {
     background-color: var(--lk-surface);
     border: 1px solid var(--lk-border);
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     padding: 1.25rem;
   }
 
@@ -303,7 +422,7 @@ button,
   .stat-card {
     background-color: var(--lk-surface-raised);
     border: 1px solid var(--lk-border);
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     padding: 1.25rem;
     transition: background-color 150ms ease, border-color 150ms ease;
   }
@@ -599,7 +718,7 @@ button,
     border: 1px solid var(--lk-border-strong);
     background-color: var(--lk-surface-raised);
     padding: 1.5rem;
-    box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 16px 42px rgba(0, 0, 0, 0.18);
   }
 
   /* Dark override for modal — same (dark-only) */
@@ -743,7 +862,7 @@ button,
     z-index: 100;
     box-sizing: border-box;
     padding-bottom: max(0.5rem, calc(0.5rem + env(safe-area-inset-bottom) * 0.4));
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
   }
 
   .dark .app-shell-mobile-dock {

@@ -12,13 +12,13 @@ import { MaskedAmountProvider } from "@/components/ui/masked-amount";
 import MaskedCurrencyAmount from "@/components/ui/masked-currency-amount";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import MonthFilter from "@/components/ui/month-filter";
-import { createTransactionFromTemplate, undoQuickAddTransaction } from "@/lib/actions/quick-add";
-import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth } from "@/lib/utils/date";
-import { formatDate as formatDateLabel } from "@/lib/utils/format";
-import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/quick-add";
+import { createTransactionFromTemplate, undoQuickAddTransaction } from "@/lib/transactions/quick-add-actions";
+import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths } from "@/lib/utils/date";
+import { formatDate as formatDateLabel, formatMonthLabel } from "@/lib/utils/format";
+import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/transactions/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
-import { ArrowUpRight, Wallet, Settings } from "lucide-react";
-import { forceRecalculateRollovers } from "@/lib/rollover";
+import { ArrowUpRight, Wallet, Settings, LayoutDashboard } from "lucide-react";
+import { forceRecalculateRollovers } from "@/lib/transactions/rollover";
 import SwipeableRow from "@/components/ui/swipeable-row";
 import EditTransactionButton from "@/components/transactions/edit-transaction-button";
 import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
@@ -124,6 +124,8 @@ export default async function Home({ searchParams }: HomeProps) {
   const { start, end } = getMonthRange(selectedMonth);
   const previousMonth = getPreviousMonth(selectedMonth);
   const { start: previousStart, end: previousEnd } = getMonthRange(previousMonth);
+  const historyStart = getRecentMonths(6, selectedMonth)[0] ?? selectedMonth;
+  const { start: historyStartDate } = getMonthRange(historyStart);
 
   const { data: transactions, error } = await supabase
     .from("transactions")
@@ -165,17 +167,6 @@ export default async function Home({ searchParams }: HomeProps) {
     .gte("transaction_date", start)
     .lt("transaction_date", end);
 
-  const { data: allTimeTransactions } = await supabase
-    .from("transactions")
-    .select(`
-      id,
-      type,
-      amount,
-      wallet_id,
-      destination_wallet_id
-    `)
-    .eq("user_id", user.id);
-
   const { data: wallets } = await supabase
     .from("wallets")
     .select("id, name, type")
@@ -185,8 +176,11 @@ export default async function Home({ searchParams }: HomeProps) {
   const { data: previousExpenses } = await supabase
     .from("transactions")
     .select(`
+      id,
       amount,
+      transaction_date,
       categories (
+        id,
         name
       )
     `)
@@ -197,53 +191,10 @@ export default async function Home({ searchParams }: HomeProps) {
 
   const { data: historyTransactions } = await supabase
     .from("transactions")
-    .select("type, amount, transaction_date")
+    .select("id, type, amount, transaction_date")
     .eq("user_id", user.id)
-    .order("transaction_date", { ascending: false });
-
-
-  const totalIncome =
-    allTransactions
-      ?.filter((item) => item.type === "income")
-      .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
-
-  const totalExpense =
-    allTransactions
-      ?.filter((item) => item.type === "expense")
-      .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
-
-  const balance = totalIncome - totalExpense;
-
-  const walletBalances = {
-    cash: 0,
-    bank: 0,
-    receivable: 0,
-  };
-
-  const walletTypeMap = new Map<string, string>();
-  wallets?.forEach(w => walletTypeMap.set(w.id, w.type));
-
-  allTransactions?.forEach((t) => {
-    const amount = Number(t.amount);
-    if (t.type === 'income' && t.wallet_id) {
-      const type = walletTypeMap.get(t.wallet_id);
-      if (type) walletBalances[type as keyof typeof walletBalances] += amount;
-    } else if (t.type === 'expense' && t.wallet_id) {
-      const type = walletTypeMap.get(t.wallet_id);
-      if (type) walletBalances[type as keyof typeof walletBalances] -= amount;
-    } else if (t.type === 'transfer') {
-      if (t.wallet_id) {
-        const type = walletTypeMap.get(t.wallet_id);
-        if (type) walletBalances[type as keyof typeof walletBalances] -= amount;
-      }
-      if (t.destination_wallet_id) {
-        const type = walletTypeMap.get(t.destination_wallet_id);
-        if (type) walletBalances[type as keyof typeof walletBalances] += amount;
-      }
-    }
-  });
-
-  const totalNetWorth = walletBalances.cash + walletBalances.bank + walletBalances.receivable;
+    .gte("transaction_date", historyStartDate)
+    .lt("transaction_date", end);
 
   type ExpenseGroup = {
     categoryId: string | null;
@@ -296,6 +247,46 @@ export default async function Home({ searchParams }: HomeProps) {
     }))
     .sort((a, b) => b.value - a.value);
 
+  const totalIncome = allTransactions
+    ?.filter((item) => item.type === "income")
+    .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
+  const totalExpense = allTransactions
+    ?.filter((item) => item.type === "expense")
+    .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
+  const balance = totalIncome - totalExpense;
+
+  const walletBalanceMap = new Map<string, number>();
+  wallets?.forEach((wallet) => walletBalanceMap.set(wallet.id, 0));
+
+  allTransactions?.forEach((transaction) => {
+    const amount = Number(transaction.amount);
+    if (transaction.type === "income" && transaction.wallet_id) {
+      walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) + amount);
+    } else if (transaction.type === "expense" && transaction.wallet_id) {
+      walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) - amount);
+    } else if (transaction.type === "adjustment" && transaction.wallet_id) {
+      walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) + amount);
+    } else if (transaction.type === "transfer") {
+      if (transaction.wallet_id) {
+        walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) - amount);
+      }
+      if (transaction.destination_wallet_id) {
+        walletBalanceMap.set(transaction.destination_wallet_id, (walletBalanceMap.get(transaction.destination_wallet_id) ?? 0) + amount);
+      }
+    }
+  });
+
+  const walletBalances = (wallets ?? []).reduce(
+    (acc, wallet) => {
+      const amount = walletBalanceMap.get(wallet.id) ?? 0;
+      if (wallet.type === "cash") acc.cash += amount;
+      else if (wallet.type === "receivable") acc.receivable += amount;
+      else acc.bank += amount;
+      return acc;
+    },
+    { cash: 0, bank: 0, receivable: 0 },
+  );
+
   const previousExpenseMap = new Map<string, number>();
   previousExpenses?.forEach((item) => {
     const category = Array.isArray(item.categories)
@@ -346,7 +337,7 @@ export default async function Home({ searchParams }: HomeProps) {
       expense: item.expense,
     }))
     .sort((a, b) => a.month.localeCompare(b.month))
-    .slice(-6);
+    .slice(-8);
 
   const topSpendingData =
     Array.from(expenseMap.entries())
@@ -384,6 +375,8 @@ export default async function Home({ searchParams }: HomeProps) {
       className="journal-dashboard"
       activeNav="dashboard"
       month={selectedMonth}
+      eyebrow="Ringkasan Bulanan"
+      heroIcon={<LayoutDashboard size={19} strokeWidth={2.2} />}
       title={`${greeting}, ${firstName}`}
       description="Pantau arus kas dan pola pengeluaran bulananmu di sini."
       headerActionsClassName="lg:flex-nowrap"
@@ -619,15 +612,19 @@ export default async function Home({ searchParams }: HomeProps) {
           {error ? (
             <p className="text-rose-600">Error: {error.message}</p>
           ) : !transactions || transactions.length === 0 ? (
-            <div>
-              <p className="text-slate-600 dark:text-slate-300">
-                Belum ada transaksi di bulan ini.
+            <div className="rounded-2xl p-6 text-center border border-slate-200/50 bg-slate-50/50 dark:border-white/5 dark:bg-white/5">
+              <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
+                <LayoutDashboard size={22} />
+              </span>
+              <h3 className="mt-3 text-sm font-semibold text-slate-900 dark:text-slate-100">Belum ada transaksi</h3>
+              <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                Catat pengeluaran atau pemasukan pertamamu di bulan {formatMonthLabel(selectedMonth)}.
               </p>
-              <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-                <Link href="/transactions/new" className="btn-primary">
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                <Link href="/transactions/new" className="btn-primary py-2 px-4 text-xs font-bold">
                   + Tambah Transaksi
                 </Link>
-                <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary">
+                <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary py-2 px-4 text-xs font-semibold">
                   Lihat daftar
                 </Link>
               </div>

@@ -35,16 +35,16 @@ type MobileDockItem = DesktopNavItem & {
 };
 
 export const desktopNavMainItems: DesktopNavItem[] = [
-  { key: "dashboard", label: "Dashboard", path: "/", icon: Home },
-  { key: "transactions", label: "Transactions", path: "/transactions", icon: ReceiptText },
-  { key: "reports", label: "Reports", path: "/reports", icon: BarChart3 },
-  { key: "budgets", label: "Budgets", path: "/budgets", icon: Target },
-  { key: "categories", label: "Categories", path: "/categories", icon: Tags },
-  { key: "wallets", label: "Wallets", path: "/wallets", icon: Wallet },
+  { key: "dashboard", label: "Ringkasan", path: "/", icon: Home },
+  { key: "transactions", label: "Transaksi", path: "/transactions", icon: ReceiptText },
+  { key: "reports", label: "Laporan", path: "/reports", icon: BarChart3 },
+  { key: "budgets", label: "Anggaran", path: "/budgets", icon: Target },
+  { key: "categories", label: "Kategori", path: "/categories", icon: Tags },
+  { key: "wallets", label: "Dompet", path: "/wallets", icon: Wallet },
 ];
 
 export const desktopNavBottomItems: DesktopNavItem[] = [
-  { key: "settings", label: "Settings", path: "/settings", icon: Settings },
+  { key: "settings", label: "Pengaturan", path: "/settings", icon: Settings },
 ];
 
 export const mobileDockItems: MobileDockItem[] = [
@@ -82,7 +82,7 @@ export const mobileDockItems: MobileDockItem[] = [
   },
   {
     key: "more",
-    label: "More",
+    label: "Lainnya",
     path: "/more",
     icon: Ellipsis,
     primary: false,

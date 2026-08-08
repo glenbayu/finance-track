@@ -25,7 +25,7 @@ export default function RecalculateRolloverCard({ flat = false }: RecalculateRol
       } else {
         setMessage({ type: "error", text: res.error || "Gagal menghitung ulang rollover." });
       }
-    } catch (e: any) {
+    } catch {
       setMessage({ type: "error", text: "Terjadi kesalahan koneksi." });
     } finally {
       setIsLoading(false);

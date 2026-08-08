@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
+import { createPortal } from "react-dom";
 import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
 import CurrencyAmount from "@/components/ui/currency-amount";
@@ -119,8 +120,9 @@ export default function WalletManager({ wallets, createAction, editAction, delet
         await createAction(formData);
       }
       closeModal();
-    } catch (error: any) {
-      setErrorMsg(error.message || "Terjadi kesalahan");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+      setErrorMsg(message);
     }
   };
 
@@ -133,8 +135,9 @@ export default function WalletManager({ wallets, createAction, editAction, delet
         await adjustAction(formData);
       }
       closeAdjustModal();
-    } catch (error: any) {
-      setErrorMsg(error.message || "Terjadi kesalahan");
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : "Terjadi kesalahan";
+      setErrorMsg(message);
     }
   };
 
@@ -249,7 +252,7 @@ export default function WalletManager({ wallets, createAction, editAction, delet
         </div>
       </div>
 
-      {isModalOpen && (
+      {isModalOpen && typeof document !== "undefined" && createPortal(
         <div className="modal-overlay z-[100] flex items-center justify-center">
           <div className="modal-card relative w-full max-w-md" role="dialog" aria-modal="true">
             <button
@@ -300,9 +303,9 @@ export default function WalletManager({ wallets, createAction, editAction, delet
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
       
-      {isAdjustModalOpen && (
+      {isAdjustModalOpen && typeof document !== "undefined" && createPortal(
         <div className="modal-overlay z-[100] flex items-center justify-center">
           <div className="modal-card relative w-full max-w-md" role="dialog" aria-modal="true">
             <button
@@ -355,7 +358,7 @@ export default function WalletManager({ wallets, createAction, editAction, delet
             </form>
           </div>
         </div>
-      )}
+      , document.body)}
 
       <ConfirmationModal
         isOpen={!!walletToDelete}

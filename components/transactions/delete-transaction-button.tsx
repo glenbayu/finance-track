@@ -77,7 +77,7 @@ export default function DeleteTransactionButton({
         onClick={() => setIsOpen(true)}
         disabled={isSubmitting}
       >
-        <Trash2 size={14} className={label ? "mr-1.5 inline-block" : "text-white"} />
+        <Trash2 size={14} className={label ? "mr-1.5 inline-block" : ""} />
         {label}
       </button>
 

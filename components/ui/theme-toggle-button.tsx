@@ -67,7 +67,7 @@ export default function ThemeToggleButton({
     }, 320);
   };
 
-  const label = theme === "dark" ? "Dark" : "Light";
+  const label = theme === "dark" ? "Gelap" : "Terang";
 
   return (
     <button

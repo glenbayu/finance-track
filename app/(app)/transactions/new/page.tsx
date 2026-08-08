@@ -4,8 +4,8 @@ import TransactionForm from "@/components/transactions/transaction-form";
 import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import QuickAddTemplateCard from "@/components/quick-add/quick-add-template-card";
-import type { QuickAddTemplateType } from "@/lib/quick-add";
-import { byTemplateSort, mapQuickAddTemplateRow } from "@/lib/quick-add";
+import type { QuickAddTemplateType } from "@/lib/transactions/quick-add";
+import { byTemplateSort, mapQuickAddTemplateRow } from "@/lib/transactions/quick-add";
 import { getCurrentDate, isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 
@@ -45,7 +45,7 @@ async function createTransaction(formData: FormData) {
     throw new Error("Tanggal transaksi tidak valid.");
   }
 
-  let validCategoryId = categoryId;
+  let validCategoryId: string | null = categoryId;
   if (type !== "transfer") {
     const { data: category, error: categoryError } = await supabase
       .from("categories")
@@ -60,28 +60,47 @@ async function createTransaction(formData: FormData) {
     }
     validCategoryId = category.id;
   } else {
-    validCategoryId = null as any; // Allow null for transfer
+    validCategoryId = null;
   }
 
-  const { error } = await supabase.from("transactions").insert({
-    user_id: user.id,
-    type,
-    amount,
-    category_id: validCategoryId,
-    wallet_id: walletId,
-    destination_wallet_id: type === "transfer" ? destinationWalletId : null,
-    note,
-    transaction_date: transactionDate,
-  });
+  const walletIdsToValidate = type === "transfer" ? [walletId, destinationWalletId] : [walletId];
+  const { data: ownedWallets, error: walletError } = await supabase
+    .from("wallets")
+    .select("id")
+    .eq("user_id", user.id)
+    .in("id", walletIdsToValidate);
 
-  if (error) {
-    throw new Error(error.message);
+  if (walletError || (ownedWallets?.length ?? 0) !== walletIdsToValidate.length) {
+    throw new Error("Dompet tidak valid atau bukan milik user ini.");
+  }
+
+  const { data: inserted, error } = await supabase
+    .from("transactions")
+    .insert({
+      user_id: user.id,
+      type,
+      amount,
+      category_id: validCategoryId,
+      wallet_id: walletId,
+      destination_wallet_id: type === "transfer" ? destinationWalletId : null,
+      note,
+      transaction_date: transactionDate,
+    })
+    .select("id")
+    .single();
+
+  if (error || !inserted) {
+    throw new Error(error?.message ?? "Transaksi gagal tersimpan.");
   }
 
   revalidatePath("/");
   revalidatePath("/transactions");
+  revalidatePath("/transactions/new");
+  revalidatePath("/wallets");
+  revalidatePath("/reports");
+  revalidatePath("/budgets");
 
-  redirect("/transactions");
+  redirect("/transactions?toast=transaction_created");
 }
 
 type NewTransactionPageProps = {

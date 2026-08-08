@@ -1,8 +1,10 @@
 import type { Metadata, Viewport } from "next";
+import { Toaster } from "sonner";
 import "./globals.css";
 import IdleSessionGuard from "@/components/auth/idle-session-guard";
 import PwaRegistration from "@/components/pwa/pwa-registration";
 import ThemeProvider from "@/components/ui/theme-provider";
+import ToastQueryListener from "@/components/ui/toast-query-listener";
 
 export const metadata: Metadata = {
   applicationName: "Finance Tracker",
@@ -35,10 +37,12 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#2c5c50" },
-    { media: "(prefers-color-scheme: dark)", color: "#0f172a" },
+    { media: "(prefers-color-scheme: light)", color: "#f7f8f6" },
+    { media: "(prefers-color-scheme: dark)", color: "#131313" },
   ],
 };
+
+
 
 export default function RootLayout({
   children,
@@ -53,9 +57,14 @@ export default function RootLayout({
             __html: `
               (function () {
                 try {
-                  // Lensa Keuangan is dark-only
-                  document.documentElement.classList.add("dark");
-                  document.documentElement.style.colorScheme = "dark";
+                  var theme = window.localStorage.getItem("theme");
+                  if (theme === "dark") {
+                    document.documentElement.classList.add("dark");
+                    document.documentElement.style.colorScheme = "dark";
+                  } else {
+                    document.documentElement.classList.remove("dark");
+                    document.documentElement.style.colorScheme = "light";
+                  }
                   
                   var ua = navigator.userAgent || "";
                   if (/android/i.test(ua)) {
@@ -71,7 +80,9 @@ export default function RootLayout({
         <ThemeProvider>
           <IdleSessionGuard />
           <PwaRegistration />
+          <ToastQueryListener />
           {children}
+          <Toaster position="bottom-center" toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
         </ThemeProvider>
       </body>
     </html>

@@ -9,6 +9,7 @@ export default function SettingsPage() {
     <AppShell
       className="bg-[var(--lk-bg)]"
       activeNav="more"
+      eyebrow="Preferensi Aplikasi"
       title="Pengaturan Lanjutan"
       description="Konfigurasi preferensi tampilan dan mata uang kamu."
     >

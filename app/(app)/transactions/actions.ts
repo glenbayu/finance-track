@@ -21,7 +21,7 @@ export async function deleteTransaction(formData: FormData) {
   revalidatePath("/budgets");
 }
 
-import { forceRecalculateRollovers } from "@/lib/rollover";
+import { forceRecalculateRollovers } from "@/lib/transactions/rollover";
 
 export async function runMonthlyRollover() {
   const { supabase, user } = await requireUser();

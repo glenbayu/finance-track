@@ -39,8 +39,8 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   }, []);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- gates client-only chart rendering after hydration.
     setMounted(true);
-    const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const checkDark = () =>
       setIsDark(document.documentElement.classList.contains("dark"));
     checkDark();
@@ -74,20 +74,20 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
 
       <div className="mt-3 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(230px,280px)] lg:items-start">
         <div className="w-full min-w-0">
-          <div className="relative mx-auto w-full max-w-[340px] sm:max-w-none lg:max-w-[380px]">
+          <div className="relative mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[300px]">
             {!mounted ? (
               /* Stable GPU placeholder to prevent layout shifts */
-              <div className="h-[220px] sm:h-[300px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-full animate-pulse mx-auto max-w-[220px] sm:max-w-[300px]" />
+              <div className="mx-auto h-[190px] w-[190px] rounded-full bg-slate-100/50 animate-pulse dark:bg-slate-900/20 sm:h-[220px] sm:w-[220px]" />
             ) : (
               <>
-                <ResponsiveContainer width="100%" aspect={1.05} minHeight={220}>
+                <ResponsiveContainer width="100%" aspect={1.05} minHeight={180}>
                   <PieChart accessibilityLayer={false}>
                     <Pie
                       data={data}
                       dataKey="value"
                       nameKey="name"
-                      outerRadius="79%"
-                      innerRadius="51%"
+                      outerRadius="72%"
+                      innerRadius="48%"
                       paddingAngle={2}
                       labelLine={false}
                       animationDuration={isAndroid ? 0 : 550}
@@ -119,8 +119,8 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                               } dark:border-white/5`}
                           >
                             <p className="text-sm font-bold text-slate-900 dark:text-slate-100">{point.name}</p>
-                            <p className="text-sm font-semibold font-mono text-slate-800 dark:text-slate-200 mt-0.5">{isHidden ? "******" : formatFromIDR(point.value)}</p>
-                            <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 mt-1 uppercase tracking-wider">
+                            <p className="mt-0.5 font-mono text-sm font-semibold text-slate-800 dark:text-slate-200">{isHidden ? "******" : formatFromIDR(point.value)}</p>
+                            <p className="mt-1 text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                               {percentage}% dari total
                             </p>
                           </div>
@@ -144,8 +144,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
             )}
           </div>
 
-
-          <div className="mt-0 hidden text-center lg:-mt-20 lg:block">
+          <div className="mt-3 text-center lg:mt-4">
             <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
               Total Pengeluaran
             </p>

@@ -30,6 +30,7 @@ export default function InteractiveDotPanel({
   useEffect(() => {
     const isAndroid = typeof navigator !== "undefined" && /android/i.test(navigator.userAgent);
     const supportsHover = window.matchMedia("(hover: hover)").matches;
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setCanHover(supportsHover && !isAndroid);
 
     return () => {

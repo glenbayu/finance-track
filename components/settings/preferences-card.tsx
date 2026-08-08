@@ -1,6 +1,5 @@
 "use client";
 
-import { SlidersHorizontal } from "lucide-react";
 import FormSelect from "@/components/ui/form-select";
 import { SUPPORTED_CURRENCIES } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
@@ -12,7 +11,6 @@ type PreferencesCardProps = {
 export default function PreferencesCard({ flat = false }: PreferencesCardProps) {
   const {
     currency,
-    effectiveCurrency,
     setCurrency,
     formatFromIDR,
     lastUpdated,

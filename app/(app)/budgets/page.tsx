@@ -232,7 +232,8 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
       className="journal-dashboard"
       activeNav="budgets"
       month={selectedMonth}
-      title="Budgets"
+      eyebrow="Rencana Pengeluaran"
+      title="Anggaran"
       description="Atur limit pengeluaran per kategori agar cashflow tetap sehat."
       headerActionsClassName="lg:flex-nowrap"
       headerActions={
@@ -258,25 +259,25 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
         <>
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Total Budget</p>
+              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Total Anggaran</p>
               <p className="mt-2 text-xl font-semibold" style={{ color: "var(--lk-text)" }}>
                 <CurrencyAmount amountIDR={totalBudget} />
               </p>
             </article>
             <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Total Spent</p>
+              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Total Terpakai</p>
               <p className="mt-2 text-xl font-semibold" style={{ color: "var(--lk-expense)" }}>
                 <CurrencyAmount amountIDR={totalSpent} />
               </p>
             </article>
             <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Remaining</p>
+              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Sisa Anggaran</p>
               <p className="mt-2 text-xl font-semibold" style={{ color: remainingBudget >= 0 ? "var(--lk-income)" : "var(--lk-expense)" }}>
                 <CurrencyAmount amountIDR={remainingBudget} />
               </p>
             </article>
             <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Over Budget</p>
+              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Melewati Batas</p>
               <p className="mt-2 text-xl font-semibold" style={{ color: categoriesOverBudget > 0 ? "var(--lk-expense)" : "var(--lk-income)" }}>
                 {categoriesOverBudget} kategori
               </p>
@@ -284,7 +285,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
           </section>
 
           {!hasAnyBudget ? (
-            <section className="mt-6 rounded-lg p-6 shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+            <section className="mt-6 rounded-md p-6" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
               <h3 className="text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>Belum ada budget tersimpan</h3>
               <p className="mt-2 text-sm" style={{ color: "var(--lk-text-muted)" }}>
                 Isi nominal budget pada kategori di bawah, lalu klik Simpan. Sistem akan membandingkan realisasi pengeluaranmu secara otomatis.
@@ -295,7 +296,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
               <div className="mb-3 px-4">
                 <h2 className="text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>Daftar Anggaran</h2>
               </div>
-              <div className="overflow-hidden rounded-lg shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+              <div className="overflow-hidden rounded-md" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
                 {budgetCards.map((item) => {
                   const tone = progressTone(item.usedPct);
                   const clampedPct = Math.min(100, Math.max(0, item.usedPct));
@@ -350,9 +351,9 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
 
                       {/* Expanded Content */}
                       <div className="mx-4 mb-4 mt-1 rounded-lg px-4 pb-4 pt-3" style={{ backgroundColor: isDanger ? "var(--lk-expense-dim)" : "var(--lk-bg)", borderTop: "1px solid var(--lk-border)" }}>
-                        <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4 rounded-lg py-2 shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
+                        <div className="grid grid-cols-3 gap-2 text-center text-sm mb-4 rounded-md py-2" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
                           <div>
-                            <p className="text-[11px] font-medium uppercase tracking-wider mb-0.5" style={{ color: "var(--lk-text-muted)" }}>Budget</p>
+                            <p className="text-[11px] font-medium uppercase tracking-wider mb-0.5" style={{ color: "var(--lk-text-muted)" }}>Anggaran</p>
                             <p className="font-semibold" style={{ color: "var(--lk-text)" }}>
                               {item.budgetAmount > 0 ? <CurrencyAmount amountIDR={item.budgetAmount} /> : "-"}
                             </p>

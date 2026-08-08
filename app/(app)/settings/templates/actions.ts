@@ -12,7 +12,7 @@ import {
   normalizeTemplateNote,
   normalizeTemplateType,
   type QuickAddTemplateType,
-} from "@/lib/quick-add";
+} from "@/lib/transactions/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
 
 type TemplatePayload = {

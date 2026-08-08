@@ -1,7 +1,7 @@
 "use server";
 
 import { requireUser } from "@/lib/supabase/auth";
-import { forceRecalculateRollovers } from "@/lib/rollover";
+import { forceRecalculateRollovers } from "@/lib/transactions/rollover";
 import { revalidatePath } from "next/cache";
 
 export async function handleRecalculateRollovers() {
@@ -16,8 +16,9 @@ export async function handleRecalculateRollovers() {
     revalidatePath("/reports");
     
     return { ok: true };
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Failed to recalculate rollovers:", error);
-    return { ok: false, error: error.message || "Gagal menghitung ulang rollover." };
+    const message = error instanceof Error ? error.message : "Gagal menghitung ulang rollover.";
+    return { ok: false, error: message };
   }
 }

@@ -166,6 +166,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
       className="bg-[var(--lk-bg)]"
       activeNav="wallets"
       month={selectedMonth}
+      eyebrow="Saldo & Rekening"
       title="Dompet & Rekening"
       description="Kelola daftar rekening, dompet fisik, dan saldo tertahan Anda."
       headerActionsClassName="lg:flex-nowrap"

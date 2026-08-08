@@ -15,7 +15,7 @@ import {
   Wallet,
 } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
-import { normalizeTemplateColor, normalizeTemplateIcon, type QuickAddTemplateColor } from "@/lib/quick-add";
+import { normalizeTemplateColor, normalizeTemplateIcon, type QuickAddTemplateColor } from "@/lib/transactions/quick-add";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Utensils,

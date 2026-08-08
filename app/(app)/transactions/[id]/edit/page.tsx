@@ -50,7 +50,7 @@ async function updateTransaction(formData: FormData) {
     throw new Error("Tanggal transaksi tidak valid.");
   }
 
-  let validCategoryId = categoryId;
+  let validCategoryId: string | null = categoryId;
   if (type !== "transfer" && type !== "adjustment") {
     const { data: category, error: categoryError } = await supabase
       .from("categories")
@@ -65,7 +65,7 @@ async function updateTransaction(formData: FormData) {
     }
     validCategoryId = category.id;
   } else {
-    validCategoryId = null as any;
+    validCategoryId = null;
   }
 
   const { error } = await supabase
@@ -90,7 +90,7 @@ async function updateTransaction(formData: FormData) {
   revalidatePath("/transactions");
   revalidatePath("/wallets");
 
-  redirect("/transactions");
+  redirect("/transactions?toast=transaction_updated");
 }
 
 async function deleteTransaction(formData: FormData) {
@@ -117,7 +117,7 @@ async function deleteTransaction(formData: FormData) {
   revalidatePath("/transactions");
   revalidatePath("/wallets");
 
-  redirect("/transactions");
+  redirect("/transactions?toast=transaction_deleted");
 }
 
 export default async function EditTransactionPage({ params }: EditPageProps) {

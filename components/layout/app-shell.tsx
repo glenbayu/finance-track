@@ -8,11 +8,17 @@ type AppShellProps = {
   activeNav: AppNavKey | null;
   month?: string;
   badge?: string;
+  eyebrow?: string;
+  heroIcon?: ReactNode;
+  heroStats?: ReactNode;
   className?: string;
   containerClassName?: string;
   contentClassName?: string;
   titleClassName?: string;
-  headerLayout?: "split" | "stacked";
+  /** Controls layout of hero. "stacked" places actions below title */
+  headerLayout?: "standard" | "stacked";
+  /** Optional actions to place directly to the right of the title (useful in stacked layout) */
+  titleActions?: ReactNode;
   headerActions?: ReactNode;
   headerActionsClassName?: string;
   mobileActions?: ReactNode;
@@ -27,11 +33,15 @@ export default function AppShell({
   activeNav,
   month,
   badge = "Finance Journal",
+  eyebrow,
+  heroIcon,
+  heroStats,
   className = "",
   containerClassName = "",
   contentClassName = "",
   titleClassName = "",
-  headerLayout = "split",
+  headerLayout = "standard",
+  titleActions,
   headerActions,
   headerActionsClassName = "",
   mobileActions,
@@ -67,10 +77,10 @@ export default function AppShell({
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs animate-fade-in lg:hidden cursor-default"
           aria-hidden="true"
         />
-        <div className={`min-w-0 w-full lg:animate-fade-in-up ${className} ${containerClassName} max-lg:fixed max-lg:bottom-0 max-lg:left-0 max-lg:right-0 max-lg:z-50 max-lg:rounded-t-[28px] max-lg:p-6 max-lg:pb-12 max-lg:max-h-[85dvh] max-lg:overflow-y-auto max-lg:animate-slide-up-drawer max-lg:border-t max-lg:shadow-[0_-10px_40px_rgba(0,0,0,0.5)]`}
+        <div className={`min-w-0 w-full lg:animate-fade-in-up ${className} ${containerClassName} max-lg:fixed max-lg:bottom-0 max-lg:left-0 max-lg:right-0 max-lg:z-50 max-lg:rounded-t-[20px] max-lg:p-6 max-lg:pb-12 max-lg:max-h-[85dvh] max-lg:overflow-y-auto max-lg:animate-slide-up-drawer max-lg:border-t max-lg:shadow-[0_-4px_24px_rgba(0,0,0,0.1)] dark:max-lg:shadow-none`}
           style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}
         >
-          <div className="mx-auto mb-4 h-1 w-14 rounded-full lg:hidden" style={{ backgroundColor: "var(--lk-border-strong)" }} />
+          <div className="mx-auto mb-4 h-1 w-12 rounded-full lg:hidden" style={{ backgroundColor: "var(--lk-border-strong)" }} />
           <div className={`min-w-0 ${contentClassName}`}>
             <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between max-lg:mb-4">
               <div>
@@ -100,35 +110,33 @@ export default function AppShell({
       <div className={`min-w-0 w-full animate-fade-in-up ${className} ${containerClassName}`}>
         <div className={`min-w-0 ${contentClassName}`}>
 
-          {/* Slim Page Header */}
-          <div
-            className="sticky top-0 z-30 flex items-center justify-between gap-4"
-            style={{
-              padding: "0.875rem 1.5rem",
-              borderBottom: "1px solid var(--lk-border)",
-              backgroundColor: "var(--lk-bg)",
-            }}
-          >
-            <div className="min-w-0">
-              <h1
-                className={`text-base font-bold leading-tight truncate ${titleClassName}`}
-                style={{ color: "var(--lk-text)" }}
-              >
-                {title}
-              </h1>
-              {description && (
-                <p className="text-xs mt-0.5 truncate hidden sm:block" style={{ color: "var(--lk-text-muted)" }}>
-                  {description}
-                </p>
+          <header className={`app-hero app-hero--${headerLayout}`}>
+            <div className="app-hero__main flex-1 w-full flex items-start justify-between">
+              <div className="flex items-center gap-[0.85rem] min-w-0">
+                {heroIcon ? <div className="app-hero__icon" aria-hidden="true">{heroIcon}</div> : null}
+                <div className="min-w-0">
+                  <div className="app-hero__eyebrow">{eyebrow || badge}</div>
+                  <h1 className={`app-hero__title ${titleClassName}`}>
+                    {title}
+                  </h1>
+                  {description && <p className="app-hero__description">{description}</p>}
+                </div>
+              </div>
+              
+              {titleActions && (
+                <div className="hidden shrink-0 items-center gap-3 lg:flex mt-1">
+                  {titleActions}
+                </div>
               )}
             </div>
 
-            {headerActions && (
-              <div className={`hidden lg:flex lg:items-center lg:gap-2 lg:shrink-0 ${headerActionsClassName}`}>
-                {headerActions}
+            {(heroStats || headerActions) && (
+              <div className={`app-hero__aside ${headerActionsClassName}`}>
+                {heroStats ? <div className="app-hero__stats">{heroStats}</div> : null}
+                {headerActions ? <div className="app-hero__actions">{headerActions}</div> : null}
               </div>
             )}
-          </div>
+          </header>
 
           {/* Mobile Actions (filter row on mobile) */}
           {mobileActions && (

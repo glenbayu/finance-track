@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { BookOpen } from "lucide-react";
 import LogoutButton from "@/components/auth/logout-button";
 import DesktopSidebarLinks from "@/components/layout/desktop-sidebar-links";

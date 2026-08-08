@@ -15,7 +15,7 @@ import {
   type QuickAddTemplateColor,
   type QuickAddTemplateIcon,
   type QuickAddTemplateType,
-} from "@/lib/quick-add";
+} from "@/lib/transactions/quick-add";
 
 type CategoryOption = {
   id: string;

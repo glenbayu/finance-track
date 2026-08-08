@@ -1,6 +1,6 @@
 "use client";
 
-import { Eye, EyeOff, MonitorCog } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
 import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
 

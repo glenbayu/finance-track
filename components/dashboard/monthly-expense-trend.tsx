@@ -80,6 +80,7 @@ export default function MonthlyExpenseTrend({
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setMounted(true);
     const checkDark = () =>
       setIsDark(document.documentElement.classList.contains("dark"));

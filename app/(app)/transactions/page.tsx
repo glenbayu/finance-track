@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { ChevronLeft, ChevronRight, SearchX } from "lucide-react";
+import { ChevronLeft, ChevronRight, SearchX, ReceiptText } from "lucide-react";
 import AppShell from "@/components/layout/app-shell";
 import MonthFilter from "@/components/ui/month-filter";
 import CurrencyAmount from "@/components/ui/currency-amount";
@@ -424,25 +424,39 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       className="transactions-page journal-transactions"
       activeNav="transactions"
       month={selectedMonth}
-      headerLayout="stacked"
+      eyebrow="Aktivitas Keuangan"
+      heroIcon={<ReceiptText size={19} strokeWidth={2.2} />}
       title="Daftar Transaksi"
       description="Semua pemasukan dan pengeluaran pada bulan terpilih."
-      headerActionsClassName="lg:w-full lg:justify-start"
+      headerActionsClassName="hidden lg:flex lg:flex-1 lg:justify-end lg:pl-6"
       headerActions={
-        <div className="grid w-full gap-2 lg:grid-cols-[minmax(200px,240px)_minmax(260px,1fr)] xl:grid-cols-[minmax(210px,230px)_minmax(300px,1fr)]">
-          <MonthFilter selectedMonth={selectedMonth} className="w-full" />
-          <TransactionsSearch
-            defaultValue={searchValue}
-            className="w-full"
-            placeholder="Cari catatan, kategori, tipe, atau nominal..."
-          />
-          <div className="lg:col-span-2">
-            <TransactionsFilterControls
-              categories={filterCategories}
-              selectedType={selectedType}
-              selectedCategoryId={selectedCategoryId}
-              selectedSort={selectedSort}
+        <div className="flex w-full max-w-[540px] flex-col gap-2">
+          {/* Baris Atas: Date & Search */}
+          <div className="flex w-full gap-2">
+            <MonthFilter selectedMonth={selectedMonth} className="w-[160px] shrink-0" />
+            <TransactionsSearch
+              defaultValue={searchValue}
+              className="flex-1"
+              placeholder="Cari catatan, kategori..."
             />
+          </div>
+          {/* Baris Bawah: 3 Dropdown & Tambah */}
+          <div className="flex w-full gap-2 items-center">
+            <div className="flex-1 min-w-0">
+              <TransactionsFilterControls
+                categories={filterCategories}
+                selectedType={selectedType}
+                selectedCategoryId={selectedCategoryId}
+                selectedSort={selectedSort}
+              />
+            </div>
+            <Link
+              href="/transactions/new"
+              className="btn-primary shrink-0 flex items-center gap-2 rounded-lg px-5 py-[9px] text-sm font-semibold shadow-sm transition-all hover:scale-105"
+            >
+              <ReceiptText size={16} />
+              Tambah Transaksi
+            </Link>
           </div>
         </div>
       }
@@ -480,7 +494,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
             </div>
             <form action={runMonthlyRollover} className="shrink-0">
               <SubmitButton
-                className="btn-primary h-9 rounded-md px-4 text-xs font-semibold border-none shadow-sm"
+                className="btn-primary h-9 rounded-md px-4 text-xs font-semibold border-none"
                 pendingText="Memproses..."
               >
                 Terapkan Rollover
@@ -492,21 +506,26 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
       <section className="table-shell">
         {paginatedTransactions.length === 0 ? (
-          <div className="p-6">
-            <div className="mb-3 inline-flex h-10 w-10 items-center justify-center rounded-xl bg-[color:var(--surface-soft)] text-slate-600 dark:text-slate-300">
-              <SearchX size={18} />
+          <div className="p-6 text-center sm:p-10">
+            <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--surface-soft)] text-slate-600 shadow-sm dark:text-slate-300">
+              <SearchX size={22} />
             </div>
-            <p className="text-slate-600 dark:text-slate-300">
+            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
               {searchQuery || selectedType !== "all" || selectedCategoryId
-                ? "Tidak ada transaksi yang cocok dengan filter kamu."
-                : "Belum ada transaksi di bulan ini."}
+                ? "Transaksi tidak ditemukan"
+                : "Belum ada transaksi bulan ini"}
+            </h3>
+            <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+              {searchQuery || selectedType !== "all" || selectedCategoryId
+                ? "Coba ubah keyword, tipe transaksi, atau kategori agar data yang kamu cari muncul lagi."
+                : "Mulai catat pemasukan atau pengeluaran supaya dashboard, laporan, dan forecast kamu makin akurat."}
             </p>
-            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Link href="/transactions/new" className="btn-primary">
+            <div className="mt-5 flex flex-wrap justify-center gap-2">
+              <Link href="/transactions/new" className="btn-primary px-4 py-2 text-sm font-bold">
                 + Tambah Transaksi
               </Link>
               {searchQuery || selectedType !== "all" || selectedCategoryId || selectedSort !== "date_desc" ? (
-                <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary">
+                <Link href={`/transactions?month=${selectedMonth}`} className="btn-secondary px-4 py-2 text-sm font-semibold">
                   Reset filter
                 </Link>
               ) : null}
@@ -520,7 +539,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                   <h3 className="px-2 text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--lk-text-muted)" }}>
                     {formatDate(date)}
                   </h3>
-                  <div className="overflow-hidden rounded-lg shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+                  <div className="overflow-hidden rounded-md" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
                     {groupedTransactions[date].map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
@@ -530,7 +549,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         <SwipeableRow
                           key={transaction.id}
                           actions={
-                            <div className="flex h-full min-w-max items-stretch rounded-r-lg overflow-hidden shadow-sm border-y border-r" style={{ backgroundColor: "var(--lk-bg)", borderColor: "var(--lk-border)" }}>
+                            <div className="flex h-full min-w-max items-stretch rounded-r-md overflow-hidden border-y border-r" style={{ backgroundColor: "var(--lk-bg)", borderColor: "var(--lk-border)" }}>
                               <DuplicateTransactionButton id={transaction.id} className="h-full px-5 border-r hover:opacity-80 transition-opacity border-[var(--lk-border)] text-[var(--lk-text)]" label="" />
                               <EditTransactionButton id={transaction.id} className="h-full px-5 border-r hover:opacity-80 transition-opacity border-[var(--lk-border)] text-[var(--lk-primary-light)]" label="" />
                               <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:opacity-80 transition-opacity text-[var(--lk-expense)]" label="" />

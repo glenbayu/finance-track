@@ -59,6 +59,7 @@ export default async function MorePage() {
     <AppShell
       className="bg-slate-50/50 dark:bg-slate-950/50"
       activeNav="more"
+      eyebrow="Ruang Pribadi"
       title="Akun Saya"
       description="Kelola profil dan pengaturan aplikasi."
     >

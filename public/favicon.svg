@@ -1,11 +1,25 @@
-<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-  <path d="M13 12C13 8.68629 15.6863 6 19 6H42C47.5228 6 52 10.4772 52 16V45C52 49.4183 48.4183 53 44 53H24C17.9249 53 13 48.0751 13 42V12Z" fill="#FFF9F0"/>
-  <path d="M13 12C13 8.68629 15.6863 6 19 6H24V53H19C15.6863 53 13 50.3137 13 47V12Z" fill="#1D5448"/>
-  <path d="M24 6H42C47.5228 6 52 10.4772 52 16V45C52 49.4183 48.4183 53 44 53H24V6Z" fill="#FFF9F0"/>
-  <path d="M29 6H35V16.5L32 14.4L29 16.5V6Z" fill="#91A783"/>
-  <path d="M27 36L34.2 29.6C34.9581 28.9261 36.0931 28.8999 36.8814 29.538L39.5429 31.6926C40.3483 32.3447 41.5315 32.2872 42.2693 31.5606L49 24.9297" stroke="#1D5448" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/>
-  <circle cx="49" cy="24.5" r="3.5" fill="#1D5448"/>
-  <rect x="29" y="40" width="3.8" height="5.8" rx="1.2" fill="#A7B899"/>
-  <rect x="35.4" y="37.5" width="3.8" height="8.3" rx="1.2" fill="#A7B899"/>
-  <rect x="41.8" y="35" width="3.8" height="10.8" rx="1.2" fill="#A7B899"/>
+﻿<svg width="64" height="64" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background rounded square with gradient -->
+  <defs>
+    <linearGradient id="bgGrad" x1="0" y1="0" x2="64" y2="64" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#1a6b56"/>
+      <stop offset="100%" stop-color="#0f4535"/>
+    </linearGradient>
+    <linearGradient id="lineGrad" x1="12" y1="40" x2="52" y2="22" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#6ee7b7"/>
+      <stop offset="100%" stop-color="#34d399"/>
+    </linearGradient>
+  </defs>
+  <rect width="64" height="64" rx="14" fill="url(#bgGrad)"/>
+  <!-- Subtle inner highlight -->
+  <rect x="0.5" y="0.5" width="63" height="63" rx="13.5" fill="none" stroke="white" stroke-opacity="0.08"/>
+  <!-- Bar chart bars -->
+  <rect x="12" y="38" width="8" height="12" rx="2" fill="white" fill-opacity="0.25"/>
+  <rect x="23" y="29" width="8" height="21" rx="2" fill="white" fill-opacity="0.4"/>
+  <rect x="34" y="34" width="8" height="16" rx="2" fill="white" fill-opacity="0.3"/>
+  <rect x="45" y="22" width="8" height="28" rx="2" fill="url(#lineGrad)"/>
+  <!-- Trend line -->
+  <polyline points="16,37 27,27 38,32 49,20" fill="none" stroke="url(#lineGrad)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Dot at peak -->
+  <circle cx="49" cy="20" r="3" fill="#6ee7b7"/>
 </svg>

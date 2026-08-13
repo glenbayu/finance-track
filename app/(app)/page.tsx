@@ -443,7 +443,7 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
               <MaskedCurrencyAmount
                 amountIDR={balance}
-                valueClassName="text-2xl font-bold"
+                valueClassName="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
                 showLabel="Tampilkan saldo"
                 hideLabel="Sembunyikan saldo"
               />
@@ -479,7 +479,7 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
               <MaskedCurrencyAmount
                 amountIDR={totalIncome}
-                valueClassName="text-2xl font-bold"
+                valueClassName="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
                 showToggle={false}
               />
             </InteractiveDotPanel>
@@ -496,91 +496,112 @@ export default async function Home({ searchParams }: HomeProps) {
 
             <div className="min-w-0 w-full space-y-6">
               <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
-              <MonthlyHistory data={monthlyHistoryData} />
             </div>
           </section>
         </div>
 
         {/* Desktop Bento Grid Layout */}
-        <div className="hidden lg:grid lg:grid-cols-12 gap-5 mt-6 items-stretch [&>*]:min-w-0 [&>*]:w-full">
-          {/* Bento Item 1: Sisa Saldo & Rincian Dompet (lg:col-span-8) */}
-          <InteractiveDotPanel className="stat-card lg:col-span-8 flex flex-col justify-between stagger-1">
-            <div>
-              <div className="mb-3 flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Sisa Saldo Bulan Ini</p>
-                  <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="hover:opacity-70 transition-opacity" title="Atur Dompet">
-                    <Settings size={14} />
-                  </Link>
+        <div className="hidden lg:grid lg:grid-cols-4 gap-4 mt-6 items-start">
+          
+          {/* Main Content Column (Left - col-span-3) */}
+          <div className="lg:col-span-3 flex flex-col gap-4">
+            
+            {/* Top Row: Balance & Income */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Tile 1: Main Balance */}
+              <div className="bento-card col-span-2 flex flex-col justify-between">
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm font-medium" style={{ color: "var(--lk-text-muted)" }}>Sisa Saldo Bulan Ini</p>
+                      <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="hover:text-[var(--lk-text)] transition-colors" title="Atur Dompet">
+                        <Settings size={14} />
+                      </Link>
+                    </div>
+                    <span className="rounded-lg p-2 bg-slate-100 dark:bg-white/5 text-slate-500 dark:text-slate-400">
+                      <Wallet size={16} />
+                    </span>
+                  </div>
+                  <MaskedCurrencyAmount
+                    amountIDR={balance}
+                    valueClassName="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white"
+                    showLabel="Tampilkan saldo"
+                    hideLabel="Sembunyikan saldo"
+                  />
                 </div>
-                <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-surface-hover)", color: "var(--lk-text-muted)" }}>
-                  <Wallet size={14} />
-                </span>
+
+                <div className="mt-8 grid grid-cols-3 gap-4 pt-5 border-t border-slate-100 dark:border-white/5">
+                  <div className="flex flex-col">
+                    <span className="text-xs mb-1" style={{ color: "var(--lk-text-muted)" }}>Cash on Hand</span>
+                    <span className="text-sm font-semibold" style={{ color: walletBalances.cash < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
+                      <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} />
+                    </span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs mb-1" style={{ color: "var(--lk-text-muted)" }}>M-Bank/E-Wallet</span>
+                    <span className="text-sm font-semibold" style={{ color: walletBalances.bank < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
+                      <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} />
+                    </span>
+                  </div>
+                  <div className="flex flex-col">
+                    <span className="text-xs mb-1" style={{ color: "var(--lk-text-muted)" }}>Saldo Tertahan</span>
+                    <span className="text-sm font-semibold" style={{ color: walletBalances.receivable < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
+                      <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} />
+                    </span>
+                  </div>
+                </div>
               </div>
-              <MaskedCurrencyAmount
-                amountIDR={balance}
-                valueClassName="text-3xl font-bold"
-                showLabel="Tampilkan saldo"
-                hideLabel="Sembunyikan saldo"
-              />
+
+              {/* Tile 2: Pemasukan */}
+              <div className="bento-card col-span-1 flex flex-col justify-between">
+                <div>
+                  <div className="mb-4 flex items-center justify-between">
+                    <p className="text-sm font-medium" style={{ color: "var(--lk-text-muted)" }}>Pemasukan</p>
+                    <span className="rounded-lg p-2 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                      <ArrowUpRight size={16} />
+                    </span>
+                  </div>
+                  <MaskedCurrencyAmount
+                    amountIDR={totalIncome}
+                    valueClassName="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
+                    showToggle={false}
+                  />
+                </div>
+                
+                <div className="mt-8 pt-5 border-t border-slate-100 dark:border-white/5">
+                  <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Status Finansial</span>
+                  <p className="text-sm font-semibold mt-1" style={{ color: totalIncome >= totalExpense ? "var(--lk-income)" : "var(--lk-expense)" }}>
+                    {totalIncome >= totalExpense ? "Surplus Bulan Ini" : "Defisit Bulan Ini"}
+                  </p>
+                </div>
+              </div>
             </div>
 
-            <div className="mt-6 grid grid-cols-3 gap-4 pt-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
-              <div className="flex flex-col">
-                <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Cash on Hand</span>
-                <span className="text-base font-semibold" style={{ color: walletBalances.cash < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
-                  <MaskedCurrencyAmount amountIDR={walletBalances.cash} showToggle={false} />
-                </span>
+            {/* Middle Row: Pie Chart (50%) & Top Categories (50%) */}
+            <div className="grid grid-cols-2 gap-4 items-start">
+              {/* Tile 4: Pie Chart */}
+              <div className="bento-card !p-0">
+                <ExpenseChart data={expenseChartData} />
               </div>
-              <div className="flex flex-col">
-                <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>M-Bank/E-Wallet</span>
-                <span className="text-base font-semibold" style={{ color: walletBalances.bank < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
-                  <MaskedCurrencyAmount amountIDR={walletBalances.bank} showToggle={false} />
-                </span>
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Saldo Tertahan</span>
-                <span className="text-base font-semibold" style={{ color: walletBalances.receivable < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
-                  <MaskedCurrencyAmount amountIDR={walletBalances.receivable} showToggle={false} />
-                </span>
+
+              {/* Tile 5: Top Categories */}
+              <div className="bento-card !p-0">
+                <TopSpendingInsight data={topSpendingData} totalExpense={totalExpense} />
               </div>
             </div>
-          </InteractiveDotPanel>
 
-          {/* Bento Item 2: Pemasukan Bulan Ini (lg:col-span-4) */}
-          <InteractiveDotPanel className="stat-card lg:col-span-4 flex flex-col justify-between stagger-2">
-            <div className="mb-3 flex items-center justify-between">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Pemasukan Bulan Ini</p>
-              <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-income-bg)", color: "var(--lk-income)" }}>
-                <ArrowUpRight size={14} />
-              </span>
-            </div>
-            <div className="mb-4">
-              <MaskedCurrencyAmount
-                amountIDR={totalIncome}
-                valueClassName="text-3xl font-bold"
-                showToggle={false}
-              />
-            </div>
-            <div className="pt-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
-              <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Status Finansial</span>
-              <p className="text-sm font-semibold mt-1" style={{ color: totalIncome >= totalExpense ? "var(--lk-income)" : "var(--lk-expense)" }}>
-                {totalIncome >= totalExpense ? "Surplus" : "Defisit"}
-              </p>
-            </div>
-          </InteractiveDotPanel>
-
-          {/* Bento Items 3-6: 2 kolom vertikal (kiri: Chart+Trend, kanan: QuickAdd+TopSpending) */}
-          <div className="lg:col-span-12 grid grid-cols-12 gap-5 items-start">
-
-            {/* Kolom kiri: ExpenseChart + MonthlyTrend */}
-            <div className="col-span-7 flex flex-col gap-5 min-w-0 stagger-3">
-              <ExpenseChart data={expenseChartData} />
+            {/* Bottom Row: Expense Trend - full width */}
+            <div className="bento-card">
               <MonthlyExpenseTrend data={monthlyExpenseTrendData} />
             </div>
 
-            {/* Kolom kanan: QuickAdd + TopSpending (langsung di bawahnya) */}
-            <div className="col-span-5 flex flex-col gap-5 min-w-0 stagger-4">
+            
+          </div>
+
+          {/* Sidebar Column (Right - col-span-1) */}
+          <div className="lg:col-span-1 flex flex-col gap-4">
+            {/* Tile 3: Quick Add */}
+            <div className="bento-card !p-0">
               <QuickAddTransaction
                 categories={categories ?? []}
                 action={quickAddTransaction}
@@ -589,14 +610,14 @@ export default async function Home({ searchParams }: HomeProps) {
                 createFromTemplateAction={createTransactionFromTemplate}
                 undoFromTemplateAction={undoQuickAddTransaction}
               />
-              <TopSpendingInsight data={topSpendingData} totalExpense={totalExpense} />
+            </div>
+
+            {/* Monthly History (Moved from bottom left) */}
+            <div className="bento-card !p-0">
+              <MonthlyHistory data={monthlyHistoryData} />
             </div>
           </div>
 
-          {/* Bento Item 7: Monthly History (lg:col-span-12) */}
-          <div className="lg:col-span-12 min-w-0 w-full stagger-5">
-            <MonthlyHistory data={monthlyHistoryData} />
-          </div>
         </div>
 
 

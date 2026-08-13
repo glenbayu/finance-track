@@ -10,6 +10,8 @@ create table if not exists public.quick_add_templates (
   color text null,
   is_active boolean not null default true,
   sort_order integer not null default 0,
+  use_count integer not null default 0,
+  last_used_at timestamptz null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -22,6 +24,12 @@ create index if not exists quick_add_templates_user_active_idx
 
 create index if not exists quick_add_templates_user_sort_idx
   on public.quick_add_templates (user_id, sort_order);
+
+create index if not exists quick_add_templates_user_use_count_idx
+  on public.quick_add_templates (user_id, use_count desc);
+
+create index if not exists quick_add_templates_user_last_used_idx
+  on public.quick_add_templates (user_id, last_used_at desc);
 
 create or replace function public.set_quick_add_templates_updated_at()
 returns trigger

@@ -21,7 +21,7 @@ export default function LogoutButton({
   iconOnly = false,
 }: LogoutButtonProps) {
   return (
-    <form action={logout}>
+    <form action={logout} style={{ display: "contents" }}>
       <SubmitButton
         className={className}
         pendingContent={

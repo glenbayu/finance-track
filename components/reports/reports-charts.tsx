@@ -39,7 +39,7 @@ type ReportsChartsProps = {
   trendMonths: number;
 };
 
-const CATEGORY_COLORS = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
+const CATEGORY_COLORS = ["#0f766e", "#0d9488", "#14b8a6", "#5eead4", "#94a3b8", "#475569"];
 
 function compactCurrency(value: number) {
   return new Intl.NumberFormat("id-ID", {

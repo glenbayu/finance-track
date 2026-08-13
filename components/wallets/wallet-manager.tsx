@@ -15,6 +15,8 @@ type WalletRow = {
   type: string;
   usageCount: number;
   balance: number;
+  is_rollover_enabled: boolean;
+  admin_fee_amount: number;
 };
 
 type WalletManagerProps = {
@@ -60,6 +62,8 @@ export default function WalletManager({ wallets, createAction, editAction, delet
   const [walletToAdjust, setWalletToAdjust] = useState<WalletRow | null>(null);
   const [adjustAmountDisplay, setAdjustAmountDisplay] = useState("");
   
+  const [isRolloverEnabled, setIsRolloverEnabled] = useState(false);
+  
   const [errorMsg, setErrorMsg] = useState("");
 
   const groupedWallets = useMemo(() => {
@@ -81,12 +85,14 @@ export default function WalletManager({ wallets, createAction, editAction, delet
 
   const openCreateModal = () => {
     setEditingWallet(null);
+    setIsRolloverEnabled(false);
     setErrorMsg("");
     setIsModalOpen(true);
   };
 
   const openEditModal = (wallet: WalletRow) => {
     setEditingWallet(wallet);
+    setIsRolloverEnabled(wallet.is_rollover_enabled);
     setErrorMsg("");
     setIsModalOpen(true);
   };
@@ -231,6 +237,37 @@ export default function WalletManager({ wallets, createAction, editAction, delet
             <button onClick={openCreateModal} className="btn-primary flex w-full justify-center items-center gap-2 py-3 rounded-md text-[14px]">
               <Plus size={16} /> Tambah Dompet Baru
             </button>
+
+            <div className="mt-5 space-y-3 pt-4 border-t" style={{ borderColor: "var(--lk-border)" }}>
+              <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--lk-text-muted)" }}>Tipe Dompet</p>
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)" }}>
+                  <Wallet size={14} className="text-emerald-600 dark:text-emerald-400" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-semibold" style={{ color: "var(--lk-text)" }}>Cash / Tunai</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>Uang fisik di dompet atau laci</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)" }}>
+                  <Landmark size={14} className="text-blue-600 dark:text-blue-400" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-semibold" style={{ color: "var(--lk-text)" }}>Bank & E-Wallet</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>Rekening, GoPay, OVO, dll. Mendukung biaya admin bulanan otomatis.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)" }}>
+                  <HandCoins size={14} className="text-amber-600 dark:text-amber-400" />
+                </div>
+                <div>
+                  <p className="text-[13px] font-semibold" style={{ color: "var(--lk-text)" }}>Saldo Tertahan</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>Piutang, dana darurat, atau saldo yang sementara dipegang orang lain</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
@@ -293,6 +330,46 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                   options={WALLET_TYPES}
                   required
                 />
+              </div>
+
+              <div className="pt-2 pb-2 rounded-lg border border-slate-200 dark:border-slate-800 p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label htmlFor="is_rollover_enabled" className="text-sm font-medium text-slate-900 dark:text-slate-100 cursor-pointer block">
+                      Auto-Rollover & Biaya Admin
+                    </label>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Potong admin otomatis di akhir bulan</p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input 
+                      type="checkbox" 
+                      id="is_rollover_enabled"
+                      name="is_rollover_enabled" 
+                      className="sr-only peer" 
+                      checked={isRolloverEnabled}
+                      onChange={(e) => setIsRolloverEnabled(e.target.checked)}
+                    />
+                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer dark:bg-slate-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-slate-600 peer-checked:bg-teal-600"></div>
+                  </label>
+                </div>
+                
+                {isRolloverEnabled && (
+                  <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
+                    <label className="mb-2 block text-sm font-medium">Nominal Biaya Admin</label>
+                    <div className="relative">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
+                      <input
+                        type="number"
+                        name="admin_fee_amount"
+                        defaultValue={editingWallet ? editingWallet.admin_fee_amount : 6000}
+                        placeholder="Contoh: 6000"
+                        className="input-base pl-9"
+                        min="0"
+                        required
+                      />
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="pt-2">

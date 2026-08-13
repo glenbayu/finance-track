@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import DesktopSidebar from "@/components/layout/desktop-sidebar";
+import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 
 export default async function ProtectedAppLayout({ children }: { children: ReactNode }) {
 
@@ -14,10 +15,11 @@ export default async function ProtectedAppLayout({ children }: { children: React
           /* On lg screens, offset content by sidebar width */
         }}
       >
-        <div className="lg:pl-[220px] min-h-full">
+        <div className="lg:pl-[272px] min-h-full">
           {children}
         </div>
       </main>
+      <MobileBottomNav className="lg:hidden" />
     </div>
   );
 }

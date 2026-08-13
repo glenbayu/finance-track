@@ -4,6 +4,8 @@ create table if not exists public.wallets (
     user_id uuid references auth.users(id) on delete cascade not null,
     name text not null,
     type text not null default 'cash', -- Menggunakan tipe TEXT agar fleksibel
+    is_rollover_enabled boolean not null default false,
+    admin_fee_amount numeric not null default 0,
     created_at timestamp with time zone default timezone('utc'::text, now()) not null,
     updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
@@ -52,3 +54,9 @@ where t.user_id = w.user_id
 -- Make wallet_id NOT NULL for future data integrity if desired
 -- Wait, let's not make it not null immediately if we are not sure all users have wallets.
 -- However, we just seeded them. So it's safe. But to be safer, we can leave it nullable for now.
+
+-- Enable rollover on existing bank wallets for seamless transition
+update public.wallets
+set is_rollover_enabled = true,
+    admin_fee_amount = 6000
+where type = 'bank';

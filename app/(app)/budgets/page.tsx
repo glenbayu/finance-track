@@ -291,11 +291,30 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
           </section>
 
           {!hasAnyBudget ? (
-            <section className="mt-6 rounded-md p-6" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-              <h3 className="text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>Belum ada budget tersimpan</h3>
-              <p className="mt-2 text-sm" style={{ color: "var(--lk-text-muted)" }}>
-                Isi nominal budget pada kategori di bawah, lalu klik Simpan. Sistem akan membandingkan realisasi pengeluaranmu secara otomatis.
+            <section className="mt-6 rounded-xl p-8 text-center" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: "var(--lk-primary-dim)" }}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--lk-primary-light)" }}>
+                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <h3 className="text-[16px] font-semibold" style={{ color: "var(--lk-text)" }}>Belum ada anggaran tersimpan</h3>
+              <p className="mt-2 text-sm max-w-md mx-auto" style={{ color: "var(--lk-text-muted)" }}>
+                Buka kategori di bawah untuk menetapkan batas pengeluaran. Sistem akan membandingkan realisasi pengeluaranmu secara otomatis setiap bulan.
               </p>
+              <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto">
+                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <p className="text-2xl font-bold mb-1" style={{ color: "var(--lk-primary-light)" }}>1</p>
+                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Buka kategori</p>
+                </div>
+                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <p className="text-2xl font-bold mb-1" style={{ color: "var(--lk-primary-light)" }}>2</p>
+                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Isi nominal</p>
+                </div>
+                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <p className="text-2xl font-bold mb-1" style={{ color: "var(--lk-primary-light)" }}>3</p>
+                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Klik Simpan</p>
+                </div>
+              </div>
             </section>
           ) : (
             <section className="mt-6">

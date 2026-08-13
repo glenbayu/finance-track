@@ -32,7 +32,7 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
   // 1. Ambil semua wallet user
   const { data: wallets } = await supabase
     .from("wallets")
-    .select("id, name, type")
+    .select("id, name, type, is_rollover_enabled, admin_fee_amount, created_at")
     .eq("user_id", userId);
 
   if (!wallets || wallets.length === 0) return;
@@ -79,14 +79,19 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
     (existingAdminFees ?? []).map((tx) => tx.wallet_id)
   );
 
+  const currentMonthStart = `${currentMonth}-01T00:00:00.000Z`;
+
   for (const wallet of wallets) {
-    if (wallet.type === "bank" && !existingAdminWalletIds.has(wallet.id)) {
+    // Lewati dompet yang baru dibuat bulan ini
+    if (new Date(wallet.created_at) >= new Date(currentMonthStart)) continue;
+
+    if (wallet.is_rollover_enabled && Number(wallet.admin_fee_amount) > 0 && !existingAdminWalletIds.has(wallet.id)) {
       await supabase
         .from("transactions")
         .insert({
           user_id: userId,
           type: "expense",
-          amount: 6000,
+          amount: Number(wallet.admin_fee_amount),
           wallet_id: wallet.id,
           note: "Biaya Admin Rekening",
           transaction_date: lastDayOfPreviousMonth,
@@ -117,6 +122,9 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
 
   // --- STAGE 3: HITUNG SALDO & BUAT ROLLOVER PER WALLET ---
   for (const wallet of wallets) {
+    // Lewati dompet yang baru dibuat bulan ini
+    if (new Date(wallet.created_at) >= new Date(currentMonthStart)) continue;
+
     let balance = 0;
 
     for (const tx of prevTxs) {

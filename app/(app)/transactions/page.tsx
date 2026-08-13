@@ -544,13 +544,13 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
           </div>
         ) : (
           <>
-            <div className="space-y-6 p-3 md:hidden">
+            <div className="space-y-6 md:hidden">
               {sortedDates.map((date) => (
-                <section key={date} className="space-y-2">
-                  <h3 className="px-2 text-[13px] font-semibold uppercase tracking-wider" style={{ color: "var(--lk-text-muted)" }}>
+                <section key={date} className="space-y-3">
+                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-1">
                     {formatDate(date)}
                   </h3>
-                  <div className="overflow-hidden rounded-md" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+                  <div className="flex flex-col gap-2">
                     {groupedTransactions[date].map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
@@ -560,19 +560,19 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         <SwipeableRow
                           key={transaction.id}
                           actions={
-                            <div className="flex h-full min-w-max items-stretch rounded-r-md overflow-hidden border-y border-r" style={{ backgroundColor: "var(--lk-bg)", borderColor: "var(--lk-border)" }}>
-                              <DuplicateTransactionButton id={transaction.id} className="h-full px-5 border-r hover:opacity-80 transition-opacity border-[var(--lk-border)] text-[var(--lk-text)]" label="" />
-                              <EditTransactionButton id={transaction.id} className="h-full px-5 border-r hover:opacity-80 transition-opacity border-[var(--lk-border)] text-[var(--lk-primary-light)]" label="" />
-                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:opacity-80 transition-opacity text-[var(--lk-expense)]" label="" />
+                            <div className="flex h-full min-w-max items-stretch rounded-r-xl overflow-hidden border-y border-r border-slate-200 dark:border-slate-800">
+                              <DuplicateTransactionButton id={transaction.id} className="h-full px-5 border-r border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors" label="" />
+                              <EditTransactionButton id={transaction.id} className="h-full px-5 border-r border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-teal-700 dark:text-teal-400 transition-colors" label="" />
+                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors" label="" />
                             </div>
                           }
                           actionWidth={200}
                         >
-                          <Link href={`/transactions/${transaction.id}/edit`} className="block active:opacity-75 transition-colors" style={{ borderBottom: "1px solid var(--lk-border)" }}>
-                            <article className="px-4 py-3 select-none hover-bg-surface-hover">
+                          <Link href={`/transactions/${transaction.id}/edit`} className="block group">
+                            <article className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#0a0a0a] hover:bg-slate-50 dark:hover:bg-[#111] transition-colors">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
-                                  <p className="truncate font-semibold text-[15px]" style={{ color: "var(--lk-text)" }}>
+                                  <p className="truncate font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
                                     {transaction.type === "transfer" 
                                       ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
                                       : transaction.type === "adjustment"
@@ -581,29 +581,22 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                                       ? highlightText(category.name, highlightQuery)
                                       : "Tanpa kategori"}
                                   </p>
-                                  <p className="mt-0.5 text-xs break-words line-clamp-1" style={{ color: "var(--lk-text-muted)" }}>
+                                  <p className="mt-0.5 text-xs break-words line-clamp-1 text-slate-500 dark:text-slate-400">
                                     {transaction.note
                                       ? highlightText(transaction.note, highlightQuery)
                                       : <span className="italic opacity-50">Tanpa catatan</span>}
                                   </p>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-1 shrink-0">
-                                  <p
-                                    className="whitespace-nowrap text-[15px] font-semibold"
-                                    style={{
-                                      color: transaction.type === "income" ? "var(--lk-income)" :
-                                        transaction.type === "expense" ? "var(--lk-expense)" :
-                                          "var(--lk-text)"
-                                    }}
-                                  >
+                                <div className="flex flex-col items-end gap-1.5 shrink-0">
+                                  <p className="whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-100">
                                     {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                                     <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
                                   </p>
                                   <span className={
-                                    transaction.type === "income" ? "chip-income text-[10px] py-[2px]" :
-                                      transaction.type === "expense" ? "chip-expense text-[10px] py-[2px]" :
-                                        "chip-default text-[10px] py-[2px]"
+                                    transaction.type === "income" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100" : 
+                                    transaction.type === "expense" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100" : 
+                                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
                                   }>
                                     {transaction.type === "income" ? "Pemasukan" :
                                       transaction.type === "expense" ? "Pengeluaran" :
@@ -622,37 +615,37 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
             </div>
 
             <div className="hidden overflow-x-auto md:block">
-              <table className="min-w-full text-sm">
-                <thead className="text-left" style={{ backgroundColor: "var(--lk-surface)", borderBottom: "1px solid var(--lk-border)" }}>
-                  <tr>
-                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Tanggal</th>
-                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Tipe</th>
-                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Kategori</th>
-                    <th className="px-4 py-3 font-semibold" style={{ color: "var(--lk-text)" }}>Catatan</th>
-                    <th className="px-4 py-3 text-right font-semibold" style={{ color: "var(--lk-text)" }}>Jumlah</th>
-                    <th className="px-4 py-3 text-right font-semibold" style={{ color: "var(--lk-text)" }}>Aksi</th>
+              <table className="w-full caption-bottom text-sm border-collapse">
+                <thead className="[&_tr]:border-b border-slate-200 dark:border-slate-800/60">
+                  <tr className="border-b transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-800/50">
+                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Tanggal</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Tipe</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Kategori</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Catatan</th>
+                    <th className="h-12 px-4 text-right align-middle font-medium text-slate-500 dark:text-slate-400">Jumlah</th>
+                    <th className="h-12 px-4 text-right align-middle font-medium text-slate-500 dark:text-slate-400">Aksi</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="[&_tr:last-child]:border-0">
                   {paginatedTransactions.map((transaction) => {
                     const category = toCategory(transaction.categories);
                     return (
-                      <tr key={transaction.id} style={{ borderBottom: "1px solid var(--lk-border)" }}>
-                        <td className="px-4 py-3" style={{ color: "var(--lk-text)" }}>
+                      <tr key={transaction.id} className="border-b border-slate-200 dark:border-slate-800/60 transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/50">
+                        <td className="p-4 align-middle font-medium text-slate-900 dark:text-slate-100">
                           {formatDate(transaction.transaction_date)}
                         </td>
-                        <td className="px-4 py-3">
+                        <td className="p-4 align-middle">
                           <span className={
-                            transaction.type === "income" ? "chip-income" : 
-                            transaction.type === "expense" ? "chip-expense" : 
-                            "chip-default"
+                            transaction.type === "income" ? "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700" : 
+                            transaction.type === "expense" ? "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700" : 
+                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700"
                           }>
                             {transaction.type === "income" ? "Pemasukan" : 
                              transaction.type === "expense" ? "Pengeluaran" : 
                              transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
                           </span>
                         </td>
-                        <td className="px-4 py-3" style={{ color: "var(--lk-text)" }}>
+                        <td className="p-4 align-middle text-slate-600 dark:text-slate-300">
                           {transaction.type === "transfer" 
                             ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
                             : transaction.type === "adjustment"
@@ -661,19 +654,15 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                             ? highlightText(category.name, highlightQuery)
                             : "Tanpa kategori"}
                         </td>
-                        <td className="px-4 py-3" style={{ color: "var(--lk-text-muted)" }}>
+                        <td className="p-4 align-middle text-slate-500 dark:text-slate-400 text-sm">
                           {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}
                         </td>
-                        <td className="px-4 py-3 text-right font-semibold" style={{
-                          color: transaction.type === "income" ? "var(--lk-income)" : 
-                          transaction.type === "expense" ? "var(--lk-expense)" : 
-                          "var(--lk-text)"
-                        }}>
+                        <td className="p-4 align-middle text-right font-medium text-slate-900 dark:text-slate-100">
                           {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                           <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                         </td>
-                        <td className="px-4 py-3 text-right">
-                          <div className="flex justify-end gap-2">
+                        <td className="p-4 align-middle text-right">
+                          <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity [&:focus-within]:opacity-100 sm:opacity-100">
                             <DuplicateTransactionButton id={transaction.id} />
                             <EditTransactionButton id={transaction.id} />
                             <DeleteTransactionButton id={transaction.id} action={deleteTransaction} />

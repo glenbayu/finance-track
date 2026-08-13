@@ -282,8 +282,9 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
     <AppShell
       className="journal-entry"
       containerClassName="max-w-6xl"
-      contentClassName="max-w-xl mx-auto"
+      contentClassName="max-w-lg mx-auto"
       activeNav="add"
+      eyebrow="Catat Transaksi"
       title="Tambah Transaksi"
       description="Catat pemasukan atau pengeluaran baru."
       layoutStyle="default"

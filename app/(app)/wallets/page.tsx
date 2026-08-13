@@ -29,7 +29,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
 
   const { data: wallets, error } = await supabase
     .from("wallets")
-    .select("id, name, type, created_at")
+    .select("id, name, type, created_at, is_rollover_enabled, admin_fee_amount")
     .eq("user_id", user.id)
     .order("type", { ascending: true })
     .order("name", { ascending: true });
@@ -124,7 +124,9 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     const { error } = await supabase.from("wallets").insert({
       user_id: user.id,
       name,
-      type
+      type,
+      is_rollover_enabled: formData.get("is_rollover_enabled") === "on",
+      admin_fee_amount: Number(formData.get("admin_fee_amount") || 0)
     });
     if (error) throw new Error(error.message);
     await revalidateWalletRelatedPaths();
@@ -142,6 +144,8 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     const { error } = await supabase.from("wallets").update({
       name,
       type,
+      is_rollover_enabled: formData.get("is_rollover_enabled") === "on",
+      admin_fee_amount: Number(formData.get("admin_fee_amount") || 0),
       updated_at: new Date().toISOString()
     }).eq("id", id).eq("user_id", user.id);
     

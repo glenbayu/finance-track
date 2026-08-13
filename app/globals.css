@@ -31,26 +31,32 @@ html {
    "The Quiet Advisor" — Professional, Calm, Trustworthy
    ══════════════════════════════════════════════ */
 :root {
-  /* Light — calm, precise finance workspace */
-  --lk-bg:              #f7f8f6;
+  /* Strict Monochrome Base */
+  --lk-bg:              #f8fafc;
   --lk-surface:         #ffffff;
-  --lk-surface-raised:  #f0f2ef;
-  --lk-surface-hover:   #e8ece8;
-  --lk-border:          #d8ded9;
-  --lk-border-strong:   #b8c2ba;
-  --lk-primary:         #2d6a4f;
-  --lk-primary-hover:   #24573f;
-  --lk-primary-light:   #1f5a41;
-  --lk-primary-dim:     rgba(45, 106, 79, 0.12);
-  --lk-text:            #17221b;
-  --lk-text-muted:      #657067;
-  --lk-text-faint:      #8d978f;
-  --lk-income:          #18794e;
-  --lk-income-bg:       rgba(24, 121, 78, 0.10);
-  --lk-expense:         #ba3d35;
-  --lk-expense-bg:      rgba(186, 61, 53, 0.10);
-  --lk-amber:           #a86500;
-  --lk-amber-bg:        rgba(168, 101, 0, 0.10);
+  --lk-surface-raised:  #f1f5f9;
+  --lk-surface-hover:   #e2e8f0;
+  --lk-border:          #e2e8f0;
+  --lk-border-strong:   #cbd5e1;
+  
+  /* Primary Accent: Deep Teal */
+  --lk-primary:         #0f766e;
+  --lk-primary-hover:   #0d9488;
+  --lk-primary-light:   #115e59;
+  --lk-primary-dim:     rgba(15, 118, 110, 0.12);
+  
+  /* Monochrome Text */
+  --lk-text:            #0f172a;
+  --lk-text-muted:      #64748b;
+  --lk-text-faint:      #94a3b8;
+  
+  /* Muted Financial Colors (for strict monochrome, we keep these very subtle) */
+  --lk-income:          #0f172a; /* Changed to dark text instead of green */
+  --lk-income-bg:       rgba(15, 23, 42, 0.05);
+  --lk-expense:         #475569; /* Muted slate for expense */
+  --lk-expense-bg:      rgba(71, 85, 105, 0.05);
+  --lk-amber:           #0f172a;
+  --lk-amber-bg:        rgba(15, 23, 42, 0.05);
 
   --background: var(--lk-bg);
   --foreground: var(--lk-text);
@@ -74,26 +80,32 @@ html {
 }
 
 .dark {
-  /* Dark — Stitch's Quiet Advisor palette */
-  --lk-bg:              #131313;
-  --lk-surface:         #1c1b1b;
-  --lk-surface-raised:  #201f1f;
-  --lk-surface-hover:   #2a2a2a;
-  --lk-border:          #404943;
-  --lk-border-strong:   #59635c;
-  --lk-primary:         #2d6a4f;
-  --lk-primary-hover:   #39795b;
-  --lk-primary-light:   #95d4b3;
-  --lk-primary-dim:     rgba(149, 212, 179, 0.12);
-  --lk-text:            #e5e2e1;
-  --lk-text-muted:      #bfc9c1;
-  --lk-text-faint:      #7f8982;
-  --lk-income:          #75daa8;
-  --lk-income-bg:       rgba(117, 218, 168, 0.10);
-  --lk-expense:         #ffb4ab;
-  --lk-expense-bg:      rgba(255, 180, 171, 0.10);
-  --lk-amber:           #ffba27;
-  --lk-amber-bg:        rgba(255, 186, 39, 0.10);
+  /* Strict Monochrome Base (Pitch Black) */
+  --lk-bg:              #000000;
+  --lk-surface:         #0a0a0a;
+  --lk-surface-raised:  #111111;
+  --lk-surface-hover:   #1a1a1a;
+  --lk-border:          #222222;
+  --lk-border-strong:   #333333;
+  
+  /* Primary Accent: Deep Teal */
+  --lk-primary:         #0f766e;
+  --lk-primary-hover:   #0d9488;
+  --lk-primary-light:   #134e4a;
+  --lk-primary-dim:     rgba(15, 118, 110, 0.2);
+  
+  /* Monochrome Text */
+  --lk-text:            #f8fafc;
+  --lk-text-muted:      #94a3b8;
+  --lk-text-faint:      #64748b;
+  
+  /* Muted Financial Colors */
+  --lk-income:          #f8fafc;
+  --lk-income-bg:       rgba(248, 250, 252, 0.05);
+  --lk-expense:         #94a3b8;
+  --lk-expense-bg:      rgba(148, 163, 184, 0.05);
+  --lk-amber:           #f8fafc;
+  --lk-amber-bg:        rgba(248, 250, 252, 0.05);
   color-scheme: dark;
 }
 
@@ -267,18 +279,22 @@ button,
 
   /* ── Compact App Hero ── */
   .app-hero {
-    position: sticky;
-    top: 0;
-    z-index: 30;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 1rem;
     padding: 1rem 1.5rem;
-    border-bottom: 1px solid var(--lk-border);
+    border-radius: 1rem;
+    border: 1px solid color-mix(in srgb, var(--lk-border) 80%, var(--lk-primary) 20%);
+    box-shadow:
+      0 4px 20px rgba(0, 0, 0, 0.07),
+      0 1px 4px rgba(0, 0, 0, 0.05),
+      inset 0 1px 0 rgba(255, 255, 255, 0.6);
     background:
-      radial-gradient(circle at 0% 0%, var(--lk-primary-dim), transparent 34rem),
-      linear-gradient(135deg, color-mix(in srgb, var(--lk-surface) 94%, var(--lk-primary) 6%), var(--lk-bg));
+      radial-gradient(ellipse at 5% 0%, color-mix(in srgb, var(--lk-primary-dim) 80%, transparent), transparent 55%),
+      var(--lk-surface);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
   }
 
   .app-hero--stacked {
@@ -300,7 +316,7 @@ button,
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    border-radius: 1rem;
+    border-radius: 0.85rem;
     color: var(--lk-primary-light);
     background-color: var(--lk-primary-dim);
     border: 1px solid color-mix(in srgb, var(--lk-primary) 28%, transparent);
@@ -309,9 +325,9 @@ button,
 
   .app-hero__eyebrow {
     margin-bottom: 0.2rem;
-    font-size: 0.68rem;
+    font-size: 0.65rem;
     font-weight: 800;
-    letter-spacing: 0.12em;
+    letter-spacing: 0.14em;
     text-transform: uppercase;
     color: var(--lk-primary-light);
   }
@@ -367,6 +383,11 @@ button,
   }
 
   @media (min-width: 1024px) {
+    .app-hero {
+      border-radius: 1.25rem;
+      padding: 1.1rem 1.75rem;
+    }
+
     .app-hero__aside {
       min-width: 0;
       display: flex;
@@ -383,6 +404,8 @@ button,
 
   @media (max-width: 640px) {
     .app-hero {
+      margin: 0.5rem 0.5rem 0;
+      border-radius: 0.875rem;
       padding: 0.9rem 1rem;
     }
 
@@ -408,6 +431,48 @@ button,
     background-color: var(--lk-surface-raised);
     border: 1px solid var(--lk-border);
     border-radius: 0.5rem;
+  }
+
+  .card-premium {
+    background: #ffffff;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+    border-radius: 12px;
+  }
+
+  .dark .card-premium {
+    background: var(--lk-surface);
+    border-color: var(--lk-border);
+    box-shadow: none;
+  }
+
+  .bento-card {
+    background: var(--lk-surface);
+    border: 1px solid var(--lk-border);
+    border-radius: 16px;
+    padding: 1.25rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.2s ease-in-out;
+  }
+  
+  .dark .bento-card {
+    background: #0a0a0a;
+    border-color: #222222;
+  }
+
+  .glass-panel {
+    background: rgba(255, 255, 255, 0.7);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(0,0,0,0.05);
+  }
+
+  .dark .glass-panel {
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255,255,255,0.05);
   }
 
   /* Legacy .section-card — maps to lk-panel */
@@ -806,17 +871,20 @@ button,
     display: flex;
     align-items: center;
     gap: 0.625rem;
-    border-radius: 0.375rem;
+    /* mx-1 ensures highlight never touches sidebar edges */
+    margin: 0.0625rem 0.375rem;
+    border-radius: 0.625rem;
     padding: 0.5rem 0.75rem;
-    font-size: 0.875rem;
+    font-size: 0.8125rem;
     font-weight: 500;
     color: var(--lk-text-muted);
-    transition: background-color 120ms ease, color 120ms ease;
+    transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
     text-decoration: none;
+    position: relative;
   }
 
   .app-shell-nav-link:hover {
-    background-color: var(--lk-surface-hover);
+    background-color: color-mix(in srgb, var(--lk-surface-hover) 70%, transparent);
     color: var(--lk-text);
   }
 
@@ -826,19 +894,31 @@ button,
     font-weight: 600;
   }
 
-  /* Dark override — same (dark-only) */
+  /* Active left accent bar */
+  .app-shell-nav-link.is-active::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 25%;
+    height: 50%;
+    width: 3px;
+    border-radius: 0 2px 2px 0;
+    background-color: var(--lk-primary);
+  }
+
+  /* Dark override */
   .dark .app-shell-nav-link {
     color: var(--lk-text-muted);
   }
 
   .dark .app-shell-nav-link:hover {
-    background-color: var(--lk-surface-hover);
+    background-color: color-mix(in srgb, var(--lk-surface-hover) 60%, transparent);
     color: var(--lk-text);
   }
 
   .dark .app-shell-nav-link.is-active {
     background-color: var(--lk-primary-dim);
-    color: var(--lk-primary-light);
+    color: color-mix(in srgb, var(--lk-primary-hover) 90%, white 10%);
   }
 
   /* ── Mobile Dock ── */

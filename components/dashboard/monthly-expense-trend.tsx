@@ -2,12 +2,11 @@
 
 import {
   ResponsiveContainer,
-  BarChart,
-  Bar,
+  AreaChart,
+  Area,
   XAxis,
   YAxis,
   Tooltip,
-  CartesianGrid,
 } from "recharts";
 import { convertFromIDR, formatCurrency } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
@@ -58,14 +57,14 @@ function ExpenseTrendTooltip({
     <div
       className={`rounded-xl border border-slate-200/50 px-3 py-2 shadow-md ${
         isAndroid
-          ? "bg-white dark:bg-[#0a0c10]"
-          : "bg-white/75 backdrop-blur-md dark:bg-[#0a0c10]/75"
-      } dark:border-white/5`}
+          ? "bg-white dark:bg-[#0a0a0a]"
+          : "bg-white/80 backdrop-blur-md dark:bg-[#0a0a0a]/80"
+      } dark:border-slate-800/60`}
     >
-      <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+      <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">
         {String(label ?? "")}
       </p>
-      <p className="mt-0.5 text-sm font-semibold font-mono text-rose-600 dark:text-rose-500">
+      <p className="mt-0.5 text-sm font-medium font-mono text-teal-700 dark:text-teal-400">
         {formatCurrency(amount, currency)}
       </p>
     </div>
@@ -96,62 +95,68 @@ export default function MonthlyExpenseTrend({
     label: formatMonthLabel(item.month),
   }));
 
-  // Dark: alert red for expenses; Light: trust blue
-  const barFill = isDark ? "#dc2626" : "#2563eb";
-  const cursorFill = isDark ? "rgba(220, 38, 38, 0.1)" : "rgba(37, 99, 235, 0.08)";
+  // Deep Teal for AreaChart
+  const strokeColor = isDark ? "#2dd4bf" : "#0f766e";
 
   return (
-    <div className="section-card">
-      <div className="mb-3">
-        <h2 className="text-xl font-semibold">Trend Pengeluaran Bulanan</h2>
-        <p className="text-sm text-slate-500 dark:text-slate-400">
-          Perbandingan total pengeluaran beberapa bulan terakhir
-        </p>
+    <div className="flex flex-col h-full w-full">
+      <div className="mb-6 pl-2">
+        <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">Trend Pengeluaran Bulanan</h3>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Perbandingan total pengeluaran beberapa bulan terakhir</p>
       </div>
 
-      {!chartData.length ? (
-        <p className="text-sm text-slate-500 dark:text-slate-400">Belum ada data pengeluaran.</p>
-      ) : !mounted ? (
-        /* GPU Accelerated Placeholder height matching the chart to prevent Layout Shift (CLS) */
-        <div className="h-[250px] w-full md:h-[280px] bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
-      ) : (
-        <div className="h-[250px] w-full md:h-[280px]">
-          <ResponsiveContainer width="100%" height="100%" minHeight={160}>
-            <BarChart data={chartData} accessibilityLayer={false}>
-              <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
+      <div className="relative min-h-[220px] w-full flex-1">
+        {!mounted ? (
+          <div className="absolute inset-0 flex items-center justify-center">
+            <div className="h-full w-full rounded-md bg-slate-100/50 animate-pulse dark:bg-slate-800/30" />
+          </div>
+        ) : (
+          <ResponsiveContainer width="100%" height="100%" minHeight={220}>
+            <AreaChart
+              data={chartData}
+              margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
+            >
+              <defs>
+                <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={strokeColor} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={strokeColor} stopOpacity={0} />
+                </linearGradient>
+              </defs>
               <XAxis
                 dataKey="label"
-                tickLine={false}
                 axisLine={false}
-                fontSize={12}
-                tick={{ fill: "var(--foreground)" }}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#94a3b8" }}
+                dy={10}
               />
               <YAxis
-                tickFormatter={(value) =>
-                  new Intl.NumberFormat("id-ID", {
-                    notation: "compact",
-                    maximumFractionDigits: 1,
-                  }).format(value)
-                }
-                tickLine={false}
                 axisLine={false}
-                fontSize={12}
-                tick={{ fill: "var(--foreground)" }}
+                tickLine={false}
+                tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#94a3b8" }}
+                tickFormatter={(val) => {
+                  if (val >= 1000000) return `${(val / 1000000).toFixed(1)} jt`;
+                  if (val >= 1000) return `${(val / 1000).toFixed(0)} rb`;
+                  return val;
+                }}
               />
               <Tooltip
                 content={<ExpenseTrendTooltip currency={effectiveCurrency} />}
-                cursor={{ fill: cursorFill }}
+                cursor={{ stroke: isDark ? "#334155" : "#e2e8f0", strokeWidth: 1, strokeDasharray: "4 4" }}
               />
-              <Bar
+              <Area
+                type="monotone"
                 dataKey="expenseConverted"
-                fill={barFill}
-                radius={[10, 10, 0, 0]}
-                animationDuration={typeof navigator !== "undefined" && /android/i.test(navigator.userAgent) ? 0 : 250}
+                stroke={strokeColor}
+                strokeWidth={2}
+                fillOpacity={1}
+                fill="url(#colorExpense)"
+                animationDuration={1000}
+                activeDot={{ r: 4, strokeWidth: 0, fill: strokeColor }}
               />
-            </BarChart>
+            </AreaChart>
           </ResponsiveContainer>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }

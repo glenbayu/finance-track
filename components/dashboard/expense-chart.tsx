@@ -20,10 +20,9 @@ type ExpenseChartProps = {
   data: ExpenseChartItem[];
 };
 
-// Light mode: vibrant original palette
-const COLORS_LIGHT = ["#ef4444", "#f97316", "#f59e0b", "#10b981", "#3b82f6", "#8b5cf6"];
-// Dark mode: OLED finance palette (high-contrast, profit-green anchor)
-const COLORS_DARK = ["#dc2626", "#f87171", "#059669", "#3b82f6", "#d97706", "#a78bfa"];
+// Strict Monochrome / Teal Palette
+const COLORS_LIGHT = ["#0f766e", "#0d9488", "#14b8a6", "#5eead4", "#94a3b8", "#cbd5e1"];
+const COLORS_DARK = ["#2dd4bf", "#14b8a6", "#0d9488", "#0f766e", "#475569", "#334155"];
 
 
 export default function ExpenseChart({ data }: ExpenseChartProps) {
@@ -72,15 +71,15 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
     <InteractiveDotPanel className="section-card overflow-hidden">
       <h2 className="text-xl font-semibold">Pengeluaran per Kategori</h2>
 
-      <div className="mt-3 grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(230px,280px)] lg:items-start">
-        <div className="w-full min-w-0">
-          <div className="relative mx-auto w-full max-w-[280px] sm:max-w-[320px] lg:max-w-[300px]">
+      <div className="mt-4 flex items-start gap-5">
+        <div className="shrink-0 w-[180px]">
+          <div className="relative mx-auto w-full">
             {!mounted ? (
               /* Stable GPU placeholder to prevent layout shifts */
               <div className="mx-auto h-[190px] w-[190px] rounded-full bg-slate-100/50 animate-pulse dark:bg-slate-900/20 sm:h-[220px] sm:w-[220px]" />
             ) : (
               <>
-                <ResponsiveContainer width="100%" aspect={1.05} minHeight={180}>
+                <ResponsiveContainer width="100%" aspect={1} minHeight={160}>
                   <PieChart accessibilityLayer={false}>
                     <Pie
                       data={data}
@@ -130,13 +129,13 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                   </PieChart>
                 </ResponsiveContainer>
 
-                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center lg:hidden">
-                  <div className="text-center leading-tight">
-                    <p className="text-base font-semibold text-slate-900 dark:text-slate-100 sm:text-lg">
-                      {isHidden ? "******" : formatFromIDR(totalExpense)}
+                <div className="pointer-events-none absolute inset-0 z-10 flex items-center justify-center">
+                  <div className="text-center leading-tight px-2">
+                    <p className="text-sm font-bold text-slate-900 dark:text-slate-100">
+                      {isHidden ? "***" : formatFromIDR(totalExpense)}
                     </p>
-                    <p className="mt-1 text-[10px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-                      Total Pengeluaran
+                    <p className="mt-0.5 text-[9px] font-medium uppercase tracking-wider text-slate-400">
+                      Total
                     </p>
                   </div>
                 </div>
@@ -144,18 +143,11 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
             )}
           </div>
 
-          <div className="mt-3 text-center lg:mt-4">
-            <p className="text-[11px] font-medium uppercase tracking-[0.08em] text-slate-500 dark:text-slate-400">
-              Total Pengeluaran
-            </p>
-            <p className="mt-1 text-base font-semibold text-slate-900 dark:text-slate-100">
-              {isHidden ? "***" : formatFromIDR(totalExpense)}
-            </p>
-          </div>
         </div>
 
-        <div>
-          <div className="scroll-optimized h-[320px] space-y-2 overflow-y-auto pr-1 md:h-[520px] lg:h-[390px]">
+        {/* Legend / Breakdown - fills remaining space */}
+        <div className="flex-1 min-w-0">
+          <div className="w-full space-y-2">
             {breakdown.map((item) => (
               <div key={item.name} className="soft-inset p-3">
                 <div className="flex items-start justify-between gap-3">

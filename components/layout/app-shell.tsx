@@ -110,43 +110,48 @@ export default function AppShell({
       <div className={`min-w-0 w-full animate-fade-in-up ${className} ${containerClassName}`}>
         <div className={`min-w-0 ${contentClassName}`}>
 
-          <header className={`app-hero app-hero--${headerLayout}`}>
-            <div className="app-hero__main flex-1 w-full flex items-start justify-between">
-              <div className="flex items-center gap-[0.85rem] min-w-0">
-                {heroIcon ? <div className="app-hero__icon" aria-hidden="true">{heroIcon}</div> : null}
-                <div className="min-w-0">
-                  <div className="app-hero__eyebrow">{eyebrow || badge}</div>
-                  <h1 className={`app-hero__title ${titleClassName}`}>
-                    {title}
-                  </h1>
-                  {description && <p className="app-hero__description">{description}</p>}
+          {/* Floating Sticky Header Wrapper */}
+          <div className="sticky top-0 z-30 px-3 pt-3 pb-0 sm:px-4 sm:pt-4 lg:px-6 lg:pt-5">
+            <header className={`app-hero app-hero--${headerLayout}`}
+              style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+            >
+              <div className="app-hero__main flex-1 w-full flex items-start justify-between">
+                <div className="flex items-center gap-[0.85rem] min-w-0">
+                  {heroIcon ? <div className="app-hero__icon" aria-hidden="true">{heroIcon}</div> : null}
+                  <div className="min-w-0">
+                    <div className="app-hero__eyebrow">{eyebrow || badge}</div>
+                    <h1 className={`app-hero__title ${titleClassName}`}>
+                      {title}
+                    </h1>
+                    {description && <p className="app-hero__description">{description}</p>}
+                  </div>
                 </div>
+                
+                {titleActions && (
+                  <div className="hidden shrink-0 items-center gap-3 lg:flex mt-1">
+                    {titleActions}
+                  </div>
+                )}
               </div>
-              
-              {titleActions && (
-                <div className="hidden shrink-0 items-center gap-3 lg:flex mt-1">
-                  {titleActions}
+
+              {(heroStats || headerActions) && (
+                <div className={`app-hero__aside ${headerActionsClassName}`}>
+                  {heroStats ? <div className="app-hero__stats">{heroStats}</div> : null}
+                  {headerActions ? <div className="app-hero__actions">{headerActions}</div> : null}
                 </div>
               )}
-            </div>
-
-            {(heroStats || headerActions) && (
-              <div className={`app-hero__aside ${headerActionsClassName}`}>
-                {heroStats ? <div className="app-hero__stats">{heroStats}</div> : null}
-                {headerActions ? <div className="app-hero__actions">{headerActions}</div> : null}
-              </div>
-            )}
-          </header>
+            </header>
+          </div>
 
           {/* Mobile Actions (filter row on mobile) */}
           {mobileActions && (
-            <div className="p-3 lg:hidden" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+            <div className="mx-3 mt-2 rounded-xl px-3 py-2 sm:mx-4 lg:hidden" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
               {mobileActions}
             </div>
           )}
 
           {/* Page Content */}
-          <div className="p-4 sm:p-6">
+          <div className="p-4 pt-4 sm:p-6">
             {children}
           </div>
         </div>

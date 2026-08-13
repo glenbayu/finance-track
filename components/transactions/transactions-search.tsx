@@ -98,7 +98,7 @@ export default function TransactionsSearch({
           applySearchToUrl(value.trim());
         }}
         placeholder={useSmallScreenPlaceholder && isSmallScreen ? smallScreenPlaceholder : placeholder}
-        className="input-base h-10 w-full py-2 pl-9 pr-10"
+        className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 pl-9 text-sm ring-offset-white file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-700 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 dark:border-slate-800 dark:bg-[#0a0a0a] dark:ring-offset-[#0a0a0a] dark:placeholder:text-slate-400 dark:focus-visible:ring-teal-400 transition-colors"
       />
       {isPending ? (
         <LoaderCircle

@@ -94,6 +94,34 @@ async function createCategory(formData: FormData) {
   await revalidateCategoryRelatedPaths();
 }
 
+async function editCategory(formData: FormData) {
+  "use server";
+
+  const categoryId = parseId(formData, "id");
+  if (!categoryId) throw new Error("ID kategori tidak valid.");
+
+  const { supabase, user } = await getOwnedCategoryOrThrow(categoryId);
+
+  const name = String(formData.get("name") || "").trim();
+  const type = formData.get("type") as CategoryType;
+
+  if (!name || !type) {
+    throw new Error("Nama kategori dan tipe wajib diisi.");
+  }
+
+  const { error } = await supabase
+    .from("categories")
+    .update({ name, type })
+    .eq("id", categoryId)
+    .eq("user_id", user.id);
+
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  await revalidateCategoryRelatedPaths();
+}
+
 async function archiveCategory(formData: FormData) {
   "use server";
 
@@ -440,8 +468,46 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
           ) : null}
 
           {isOwned ? (
-            <details className="group/merge rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
-              <summary className="flex cursor-pointer list-none items-center justify-between outline-none [&::-webkit-details-marker]:hidden text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+            <>
+              <details className="group/edit mb-2 rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                <summary className="flex cursor-pointer list-none items-center justify-between outline-none [&::-webkit-details-marker]:hidden text-[13px] font-semibold text-slate-700 dark:text-slate-200">
+                  <span>Edit Kategori</span>
+                  <ChevronRight size={14} className="text-slate-400 transition-transform group-open/edit:rotate-90" />
+                </summary>
+                <form action={editCategory} className="mt-3 space-y-3">
+                  <input type="hidden" name="id" value={category.id} />
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">
+                      Nama kategori
+                    </label>
+                    <input
+                      type="text"
+                      name="name"
+                      defaultValue={category.name}
+                      className="input-base text-sm bg-slate-50 dark:bg-slate-950 py-1.5"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">Tipe</label>
+                    <FormSelect
+                      name="type"
+                      defaultValue={category.type}
+                      options={[
+                        { value: "expense", label: "Pengeluaran" },
+                        { value: "income", label: "Pemasukan" },
+                      ]}
+                      required
+                    />
+                  </div>
+                  <SubmitButton className="btn-primary h-8 px-3 text-[12px]" pendingText="Menyimpan...">
+                    Simpan Perubahan
+                  </SubmitButton>
+                </form>
+              </details>
+
+              <details className="group/merge rounded-lg border border-slate-200 bg-white p-3 dark:border-slate-700 dark:bg-slate-900">
+                <summary className="flex cursor-pointer list-none items-center justify-between outline-none [&::-webkit-details-marker]:hidden text-[13px] font-semibold text-slate-700 dark:text-slate-200">
                 <span>Gabungkan (Merge) Kategori</span>
                 <ChevronRight size={14} className="text-slate-400 transition-transform group-open/merge:rotate-90" />
               </summary>
@@ -474,6 +540,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                 </SubmitButton>
               </form>
             </details>
+            </>
           ) : null}
         </div>
       </details>

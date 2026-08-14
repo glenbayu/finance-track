@@ -128,14 +128,14 @@ export default function TransactionMobileFilter({
   return (
     <div className={`space-y-4 lg:hidden overflow-x-hidden ${className}`}>
       {/* Summary Card */}
-      <div className="stat-card flex items-center p-0 overflow-hidden shadow-sm border-slate-200/60 divide-x divide-slate-200/80 dark:divide-slate-700/80">
-        <div className="flex-1 text-center py-5 px-2 min-w-0">
+      <div className="flex items-center rounded-xl bg-slate-50/80 dark:bg-slate-800/40 divide-x divide-slate-200/60 dark:divide-slate-700/60 p-0 overflow-hidden">
+        <div className="flex-1 text-center py-4 px-2 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Income</p>
           <p className="mt-1 text-base font-bold text-emerald-600 tracking-tight truncate">
             +<CurrencyAmount amountIDR={totalIncome} absolute />
           </p>
         </div>
-        <div className="flex-1 text-center py-5 px-2 min-w-0">
+        <div className="flex-1 text-center py-4 px-2 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Expense</p>
           <p className="mt-1 text-base font-bold text-rose-600 tracking-tight truncate">
             -<CurrencyAmount amountIDR={totalExpense} absolute />

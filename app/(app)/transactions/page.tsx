@@ -12,6 +12,7 @@ import DuplicateTransactionButton from "@/components/transactions/duplicate-tran
 import TransactionsSearch from "@/components/transactions/transactions-search";
 import TransactionsFilterControls from "@/components/transactions/transactions-filter-controls";
 import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
+import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
 import TransactionMobileFilter from "@/components/transactions/transaction-mobile-filter";
 import SwipeableRow from "@/components/ui/swipeable-row";
@@ -53,14 +54,6 @@ type CategoryOption = {
   type: TxType;
   archived_at: string | null;
 };
-
-function formatDate(date: string) {
-  return new Intl.DateTimeFormat("id-ID", {
-    day: "2-digit",
-    month: "short",
-    year: "numeric",
-  }).format(new Date(date));
-}
 
 function parseSort(value: string | undefined): SortMode {
   if (value === "date_asc") return "date_asc";
@@ -479,17 +472,19 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               useSmallScreenPlaceholder
             />
           </Suspense>
-          <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
-            <TransactionMobileFilter
-              selectedMonth={selectedMonth}
-              totalIncome={monthlyIncome}
-              totalExpense={monthlyExpense}
-              categories={filterCategories}
-              selectedType={selectedType}
-              selectedCategoryId={selectedCategoryId}
-              selectedSort={selectedSort}
-            />
-          </Suspense>
+          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 shadow-sm p-4">
+            <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+              <TransactionMobileFilter
+                selectedMonth={selectedMonth}
+                totalIncome={monthlyIncome}
+                totalExpense={monthlyExpense}
+                categories={filterCategories}
+                selectedType={selectedType}
+                selectedCategoryId={selectedCategoryId}
+                selectedSort={selectedSort}
+              />
+            </Suspense>
+          </div>
         </div>
       }
     >
@@ -516,7 +511,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         </div>
       )}
 
-      <section className="table-shell">
+      <section className="w-full rounded-2xl border border-slate-200/80 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 shadow-sm overflow-hidden">
         {paginatedTransactions.length === 0 ? (
           <div className="p-6 text-center sm:p-10">
             <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--surface-soft)] text-slate-600 shadow-sm dark:text-slate-300">
@@ -545,13 +540,17 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
           </div>
         ) : (
           <>
-            <div className="md:hidden bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm flex flex-col py-3">
+            <div className="md:hidden flex flex-col">
               {sortedDates.map((date, dateIdx) => (
-                <section key={date} className="flex flex-col">
-                  <h3 className={`text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-4 pb-1.5 ${dateIdx > 0 ? "pt-5 mt-1" : "pt-1"}`}>
-                    {formatDate(date)}
-                  </h3>
-                  <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/40">
+                <section key={date}>
+                  {/* Subtle date divider row inside the bento card */}
+                  <div className={`px-4 py-2 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/60 ${dateIdx > 0 ? "border-t" : ""}`}>
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      {formatDate(date)}
+                    </p>
+                  </div>
+                  {/* Transactions for this date */}
+                  <div className="divide-y divide-slate-100 dark:divide-slate-800/40">
                     {groupedTransactions[date].map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
@@ -572,14 +571,13 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           actions={
                             <div className="flex h-full items-stretch">
                               <DuplicateTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" label="" />
-                              <EditTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-teal-500 text-white hover:bg-teal-600 transition-colors" label="" />
                               <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="flex items-center justify-center h-full w-16 bg-rose-500 text-white hover:bg-rose-600 transition-colors" label="" />
                             </div>
                           }
-                          actionWidth={192}
+                          actionWidth={128}
                         >
                           <Link href={`/transactions/${transaction.id}/edit`} className="block group">
-                            <article className="px-4 py-3.5 bg-white dark:bg-slate-900/40 active:bg-slate-50 dark:active:bg-slate-800/40 transition-colors">
+                            <article className="px-4 py-3.5 bg-white dark:bg-slate-900/60 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors">
                               <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${visuals.bg}`}>
@@ -630,7 +628,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full caption-bottom text-sm border-collapse">
-                <thead className="[&_tr]:border-b border-slate-200 dark:border-slate-800/60">
+                <thead className="[&_tr]:border-b border-slate-200 dark:border-slate-800/60 bg-slate-50/70 dark:bg-slate-800/40">
                   <tr className="border-b transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-800/50">
                     <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Tanggal</th>
                     <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Tipe</th>
@@ -702,7 +700,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               </table>
             </div>
 
-            <div className="p-4 md:border-t md:border-[color:var(--lk-border)]">
+            <div className="pt-4 pb-2 px-1 md:p-4 md:border-t md:border-[color:var(--lk-border)]">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <p className="text-xs md:text-sm" style={{ color: "var(--lk-text-muted)" }}>
                   <span className="md:hidden">

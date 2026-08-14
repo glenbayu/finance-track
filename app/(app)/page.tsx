@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { revalidatePath } from "next/cache";
 import MonthlyExpenseTrend from "@/components/dashboard/monthly-expense-trend";
-import QuickAddTransaction from "@/components/transactions/quick-add-transaction";
+import QuickAddTransaction from "@/components/quick-add/quick-add-transaction";
 import TopSpendingInsight from "@/components/dashboard/top-spending-insight";
 import ExpenseChart from "@/components/dashboard/expense-chart";
 import MonthlyHistory from "@/components/dashboard/monthly-history";

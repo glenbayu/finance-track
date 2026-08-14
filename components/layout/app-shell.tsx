@@ -145,7 +145,7 @@ export default function AppShell({
 
           {/* Mobile Actions (filter row on mobile) */}
           {mobileActions && (
-            <div className="mx-3 mt-2 rounded-xl px-3 py-2 sm:mx-4 lg:hidden" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
+            <div className="px-4 pt-2 lg:hidden">
               {mobileActions}
             </div>
           )}

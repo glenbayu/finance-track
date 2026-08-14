@@ -137,7 +137,7 @@ export default function TransactionForm({
   }, [filteredCategories, recentCategories, type]);
 
   return (
-    <form action={action} className="mt-4 space-y-4">
+    <form action={action} className="space-y-4">
       {infoMessage && (
         <div className="flex items-start gap-2.5 rounded-xl border border-teal-200/60 bg-teal-50/60 px-4 py-3 text-sm text-teal-700 dark:border-teal-900/30 dark:bg-teal-950/20 dark:text-teal-300">
           <svg className="mt-0.5 shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>

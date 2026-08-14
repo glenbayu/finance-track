@@ -696,10 +696,19 @@ button,
 
   /* ── Table ── */
   .table-shell {
-    background-color: var(--lk-surface);
-    border: 1px solid var(--lk-border);
-    border-radius: 0.5rem;
-    overflow: hidden;
+    background-color: transparent;
+    border: none;
+    border-radius: 0;
+    overflow: visible;
+  }
+
+  @media (min-width: 768px) {
+    .table-shell {
+      background-color: var(--lk-surface);
+      border: 1px solid var(--lk-border);
+      border-radius: 0.5rem;
+      overflow: hidden;
+    }
   }
 
   /* Table overrides for journal pages */

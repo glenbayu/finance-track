@@ -392,25 +392,14 @@ export default async function Home({ searchParams }: HomeProps) {
         </>
       }
       mobileActions={
-        <>
-          <div className="flex w-full min-w-0 items-center gap-2">
-            <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
-              <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
-            </Suspense>
-            <LogoutButton
-              iconOnly
-              className="btn-secondary h-10 w-10 shrink-0 justify-center px-0 active:scale-95 transition-transform"
-            />
-          </div>
-          <QuickAddTransaction
-            categories={categories ?? []}
-            action={quickAddTransaction}
-            templates={activeTemplates}
-            today={today}
-            createFromTemplateAction={createTransactionFromTemplate}
-            undoFromTemplateAction={undoQuickAddTransaction}
-          />
-        </>
+        <QuickAddTransaction
+          categories={categories ?? []}
+          action={quickAddTransaction}
+          templates={activeTemplates}
+          today={today}
+          createFromTemplateAction={createTransactionFromTemplate}
+          undoFromTemplateAction={undoQuickAddTransaction}
+        />
       }
     >
       {(!wallets || wallets.length === 0) && (

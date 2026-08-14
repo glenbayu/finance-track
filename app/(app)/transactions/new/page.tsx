@@ -281,8 +281,8 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
   return (
     <AppShell
       className="journal-entry"
-      containerClassName="max-w-6xl"
-      contentClassName="max-w-lg mx-auto"
+      containerClassName="max-w-5xl"
+      contentClassName=""
       activeNav="add"
       eyebrow="Catat Transaksi"
       title="Tambah Transaksi"
@@ -290,8 +290,76 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
       layoutStyle="default"
       backPath="/"
     >
-      {activeTemplates.length ? (
-        <details className="section-card mt-4 group">
+      <div className="mt-4 grid grid-cols-1 gap-6 lg:grid-cols-5">
+        {/* Main form — wider on desktop */}
+        <div className="lg:col-span-3">
+          <TransactionForm
+            key={`tx-form-${templateId || "manual"}`}
+            categories={categories ?? []}
+            wallets={wallets ?? []}
+            recentCategories={recentCategories}
+            defaultDate={today}
+            action={createTransaction}
+            initialValues={initialValues}
+            infoMessage={infoMessage}
+          />
+        </div>
+
+        {/* Side panel — only visible on desktop */}
+        <aside className="hidden lg:col-span-2 lg:flex lg:flex-col lg:gap-4">
+          {/* Quick add templates */}
+          {activeTemplates.length > 0 && (
+            <div className="section-card">
+              <div className="px-4 pt-4 pb-2">
+                <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                  Template Cepat
+                </h2>
+                <p className="mt-0.5 text-xs text-slate-400">
+                  Klik template untuk langsung mengisi form.
+                </p>
+              </div>
+              <div className="px-4 pb-4 grid gap-2">
+                {activeTemplates.map((template) => (
+                  <QuickAddTemplateCard key={template.id} template={template} variant="default" />
+                ))}
+                <Link
+                  href="/settings/templates"
+                  className="mt-1 text-[11px] font-semibold text-teal-600 hover:text-teal-700 dark:text-teal-400 dark:hover:text-teal-300 transition-colors"
+                >
+                  Kelola Template →
+                </Link>
+              </div>
+            </div>
+          )}
+
+          {/* Tips card */}
+          <div className="section-card p-4 space-y-3">
+            <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Tips</h2>
+            <ul className="space-y-2.5 text-xs text-slate-500 dark:text-slate-400">
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-emerald-500">●</span>
+                <span>Pilih <strong className="text-slate-700 dark:text-slate-300">Pemasukan</strong> untuk gaji, bonus, atau uang masuk lainnya.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-rose-500">●</span>
+                <span>Pilih <strong className="text-slate-700 dark:text-slate-300">Pengeluaran</strong> untuk belanja, tagihan, atau biaya rutin.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-blue-500">●</span>
+                <span>Pilih <strong className="text-slate-700 dark:text-slate-300">Transfer</strong> untuk pindah saldo antar dompet tanpa mengubah total aset.</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span className="mt-0.5 text-slate-400">●</span>
+                <span>Tambahkan catatan singkat agar laporan kamu lebih mudah dipahami nantinya.</span>
+              </li>
+            </ul>
+          </div>
+        </aside>
+      </div>
+
+      {/* Mobile: quick add templates as collapsible */}
+      {activeTemplates.length > 0 && (
+        <details className="section-card mt-4 group lg:hidden">
           <summary className="flex cursor-pointer items-center justify-between gap-2 list-none [&::-webkit-details-marker]:hidden p-3 sm:p-4">
             <span className="text-sm font-semibold text-slate-700 dark:text-slate-200">
               Template Cepat ({activeTemplates.length})
@@ -300,12 +368,12 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
             <span className="text-xs text-slate-400 hidden group-open:inline">Sembunyikan ▾</span>
           </summary>
           <div className="px-3 pb-3 sm:px-4 sm:pb-4">
-            <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-2 sm:grid-cols-2">
               {activeTemplates.map((template) => (
                 <QuickAddTemplateCard key={template.id} template={template} variant="default" />
               ))}
             </div>
-            <div className="mt-2 flex items-center gap-2">
+            <div className="mt-2">
               <Link
                 href="/settings/templates"
                 className="text-[10px] font-semibold text-slate-500 underline underline-offset-4 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200"
@@ -315,18 +383,7 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
             </div>
           </div>
         </details>
-      ) : null}
-
-      <TransactionForm
-        key={`tx-form-${templateId || "manual"}`}
-        categories={categories ?? []}
-        wallets={wallets ?? []}
-        recentCategories={recentCategories}
-        defaultDate={today}
-        action={createTransaction}
-        initialValues={initialValues}
-        infoMessage={infoMessage}
-      />
+      )}
     </AppShell>
   );
 }

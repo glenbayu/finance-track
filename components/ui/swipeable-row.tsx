@@ -142,26 +142,26 @@ export default function SwipeableRow({
 
   return (
     <div
-      className="relative overflow-hidden rounded-2xl w-full select-none"
+      className="relative overflow-hidden rounded-xl w-full select-none"
       ref={rowRef}
       style={{ WebkitOverflowScrolling: "touch" }}
     >
-      {/* Background layer: Hidden actions */}
-      <div 
-        className="absolute inset-y-0 right-0 flex items-center justify-end px-3 gap-2 bg-slate-100/50 dark:bg-slate-900/35 border-l border-[color:var(--stroke)]"
+      {/* Background layer: action buttons panel */}
+      <div
+        className="absolute inset-y-0 right-0 flex items-stretch justify-end"
         style={{ width: `${actionWidth}px` }}
       >
         {actions}
       </div>
 
-      {/* Foreground layer: Swipeable content — GPU-accelerated */}
+      {/* Foreground layer: Swipeable card content — GPU-accelerated */}
       <div
         ref={contentRef}
         onTouchStart={handleTouchStart}
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={isSwiped ? reset : undefined}
-        className="relative z-10 w-full bg-[color:var(--surface)]"
+        className="relative z-10 w-full"
         style={{
           transform: "translate3d(0, 0, 0)",
           willChange: "transform",

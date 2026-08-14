@@ -468,7 +468,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         </div>
       }
       mobileActions={
-        <>
+        <div className="flex flex-col gap-3">
           <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
             <TransactionsSearch
               defaultValue={searchValue}
@@ -489,7 +489,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               selectedSort={selectedSort}
             />
           </Suspense>
-        </>
+        </div>
       }
     >
       {!hasRolloverThisMonth && (
@@ -544,13 +544,13 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
           </div>
         ) : (
           <>
-            <div className="space-y-6 md:hidden">
+            <div className="space-y-5 md:hidden">
               {sortedDates.map((date) => (
-                <section key={date} className="space-y-3">
-                  <h3 className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400 pl-1">
+                <section key={date} className="space-y-2">
+                  <h3 className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-3">
                     {formatDate(date)}
                   </h3>
-                  <div className="flex flex-col gap-2">
+                  <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/40 bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm">
                     {groupedTransactions[date].map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
@@ -560,16 +560,16 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         <SwipeableRow
                           key={transaction.id}
                           actions={
-                            <div className="flex h-full min-w-max items-stretch rounded-r-xl overflow-hidden border-y border-r border-slate-200 dark:border-slate-800">
-                              <DuplicateTransactionButton id={transaction.id} className="h-full px-5 border-r border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-900 dark:text-slate-100 transition-colors" label="" />
-                              <EditTransactionButton id={transaction.id} className="h-full px-5 border-r border-slate-200 dark:border-slate-800 hover:bg-slate-50 dark:hover:bg-slate-800 text-teal-700 dark:text-teal-400 transition-colors" label="" />
-                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="h-full px-5 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-slate-500 hover:text-rose-600 dark:hover:text-rose-400 transition-colors" label="" />
+                            <div className="flex h-full items-stretch">
+                              <DuplicateTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" label="" />
+                              <EditTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-teal-500 text-white hover:bg-teal-600 transition-colors" label="" />
+                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="flex items-center justify-center h-full w-16 bg-rose-500 text-white hover:bg-rose-600 transition-colors rounded-r-xl" label="" />
                             </div>
                           }
-                          actionWidth={200}
+                          actionWidth={192}
                         >
                           <Link href={`/transactions/${transaction.id}/edit`} className="block group">
-                            <article className="px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-800/60 bg-white dark:bg-[#0a0a0a] hover:bg-slate-50 dark:hover:bg-[#111] transition-colors">
+                            <article className="px-4 py-3.5 bg-white dark:bg-slate-900/40 active:bg-slate-50 dark:active:bg-slate-800/40 transition-colors">
                               <div className="flex items-start justify-between gap-3">
                                 <div className="min-w-0">
                                   <p className="truncate font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
@@ -589,14 +589,20 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                                 </div>
 
                                 <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                  <p className="whitespace-nowrap text-sm font-semibold text-slate-900 dark:text-slate-100">
+                                  <p className={`whitespace-nowrap text-sm font-semibold ${
+                                    transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" :
+                                    transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" :
+                                    transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" :
+                                    "text-slate-900 dark:text-slate-100"
+                                  }`}>
                                     {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                                     <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
                                   </p>
                                   <span className={
-                                    transaction.type === "income" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100" : 
-                                    transaction.type === "expense" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100" : 
-                                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100"
+                                    transaction.type === "income" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" : 
+                                    transaction.type === "expense" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300" : 
+                                    transaction.type === "transfer" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" :
+                                    "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300"
                                   }>
                                     {transaction.type === "income" ? "Pemasukan" :
                                       transaction.type === "expense" ? "Pengeluaran" :
@@ -636,13 +642,14 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         </td>
                         <td className="p-4 align-middle">
                           <span className={
-                            transaction.type === "income" ? "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700" : 
-                            transaction.type === "expense" ? "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700" : 
-                            "inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 border-transparent bg-slate-100 text-slate-900 dark:bg-slate-800 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700"
+                            transaction.type === "income" ? "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" : 
+                            transaction.type === "expense" ? "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300" : 
+                            transaction.type === "transfer" ? "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" :
+                            "inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300"
                           }>
                             {transaction.type === "income" ? "Pemasukan" : 
                              transaction.type === "expense" ? "Pengeluaran" : 
-                             transaction.type === "transfer" ? "Transfer / Mutasi" : "Penyesuaian"}
+                             transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
                           </span>
                         </td>
                         <td className="p-4 align-middle text-slate-600 dark:text-slate-300">
@@ -657,7 +664,12 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         <td className="p-4 align-middle text-slate-500 dark:text-slate-400 text-sm">
                           {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}
                         </td>
-                        <td className="p-4 align-middle text-right font-medium text-slate-900 dark:text-slate-100">
+                        <td className={`p-4 align-middle text-right font-semibold ${
+                          transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" :
+                          transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" :
+                          transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" :
+                          "text-slate-900 dark:text-slate-100"
+                        }`}>
                           {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
                           <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                         </td>
@@ -675,7 +687,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               </table>
             </div>
 
-            <div className="p-4" style={{ borderTop: "1px solid var(--lk-border)" }}>
+            <div className="p-4 md:border-t md:border-[color:var(--lk-border)]">
               <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                 <p className="text-xs md:text-sm" style={{ color: "var(--lk-text-muted)" }}>
                   <span className="md:hidden">

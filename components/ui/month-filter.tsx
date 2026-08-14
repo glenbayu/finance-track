@@ -176,10 +176,10 @@ export default function MonthFilter({
           <button
             type="button"
             onClick={openCompactNativePicker}
-            className="btn-secondary h-10 w-full min-w-0 justify-between gap-2 rounded-2xl px-4 text-sm font-semibold"
+            className="btn-secondary h-9 w-full min-w-0 justify-between gap-1 rounded-full px-3 text-xs font-semibold"
           >
             <span className="truncate text-left">{compactLabel}</span>
-            <ChevronDown size={16} className="shrink-0 text-slate-500 dark:text-slate-400" />
+            <ChevronDown size={14} className="shrink-0 text-slate-500 dark:text-slate-400" />
           </button>
 
           <label htmlFor={`${inputId}-compact-native`} className="sr-only">
@@ -209,11 +209,11 @@ export default function MonthFilter({
             aria-haspopup="dialog"
             aria-expanded={isCompactOpen}
             onClick={() => setIsCompactOpen((current) => !current)}
-            className="btn-secondary h-10 w-full min-w-0 justify-between gap-2 rounded-2xl px-4 text-sm font-semibold"
+            className="btn-secondary h-9 w-full min-w-0 justify-between gap-1 rounded-full px-3 text-xs font-semibold"
           >
             <span className="truncate text-left">{compactLabel}</span>
             <ChevronDown
-              size={16}
+              size={14}
               className={`shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
                 isCompactOpen ? "rotate-180" : ""
               }`}

@@ -154,7 +154,7 @@ export default function MonthFilter({
 
   const useDropdownPicker = isCoarsePointer || !supportsMonthInput;
   const compactLabel = formatMonthLabel(displayMonth);
-  const useCompactNativePicker = compact && supportsMonthInput && !isAndroid;
+  const useCompactNativePicker = compact && supportsMonthInput;
 
   function openCompactNativePicker() {
     const input = compactInputRef.current;

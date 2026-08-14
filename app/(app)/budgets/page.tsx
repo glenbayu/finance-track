@@ -242,6 +242,12 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
           <MonthFilter selectedMonth={selectedMonth} className="min-w-[210px]" />
         </Suspense>
       }
+      mobileActions={
+        <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+          <MonthFilter selectedMonth={selectedMonth} className="w-full" />
+        </Suspense>
+      }
+
     >
       {!activeCategories.length ? (
         <section className="section-card">

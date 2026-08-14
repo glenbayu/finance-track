@@ -1,8 +1,6 @@
 import Link from "next/link";
-import { Suspense, type ReactNode } from "react";
+import type { ReactNode } from "react";
 import { mobileDockItems, type AppNavKey, withMonth } from "@/components/layout/app-nav";
-import MonthFilter from "@/components/ui/month-filter";
-import LogoutButton from "@/components/auth/logout-button";
 
 type AppShellProps = {
   title: string;
@@ -117,10 +115,10 @@ export default function AppShell({
             <header className={`app-hero app-hero--${headerLayout}`}
               style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
             >
-              <div className="app-hero__main flex-1 w-full flex items-start justify-between gap-4">
+              <div className="app-hero__main flex-1 w-full flex items-start justify-between">
                 <div className="flex items-center gap-[0.85rem] min-w-0">
                   {heroIcon ? <div className="app-hero__icon" aria-hidden="true">{heroIcon}</div> : null}
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0">
                     <div className="app-hero__eyebrow">{eyebrow || badge}</div>
                     <h1 className={`app-hero__title ${titleClassName}`}>
                       {title}
@@ -129,21 +127,6 @@ export default function AppShell({
                   </div>
                 </div>
                 
-                {/* Mobile Filter / Action Pill directly in header card */}
-                {month && (
-                  <div className="lg:hidden shrink-0 mt-1 flex items-center gap-1.5">
-                    <Suspense fallback={<div className="h-10 w-24 animate-pulse rounded-full bg-slate-200 dark:bg-slate-800" />}>
-                      <MonthFilter selectedMonth={month} compact className="w-[135px]" />
-                    </Suspense>
-                    {activeNav === "dashboard" && (
-                      <LogoutButton
-                        iconOnly
-                        className="btn-secondary h-10 w-10 shrink-0 justify-center px-0 rounded-2xl border border-slate-200 dark:border-slate-800/80 active:scale-95 transition-transform"
-                      />
-                    )}
-                  </div>
-                )}
-
                 {titleActions && (
                   <div className="hidden shrink-0 items-center gap-3 lg:flex mt-1">
                     {titleActions}

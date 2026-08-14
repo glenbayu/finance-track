@@ -24,6 +24,7 @@ import SwipeableRow from "@/components/ui/swipeable-row";
 import EditTransactionButton from "@/components/transactions/edit-transaction-button";
 import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
 import { deleteTransaction } from "@/app/(app)/transactions/actions";
+import { getCategoryVisuals } from "@/lib/utils/icons";
 
 type HomeProps = {
   searchParams?: Promise<{
@@ -661,6 +662,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 const category = Array.isArray(transaction.categories)
                   ? transaction.categories[0]
                   : transaction.categories;
+                const visuals = getCategoryVisuals(category?.name || "", transaction.type);
 
                 return (
                   <SwipeableRow
@@ -675,25 +677,32 @@ export default async function Home({ searchParams }: HomeProps) {
                     <div
                       className="soft-inset flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between w-full h-full"
                     >
-                      <div className="min-w-0">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <p className="truncate font-semibold" style={{ color: "var(--lk-text)" }}>
-                            {category?.name ?? "Tanpa kategori"}
-                          </p>
-                          <span className={transaction.type === "income" ? "chip-income" : "chip-expense"}>
-                            {transaction.type === "income" ? "Pemasukan" : "Pengeluaran"}
-                          </span>
+                      <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                        <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${visuals.bg}`}>
+                          {visuals.icon}
                         </div>
-                        <p className="text-sm break-words" style={{ color: "var(--lk-text-muted)" }}>
-                          {transaction.note || "Tidak ada catatan"}
-                        </p>
-                        <p className="mt-1 text-xs font-medium uppercase tracking-wide" style={{ color: "var(--lk-text-faint)" }}>
-                          {formatDateLabel(transaction.transaction_date)}
-                        </p>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <p className="truncate font-semibold text-sm" style={{ color: "var(--lk-text)" }}>
+                              {category?.name ?? "Tanpa kategori"}
+                            </p>
+                            <span className="text-[9px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
+                              {transaction.type === "income" ? "Pemasukan" :
+                                transaction.type === "expense" ? "Pengeluaran" :
+                                  transaction.type === "transfer" ? "Transfer" : "Koreksi"}
+                            </span>
+                          </div>
+                          <p className="text-xs break-words text-slate-500 dark:text-slate-400">
+                            {transaction.note || "Tidak ada catatan"}
+                          </p>
+                          <p className="mt-0.5 text-[9px] font-medium uppercase tracking-wide text-slate-400 dark:text-slate-550">
+                            {formatDateLabel(transaction.transaction_date)}
+                          </p>
+                        </div>
                       </div>
 
                       <p
-                        className="text-lg font-semibold sm:text-base"
+                        className="text-base font-semibold sm:text-sm shrink-0"
                         style={{ color: transaction.type === "income" ? "var(--lk-income)" : "var(--lk-expense)" }}
                       >
                         {transaction.type === "income" ? "+" : "-"}

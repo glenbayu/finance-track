@@ -17,6 +17,7 @@ import TransactionMobileFilter from "@/components/transactions/transaction-mobil
 import SwipeableRow from "@/components/ui/swipeable-row";
 import SubmitButton from "@/components/ui/submit-button";
 import { runMonthlyRollover } from "@/app/(app)/transactions/actions";
+import { getCategoryVisuals } from "@/lib/utils/icons";
 
 type TransactionsPageProps = {
   searchParams?: Promise<{
@@ -544,77 +545,85 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
           </div>
         ) : (
           <>
-            <div className="md:hidden bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm flex flex-col divide-y divide-slate-100 dark:divide-slate-800/40">
-              {sortedDates.map((date) => (
-                <section key={date} className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/40">
-                  <h3 className="text-[10px] font-bold uppercase tracking-wider text-slate-450 dark:text-slate-400 px-4 pt-3.5 pb-2 bg-slate-50/30 dark:bg-slate-900/10">
+            <div className="md:hidden bg-white dark:bg-slate-900/40 border border-slate-200 dark:border-slate-800/60 rounded-xl overflow-hidden shadow-sm flex flex-col py-3">
+              {sortedDates.map((date, dateIdx) => (
+                <section key={date} className="flex flex-col">
+                  <h3 className={`text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 px-4 pb-1.5 ${dateIdx > 0 ? "pt-5 mt-1" : "pt-1"}`}>
                     {formatDate(date)}
                   </h3>
-                  {groupedTransactions[date].map((transaction) => {
-                    const category = toCategory(transaction.categories);
-                    const amountValue = Number(transaction.amount);
-                    const useCompactAmount = Math.abs(amountValue) >= 100000;
+                  <div className="flex flex-col divide-y divide-slate-100 dark:divide-slate-800/40">
+                    {groupedTransactions[date].map((transaction) => {
+                      const category = toCategory(transaction.categories);
+                      const amountValue = Number(transaction.amount);
+                      const useCompactAmount = Math.abs(amountValue) >= 100000;
+                      
+                      const categoryName = transaction.type === "transfer" 
+                        ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
+                        : transaction.type === "adjustment"
+                        ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
+                        : category?.name || "Tanpa kategori";
 
-                    return (
-                      <SwipeableRow
-                        key={transaction.id}
-                        className="rounded-none"
-                        actions={
-                          <div className="flex h-full items-stretch">
-                            <DuplicateTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" label="" />
-                            <EditTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-teal-500 text-white hover:bg-teal-600 transition-colors" label="" />
-                            <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="flex items-center justify-center h-full w-16 bg-rose-500 text-white hover:bg-rose-600 transition-colors" label="" />
-                          </div>
-                        }
-                        actionWidth={192}
-                      >
-                        <Link href={`/transactions/${transaction.id}/edit`} className="block group">
-                          <article className="px-4 py-3.5 bg-white dark:bg-slate-900/40 active:bg-slate-50 dark:active:bg-slate-800/40 transition-colors">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="min-w-0">
-                                <p className="truncate font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
-                                  {transaction.type === "transfer" 
-                                    ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
-                                    : transaction.type === "adjustment"
-                                    ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
-                                    : category?.name
-                                    ? highlightText(category.name, highlightQuery)
-                                    : "Tanpa kategori"}
-                                </p>
-                                <p className="mt-0.5 text-xs break-words line-clamp-1 text-slate-500 dark:text-slate-400">
-                                  {transaction.note
-                                    ? highlightText(transaction.note, highlightQuery)
-                                    : <span className="italic opacity-50">Tanpa catatan</span>}
-                                </p>
-                              </div>
+                      const visuals = getCategoryVisuals(category?.name || "", transaction.type);
 
-                              <div className="flex flex-col items-end gap-1.5 shrink-0">
-                                <p className={`whitespace-nowrap text-sm font-semibold ${
-                                  transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" :
-                                  transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" :
-                                  transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" :
-                                  "text-slate-900 dark:text-slate-100"
-                                }`}>
-                                  {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
-                                  <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
-                                </p>
-                                <span className={
-                                  transaction.type === "income" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300" : 
-                                  transaction.type === "expense" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-rose-100 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300" : 
-                                  transaction.type === "transfer" ? "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-blue-100 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300" :
-                                  "inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold bg-purple-100 text-purple-700 dark:bg-purple-950/50 dark:text-purple-300"
-                                }>
-                                  {transaction.type === "income" ? "Pemasukan" :
-                                    transaction.type === "expense" ? "Pengeluaran" :
-                                      transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
-                                </span>
-                              </div>
+                      return (
+                        <SwipeableRow
+                          key={transaction.id}
+                          className="rounded-none"
+                          actions={
+                            <div className="flex h-full items-stretch">
+                              <DuplicateTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" label="" />
+                              <EditTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-teal-500 text-white hover:bg-teal-600 transition-colors" label="" />
+                              <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="flex items-center justify-center h-full w-16 bg-rose-500 text-white hover:bg-rose-600 transition-colors" label="" />
                             </div>
-                          </article>
-                        </Link>
-                      </SwipeableRow>
-                    );
-                  })}
+                          }
+                          actionWidth={192}
+                        >
+                          <Link href={`/transactions/${transaction.id}/edit`} className="block group">
+                            <article className="px-4 py-3.5 bg-white dark:bg-slate-900/40 active:bg-slate-50 dark:active:bg-slate-800/40 transition-colors">
+                              <div className="flex items-center justify-between gap-3">
+                                <div className="flex items-center gap-3 min-w-0">
+                                  <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${visuals.bg}`}>
+                                    {visuals.icon}
+                                  </div>
+                                  <div className="min-w-0">
+                                    <p className="truncate font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
+                                      {transaction.type === "transfer" || transaction.type === "adjustment"
+                                        ? categoryName
+                                        : category?.name
+                                        ? highlightText(category.name, highlightQuery)
+                                        : "Tanpa kategori"}
+                                    </p>
+                                    <p className="mt-0.5 text-xs break-words line-clamp-1 text-slate-500 dark:text-slate-400">
+                                      {transaction.note
+                                        ? highlightText(transaction.note, highlightQuery)
+                                        : <span className="italic opacity-50">Tanpa catatan</span>}
+                                    </p>
+                                  </div>
+                                </div>
+
+                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                  <p className={`whitespace-nowrap text-sm font-semibold ${
+                                    transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" :
+                                    transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" :
+                                    transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" :
+                                    "text-slate-900 dark:text-slate-100"
+                                  }`}>
+                                    {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
+                                    <CurrencyAmount amountIDR={amountValue} absolute compact={useCompactAmount} />
+                                  </p>
+                                  <span className="text-[9px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
+                                    {transaction.type === "income" ? "Pemasukan" :
+                                      transaction.type === "expense" ? "Pengeluaran" :
+                                        transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
+                                  </span>
+                                </div>
+                              </div>
+                            </article>
+                          </Link>
+                        </SwipeableRow>
+                      );
+                    })}
+                  </div>
                 </section>
               ))}
             </div>
@@ -652,13 +661,20 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           </span>
                         </td>
                         <td className="p-4 align-middle text-slate-600 dark:text-slate-300">
-                          {transaction.type === "transfer" 
-                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
-                            : transaction.type === "adjustment"
-                            ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
-                            : category?.name
-                            ? highlightText(category.name, highlightQuery)
-                            : "Tanpa kategori"}
+                          <div className="flex items-center gap-2">
+                            <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${getCategoryVisuals(category?.name || "", transaction.type).bg}`}>
+                              {getCategoryVisuals(category?.name || "", transaction.type).icon}
+                            </div>
+                            <span className="truncate">
+                              {transaction.type === "transfer" 
+                                ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} ➔ ${walletsMap.get(transaction.destination_wallet_id || "") || "Tujuan"}`
+                                : transaction.type === "adjustment"
+                                ? `${walletsMap.get(transaction.wallet_id || "") || "Dompet"} (Koreksi)`
+                                : category?.name
+                                ? highlightText(category.name, highlightQuery)
+                                : "Tanpa kategori"}
+                            </span>
+                          </div>
                         </td>
                         <td className="p-4 align-middle text-slate-500 dark:text-slate-400 text-sm">
                           {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}

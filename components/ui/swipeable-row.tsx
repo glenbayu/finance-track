@@ -7,12 +7,14 @@ type SwipeableRowProps = {
   children: ReactNode;
   actions: ReactNode;
   actionWidth?: number;
+  className?: string;
 };
 
 export default function SwipeableRow({
   children,
   actions,
   actionWidth = 140,
+  className = "rounded-xl",
 }: SwipeableRowProps) {
   const [isSwiped, setIsSwiped] = useState(false);
   const startX = useRef(0);
@@ -142,7 +144,7 @@ export default function SwipeableRow({
 
   return (
     <div
-      className="relative overflow-hidden rounded-xl w-full select-none"
+      className={`relative overflow-hidden w-full select-none ${className}`}
       ref={rowRef}
       style={{ WebkitOverflowScrolling: "touch" }}
     >

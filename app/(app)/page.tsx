@@ -675,9 +675,9 @@ export default async function Home({ searchParams }: HomeProps) {
                     }
                   >
                     <div
-                      className="soft-inset flex flex-col items-start gap-3 sm:flex-row sm:items-center sm:justify-between w-full h-full"
+                      className="soft-inset flex flex-row items-center justify-between gap-3 w-full h-full"
                     >
-                      <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
                         <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${visuals.bg}`}>
                           {visuals.icon}
                         </div>
@@ -702,7 +702,7 @@ export default async function Home({ searchParams }: HomeProps) {
                       </div>
 
                       <p
-                        className="text-base font-semibold sm:text-sm shrink-0"
+                        className="text-sm font-semibold shrink-0"
                         style={{ color: transaction.type === "income" ? "var(--lk-income)" : "var(--lk-expense)" }}
                       >
                         {transaction.type === "income" ? "+" : "-"}

@@ -222,7 +222,7 @@ export default function ReportsCharts({
 
   return (
     <>
-      <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-7">
+      <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-12">
         <h2 className="text-lg font-semibold">Trend Pemasukan vs Pengeluaran</h2>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -323,49 +323,7 @@ export default function ReportsCharts({
         )}
       </article>
 
-      <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-5">
-        <h2 className="text-lg font-semibold">Komposisi Pengeluaran Kategori</h2>
-        <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Distribusi kategori pada bulan terpilih.
-        </p>
 
-        {!convertedCategoryData.length ? (
-          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-            Belum ada pengeluaran pada bulan ini.
-          </p>
-        ) : !mounted ? (
-          <div className="mt-3 h-[280px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-full animate-pulse max-w-[240px] mx-auto" />
-        ) : (
-          <div className="mt-3 h-[280px] w-full min-w-0 overflow-hidden">
-            <ResponsiveContainer width="100%" height="100%" minHeight={200}>
-              <PieChart accessibilityLayer={false}>
-                <Pie
-                  data={convertedCategoryData}
-                  dataKey="value"
-                  nameKey="name"
-                  innerRadius="52%"
-                  outerRadius="78%"
-                  paddingAngle={2}
-                  animationDuration={isAndroid ? 0 : 400}
-                >
-                  {convertedCategoryData.map((_, index) => (
-                    <Cell key={`reports-category-${index}`} fill={CATEGORY_COLORS[index % CATEGORY_COLORS.length]} />
-                  ))}
-                </Pie>
-                <Tooltip
-                  formatter={(value) => formatCurrency(Number(value ?? 0), effectiveCurrency)}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "1px solid var(--stroke)",
-                    backgroundColor: "var(--surface)",
-                    color: "var(--foreground)",
-                  }}
-                />
-              </PieChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </article>
 
       <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-7">
         <h2 className="text-lg font-semibold">Trend Cashflow</h2>

@@ -126,7 +126,7 @@ export default function TransactionsFilterControls({
 
   return (
     <div className={`space-y-2 ${className}`}>
-      <div className="grid grid-cols-3 gap-2">
+      <div className={`grid grid-cols-3 gap-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
         <div className="relative min-w-0">
           <FormSelect
             name="type_filter"

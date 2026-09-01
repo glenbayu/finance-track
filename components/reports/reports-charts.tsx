@@ -9,8 +9,6 @@ import {
   Legend,
   Line,
   LineChart,
-  Pie,
-  PieChart,
   ResponsiveContainer,
   Tooltip,
   XAxis,
@@ -34,12 +32,10 @@ export type ReportsCategoryItem = {
 
 type ReportsChartsProps = {
   trendData: ReportsTrendItem[];
-  categoryData: ReportsCategoryItem[];
+  categoryData?: ReportsCategoryItem[];
   forecastCategoryData: CategoryForecastResult[];
   trendMonths: number;
 };
-
-const CATEGORY_COLORS = ["#0f766e", "#0d9488", "#14b8a6", "#5eead4", "#94a3b8", "#475569"];
 
 function compactCurrency(value: number) {
   return new Intl.NumberFormat("id-ID", {
@@ -184,7 +180,6 @@ function CustomTooltip({
 
 export default function ReportsCharts({
   trendData,
-  categoryData,
   forecastCategoryData,
   trendMonths,
 }: ReportsChartsProps) {
@@ -206,11 +201,6 @@ export default function ReportsCharts({
     income: convertFromIDR(item.income, effectiveCurrency, rateFromIDR),
     expense: convertFromIDR(item.expense, effectiveCurrency, rateFromIDR),
     cashflow: convertFromIDR(item.cashflow, effectiveCurrency, rateFromIDR),
-  }));
-
-  const convertedCategoryData = categoryData.map((item) => ({
-    ...item,
-    value: convertFromIDR(item.value, effectiveCurrency, rateFromIDR),
   }));
 
   const forecastBars = forecastCategoryData.map((item) => ({

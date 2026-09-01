@@ -71,7 +71,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   }
 
   return (
-    <InteractiveDotPanel className="section-card overflow-hidden">
+    <InteractiveDotPanel className="section-card overflow-hidden pb-6 sm:pb-6">
       <h2 className="text-xl font-semibold">Pengeluaran per Kategori</h2>
 
       {/* ── MOBILE layout: chart on top, total below chart, then list ── */}
@@ -142,7 +142,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         </div>
 
         {/* Category breakdown list – scrollable, max 6 */}
-        <div className="mt-4 max-h-[340px] space-y-2 overflow-y-auto sm:hidden scroll-optimized pr-0.5">
+        <div className="mt-4 max-h-[320px] space-y-2 overflow-y-auto sm:hidden scroll-optimized pr-0.5">
           {breakdown.map((item) => (
             <div key={item.name} className="soft-inset p-2.5">
               <div className="flex items-center justify-between gap-3">
@@ -169,7 +169,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         </div>
 
         {topCategory ? (
-          <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+          <p className="mt-4 pt-1 text-xs text-slate-500 dark:text-slate-400">
             Kategori terbesar bulan ini:{" "}
             <span className="font-semibold text-slate-700 dark:text-slate-200">
               {topCategory.name} ({topCategory.percentage}%)
@@ -256,7 +256,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
 
         {/* Legend / Breakdown - fills remaining space, max 6 with scroll */}
         <div className="flex-1 min-w-0">
-          <div className="w-full space-y-2 max-h-[460px] overflow-y-auto pr-0.5 scroll-optimized">
+          <div className="w-full space-y-2 max-h-[380px] overflow-y-auto pr-0.5 scroll-optimized">
             {breakdown.map((item) => (
               <div key={item.name} className="soft-inset p-3">
                 <div className="flex items-start justify-between gap-3">
@@ -283,7 +283,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
           </div>
 
           {topCategory ? (
-            <p className="mt-3 text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-4 pt-1 text-xs text-slate-500 dark:text-slate-400">
               Kategori terbesar bulan ini:{" "}
               <span className="font-semibold text-slate-700 dark:text-slate-200">
                 {topCategory.name} ({topCategory.percentage}%)

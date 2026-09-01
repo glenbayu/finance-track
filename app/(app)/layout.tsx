@@ -1,11 +1,17 @@
+import { Suspense } from "react";
 import type { ReactNode } from "react";
 import DesktopSidebar from "@/components/layout/desktop-sidebar";
 import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
+import RouteProgress from "@/components/ui/route-progress";
 
 export default async function ProtectedAppLayout({ children }: { children: ReactNode }) {
 
   return (
     <div style={{ display: "flex", minHeight: "100dvh", backgroundColor: "var(--lk-bg)" }}>
+      {/* Route progress bar — shows on internal navigation */}
+      <Suspense fallback={null}>
+        <RouteProgress />
+      </Suspense>
       <DesktopSidebar />
       {/* Main content area — offset by sidebar width on desktop */}
       <main
@@ -23,4 +29,3 @@ export default async function ProtectedAppLayout({ children }: { children: React
     </div>
   );
 }
-

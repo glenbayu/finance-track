@@ -4,6 +4,7 @@ import { useEffect, useId, useMemo, useRef, useState, useTransition } from "reac
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, ChevronDown, LoaderCircle } from "lucide-react";
 import { formatMonthLabel } from "@/lib/utils/format";
+import { triggerRouteProgressStart } from "@/components/ui/route-progress";
 
 type MonthFilterProps = {
   selectedMonth: string;
@@ -44,7 +45,6 @@ export default function MonthFilter({
   const [supportsMonthInput, setSupportsMonthInput] = useState(true);
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
   const [isCompactOpen, setIsCompactOpen] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
 
   useEffect(() => {
     setDisplayMonth(selectedMonth);
@@ -79,7 +79,6 @@ export default function MonthFilter({
     const input = document.createElement("input");
     input.setAttribute("type", "month");
     setSupportsMonthInput(input.type === "month");
-    setIsAndroid(/android/i.test(navigator.userAgent));
   }, []);
 
   useEffect(() => {
@@ -99,6 +98,8 @@ export default function MonthFilter({
   function handleMonthChange(nextMonth: string) {
     if (nextMonth === selectedMonth) return;
     if (nextMonth && !isMonthValue(nextMonth)) return;
+
+    triggerRouteProgressStart();
 
     const params = new URLSearchParams(searchParams.toString());
 
@@ -176,10 +177,15 @@ export default function MonthFilter({
           <button
             type="button"
             onClick={openCompactNativePicker}
-            className="btn-secondary h-9 w-full min-w-0 justify-between gap-1 rounded-full px-3 text-xs font-semibold"
+            disabled={isPending}
+            className={`btn-secondary h-9 w-full min-w-0 justify-between gap-1 rounded-full px-3 text-xs font-semibold transition-all duration-150 ${isPending ? "opacity-75 cursor-wait" : ""}`}
           >
             <span className="truncate text-left">{compactLabel}</span>
-            <ChevronDown size={14} className="shrink-0 text-slate-500 dark:text-slate-400" />
+            {isPending ? (
+              <LoaderCircle size={14} className="shrink-0 animate-spin text-teal-600 dark:text-teal-400" />
+            ) : (
+              <ChevronDown size={14} className="shrink-0 text-slate-500 dark:text-slate-400" />
+            )}
           </button>
 
           <label htmlFor={`${inputId}-compact-native`} className="sr-only">
@@ -209,15 +215,20 @@ export default function MonthFilter({
             aria-haspopup="dialog"
             aria-expanded={isCompactOpen}
             onClick={() => setIsCompactOpen((current) => !current)}
-            className="btn-secondary h-9 w-full min-w-0 justify-between gap-1 rounded-full px-3 text-xs font-semibold"
+            disabled={isPending}
+            className={`btn-secondary h-9 w-full min-w-0 justify-between gap-1 rounded-full px-3 text-xs font-semibold transition-all duration-150 ${isPending ? "opacity-75 cursor-wait" : ""}`}
           >
             <span className="truncate text-left">{compactLabel}</span>
-            <ChevronDown
-              size={14}
-              className={`shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
-                isCompactOpen ? "rotate-180" : ""
-              }`}
-            />
+            {isPending ? (
+              <LoaderCircle size={14} className="shrink-0 animate-spin text-teal-600 dark:text-teal-400" />
+            ) : (
+              <ChevronDown
+                size={14}
+                className={`shrink-0 text-slate-500 transition-transform dark:text-slate-400 ${
+                  isCompactOpen ? "rotate-180" : ""
+                }`}
+              />
+            )}
           </button>
 
           {isCompactOpen ? (
@@ -321,15 +332,13 @@ export default function MonthFilter({
           />
         </>
       )}
-      {isPending ? (
+      {isPending && !compact ? (
         <LoaderCircle
           size={15}
           className={
-            compact
-              ? "absolute right-4 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
-              : useDropdownPicker
-              ? "absolute right-3 top-3 animate-spin text-slate-400"
-              : "absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
+            useDropdownPicker
+              ? "absolute right-3 top-3 animate-spin text-teal-600 dark:text-teal-400"
+              : "absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-teal-600 dark:text-teal-400"
           }
         />
       ) : null}

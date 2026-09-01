@@ -212,51 +212,81 @@ button,
   animation: slide-up-drawer 300ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
-@keyframes route-loading-progress {
-  0%   { transform: translateX(-100%); }
-  100% { transform: translateX(320%); }
+.metric-enter {
+  animation: metric-enter 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
+/* ── Top Route Progress Bar ── */
 @keyframes route-loading-pulse {
   0%, 100% { opacity: 0.58; }
   50%       { opacity: 1; }
 }
 
-@keyframes route-loading-shimmer {
-  0%   { background-position: 180% 0; }
-  100% { background-position: -180% 0; }
+@keyframes progress-bar-indeterminate {
+  0%   { left: -35%; right: 100%; }
+  40%  { left: 100%; right: -90%; }
+  100% { left: 100%; right: -90%; }
 }
 
-@keyframes route-loading-breathe {
-  0%, 100% { transform: translateY(0); opacity: 0.86; }
-  50%       { transform: translateY(-1px); opacity: 1; }
+.route-progress-bar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2.5px;
+  z-index: 9999;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--lk-primary) 20%, transparent);
+  pointer-events: none;
 }
 
-@keyframes count-up {
-  from { opacity: 0; transform: translateY(6px) scale(0.97); }
-  to   { opacity: 1; transform: translateY(0) scale(1); }
+.route-progress-bar::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: -35%;
+  width: 35%;
+  border-radius: 0 4px 4px 0;
+  background: linear-gradient(90deg, var(--lk-primary), var(--lk-primary-hover));
+  box-shadow: 0 0 12px 2px var(--lk-primary);
+  animation:
+    progress-bar-indeterminate 1.5s cubic-bezier(0.65, 0.815, 0.735, 0.395) infinite,
+    route-loading-pulse 1.5s ease infinite;
 }
 
-@keyframes metric-enter {
-  from { opacity: 0; transform: translateY(8px); filter: blur(2px); }
-  to   { opacity: 1; transform: translateY(0); filter: blur(0); }
+/* ── Shimmer Loading Skeleton ── */
+@keyframes shimmer-slide {
+  0%   { background-position: 150% 0; }
+  100% { background-position: -150% 0; }
 }
 
-@keyframes scale-in-bounce {
-  0%   { transform: scale(0.9); opacity: 0; }
-  70%  { transform: scale(1.03); opacity: 0.9; }
-  100% { transform: scale(1); opacity: 1; }
+.animate-shimmer {
+  background: linear-gradient(
+    90deg,
+    var(--lk-surface-raised) 0%,
+    var(--lk-surface-hover) 50%,
+    var(--lk-surface-raised) 100%
+  );
+  background-size: 200% 100%;
+  animation: shimmer-slide 1.6s ease-in-out infinite;
 }
 
-/* ── Stagger Utilities ── */
-.stagger-1 { animation: scale-in-bounce 300ms ease both; animation-delay: 40ms; }
-.stagger-2 { animation: scale-in-bounce 300ms ease both; animation-delay: 80ms; }
-.stagger-3 { animation: scale-in-bounce 300ms ease both; animation-delay: 120ms; }
-.stagger-4 { animation: scale-in-bounce 300ms ease both; animation-delay: 160ms; }
-.stagger-5 { animation: scale-in-bounce 300ms ease both; animation-delay: 200ms; }
+/* ── Slide Fade In for List Items ── */
+@keyframes slide-fade-in {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-.metric-enter {
-  animation: metric-enter 350ms cubic-bezier(0.22, 1, 0.36, 1) both;
+.animate-slide-fade-in {
+  animation: slide-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* ── Filter Pending Overlay ── */
+.filter-pending {
+  opacity: 0.55;
+  pointer-events: none;
+  transition: opacity 150ms ease;
 }
 
 /* ══════════════════════════════════════════════
@@ -800,68 +830,6 @@ button,
     border-color: var(--lk-border-strong);
     background-color: var(--lk-surface-raised);
   }
-
-  /* ── Route Loading ── */
-  .route-loading-bar {
-    position: relative;
-    height: 0.25rem;
-    width: 100%;
-    overflow: hidden;
-    border-radius: 9999px;
-    background-color: var(--lk-surface-raised);
-  }
-
-  .route-loading-bar::after {
-    content: "";
-    position: absolute;
-    inset-block: 0;
-    left: 0;
-    width: 33%;
-    border-radius: 9999px;
-    background: linear-gradient(
-      90deg,
-      rgba(45, 106, 79, 0) 0%,
-      rgba(45, 106, 79, 0.8) 50%,
-      rgba(45, 106, 79, 0) 100%
-    );
-    animation: route-loading-progress 1.05s ease-in-out infinite;
-  }
-
-  .dark .route-loading-bar::after {
-    background: linear-gradient(
-      90deg,
-      rgba(45, 106, 79, 0) 0%,
-      rgba(149, 212, 179, 0.7) 50%,
-      rgba(45, 106, 79, 0) 100%
-    );
-  }
-
-  .route-loading-block {
-    position: relative;
-    overflow: hidden;
-    background-color: var(--lk-surface-raised);
-    background-image: linear-gradient(
-      100deg,
-      rgba(255, 255, 255, 0) 28%,
-      rgba(255, 255, 255, 0.04) 50%,
-      rgba(255, 255, 255, 0) 72%
-    );
-    background-size: 220% 100%;
-    animation: route-loading-shimmer 1.4s linear infinite, route-loading-breathe 2.1s ease-in-out infinite;
-  }
-
-  .dark .route-loading-block {
-    background-image: linear-gradient(
-      100deg,
-      rgba(255, 255, 255, 0) 28%,
-      rgba(255, 255, 255, 0.04) 50%,
-      rgba(255, 255, 255, 0) 72%
-    );
-  }
-
-  .route-loading-delay-1 { animation-delay: 0.08s; }
-  .route-loading-delay-2 { animation-delay: 0.16s; }
-  .route-loading-delay-3 { animation-delay: 0.24s; }
 
   /* ── App Shell Page ── */
   .app-shell-page {

@@ -128,7 +128,16 @@ export default function TransactionMobileFilter({
   return (
     <div className={`space-y-4 lg:hidden overflow-x-hidden ${className}`}>
       {/* Summary Card */}
-      <div className="flex items-center rounded-xl bg-slate-50/80 dark:bg-slate-800/40 divide-x divide-slate-200/60 dark:divide-slate-700/60 p-0 overflow-hidden">
+      <div className={`relative flex items-center rounded-xl bg-slate-50/80 dark:bg-slate-800/40 divide-x divide-slate-200/60 dark:divide-slate-700/60 p-0 overflow-hidden transition-opacity duration-200 ${isPending ? "opacity-60" : ""}`}>
+        {/* Loading shimmer overlay */}
+        {isPending && (
+          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 dark:bg-black/30 backdrop-blur-[1px]">
+            <svg className="animate-spin h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          </div>
+        )}
         <div className="flex-1 text-center py-4 px-2 min-w-0">
           <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Income</p>
           <p className="mt-1 text-base font-bold text-emerald-600 tracking-tight truncate">
@@ -193,7 +202,7 @@ export default function TransactionMobileFilter({
       </div>
 
       {/* Quick Filters */}
-      <div className="grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)_minmax(0,0.95fr)] gap-2 pb-1">
+      <div className={`grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)_minmax(0,0.95fr)] gap-2 pb-1 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
         <div className="min-w-0">
           <FormSelect
             name="type"
@@ -212,7 +221,7 @@ export default function TransactionMobileFilter({
             onValueChange={(val) => updateParams({ category: val })}
           />
         </div>
-        <div className="min-w-0">
+        <div className="min-w-0 relative">
           <FormSelect
             name="sort"
             value={selectedSort === "date_desc" ? "" : selectedSort}
@@ -221,6 +230,12 @@ export default function TransactionMobileFilter({
             disabled={isPending}
             onValueChange={(val) => updateParams({ sort: val })}
           />
+          {isPending && (
+            <svg className="animate-spin pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+            </svg>
+          )}
         </div>
       </div>
     </div>

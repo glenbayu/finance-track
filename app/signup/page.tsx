@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { validateEmail } from "@/lib/auth/email-validator";
 import SubmitButton from "@/components/ui/submit-button";
 
 type SignupPageProps = {
@@ -17,6 +18,11 @@ async function signup(formData: FormData) {
 
   if (!email || !password) {
     redirect(`/signup?error=${encodeURIComponent("Email dan password wajib diisi.")}`);
+  }
+
+  const emailCheck = await validateEmail(email);
+  if (!emailCheck.isValid) {
+    redirect(`/signup?error=${encodeURIComponent(emailCheck.error || "Alamat email tidak valid.")}`);
   }
 
   if (password.length < 6) {

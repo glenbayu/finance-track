@@ -65,6 +65,8 @@ function parseSort(value: string | undefined): SortMode {
 function parseTypeFilter(value: string | undefined): TypeFilter {
   if (value === "income") return "income";
   if (value === "expense") return "expense";
+  if (value === "transfer") return "transfer";
+  if (value === "adjustment") return "adjustment";
   return "all";
 }
 
@@ -425,11 +427,11 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       description="Semua pemasukan dan pengeluaran pada bulan terpilih."
       headerActionsClassName="hidden lg:flex lg:flex-1 lg:justify-end lg:pl-6"
       headerActions={
-        <div className="flex w-full max-w-[540px] flex-col gap-2">
+        <div className="flex w-full max-w-[560px] flex-col gap-2">
           {/* Baris Atas: Date & Search */}
           <div className="flex w-full gap-2">
-            <Suspense fallback={<div className="h-10 w-[160px] animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
-              <MonthFilter selectedMonth={selectedMonth} className="w-[160px] shrink-0" />
+            <Suspense fallback={<div className="h-10 w-[175px] animate-pulse rounded-full bg-slate-200 dark:bg-slate-800" />}>
+              <MonthFilter selectedMonth={selectedMonth} compact className="w-[175px] shrink-0" />
             </Suspense>
             <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
               <TransactionsSearch

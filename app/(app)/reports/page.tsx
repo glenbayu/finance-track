@@ -15,7 +15,7 @@ import {
 import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths, isMonthValue } from "@/lib/utils/date";
 import { formatDate, formatMonthLabel } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
-import { BarChart3 } from "lucide-react";
+import { BarChart3, Info } from "lucide-react";
 
 type ReportsPageProps = {
   searchParams?: Promise<{
@@ -399,7 +399,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </article>
       </section>
 
-      <section className="section-card mt-6">
+      <section className="section-card mt-6 space-y-5">
         <div className="lg:col-span-2">
           <h2 className="text-xl font-bold" style={{ color: "var(--lk-text)" }}>Bulan {formatMonthLabel(selectedMonth)}</h2>
           <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
@@ -408,20 +408,34 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </div>
 
         {hasNoTransactions ? (
-          <div className="soft-inset">
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Belum ada transaksi di bulan ini. Tambahkan transaksi dulu untuk melihat recap.
-            </p>
-            <div className="mt-3 flex flex-col gap-2 sm:flex-row">
-              <Link href="/transactions/new" className="btn-primary">+ Tambah Transaksi</Link>
-              <Link href={`/transactions?month=${encodeURIComponent(selectedMonth)}`} className="btn-secondary">
-                Buka Daftar Transaksi
-              </Link>
+          <div className="rounded-xl border border-slate-200/80 bg-slate-50/70 p-4 sm:p-5 dark:border-slate-800/60 dark:bg-slate-900/50 shadow-xs">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+              <div className="flex items-start gap-3.5">
+                <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-teal-500/10 text-teal-700 dark:bg-teal-400/10 dark:text-teal-400">
+                  <Info size={18} strokeWidth={2.2} />
+                </div>
+                <div>
+                  <h3 className="text-sm font-semibold text-slate-800 dark:text-slate-200">
+                    Belum ada transaksi di bulan ini
+                  </h3>
+                  <p className="mt-0.5 text-xs sm:text-sm text-slate-500 dark:text-slate-400">
+                    Tambahkan transaksi pemasukan atau pengeluaran terlebih dahulu untuk melihat recap analisis lengkap.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2.5 shrink-0 sm:self-center">
+                <Link href="/transactions/new" className="btn-primary text-xs font-semibold py-2 px-3.5 rounded-lg whitespace-nowrap shadow-xs">
+                  + Tambah Transaksi
+                </Link>
+                <Link href={`/transactions?month=${encodeURIComponent(selectedMonth)}`} className="btn-secondary text-xs font-semibold py-2 px-3.5 rounded-lg whitespace-nowrap">
+                  Buka Daftar Transaksi
+                </Link>
+              </div>
             </div>
           </div>
         ) : null}
 
-        <div className="mt-4 overflow-hidden rounded-lg shadow-sm grid md:grid-cols-2 xl:grid-cols-3" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+        <div className="overflow-hidden rounded-lg shadow-sm grid md:grid-cols-2 xl:grid-cols-3" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
             <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Rata-rata pengeluaran per transaksi</p>
             <p className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>

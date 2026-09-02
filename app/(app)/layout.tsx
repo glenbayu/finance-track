@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import type { ReactNode } from "react";
 import DesktopSidebar from "@/components/layout/desktop-sidebar";
-import MobileBottomNav from "@/components/layout/mobile-bottom-nav";
 import RouteProgress from "@/components/ui/route-progress";
 
 export default async function ProtectedAppLayout({ children }: { children: ReactNode }) {
@@ -25,7 +24,6 @@ export default async function ProtectedAppLayout({ children }: { children: React
           {children}
         </div>
       </main>
-      <MobileBottomNav className="lg:hidden" />
     </div>
   );
 }

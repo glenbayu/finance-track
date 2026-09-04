@@ -50,13 +50,13 @@ html {
   --lk-text-muted:      #64748b;
   --lk-text-faint:      #94a3b8;
   
-  /* Muted Financial Colors (for strict monochrome, we keep these very subtle) */
-  --lk-income:          #0f172a; /* Changed to dark text instead of green */
-  --lk-income-bg:       rgba(15, 23, 42, 0.05);
-  --lk-expense:         #475569; /* Muted slate for expense */
-  --lk-expense-bg:      rgba(71, 85, 105, 0.05);
-  --lk-amber:           #0f172a;
-  --lk-amber-bg:        rgba(15, 23, 42, 0.05);
+  /* Semantic Financial Colors */
+  --lk-income:          #059669; /* Emerald green */
+  --lk-income-bg:       rgba(5, 150, 105, 0.08);
+  --lk-expense:         #dc2626; /* Red */
+  --lk-expense-bg:      rgba(220, 38, 38, 0.07);
+  --lk-amber:           #d97706;
+  --lk-amber-bg:        rgba(217, 119, 6, 0.07);
 
   --background: var(--lk-bg);
   --foreground: var(--lk-text);
@@ -80,32 +80,32 @@ html {
 }
 
 .dark {
-  /* Strict Monochrome Base (Pitch Black) */
-  --lk-bg:              #000000;
-  --lk-surface:         #0a0a0a;
-  --lk-surface-raised:  #111111;
-  --lk-surface-hover:   #1a1a1a;
-  --lk-border:          #222222;
-  --lk-border-strong:   #333333;
+  /* Rich Blue-Tinted Dark Base — premium, not pitch black */
+  --lk-bg:              #0a0e17;
+  --lk-surface:         #111827;
+  --lk-surface-raised:  #1a2132;
+  --lk-surface-hover:   #1e2a3e;
+  --lk-border:          #1f2d42;
+  --lk-border-strong:   #2d3f5a;
   
-  /* Primary Accent: Deep Teal */
-  --lk-primary:         #0f766e;
-  --lk-primary-hover:   #0d9488;
-  --lk-primary-light:   #134e4a;
-  --lk-primary-dim:     rgba(15, 118, 110, 0.2);
+  /* Primary Accent: Vibrant Teal */
+  --lk-primary:         #14b8a6;
+  --lk-primary-hover:   #2dd4bf;
+  --lk-primary-light:   #99f6e4;
+  --lk-primary-dim:     rgba(20, 184, 166, 0.18);
   
-  /* Monochrome Text */
-  --lk-text:            #f8fafc;
-  --lk-text-muted:      #94a3b8;
-  --lk-text-faint:      #64748b;
+  /* High-contrast Text */
+  --lk-text:            #f0f6ff;
+  --lk-text-muted:      #8fa3c0;
+  --lk-text-faint:      #4e6480;
   
-  /* Muted Financial Colors */
-  --lk-income:          #f8fafc;
-  --lk-income-bg:       rgba(248, 250, 252, 0.05);
-  --lk-expense:         #94a3b8;
-  --lk-expense-bg:      rgba(148, 163, 184, 0.05);
-  --lk-amber:           #f8fafc;
-  --lk-amber-bg:        rgba(248, 250, 252, 0.05);
+  /* Semantic Financial Colors — visible & meaningful */
+  --lk-income:          #4ade80;
+  --lk-income-bg:       rgba(74, 222, 128, 0.1);
+  --lk-expense:         #f87171;
+  --lk-expense-bg:      rgba(248, 113, 113, 0.1);
+  --lk-amber:           #fbbf24;
+  --lk-amber-bg:        rgba(251, 191, 36, 0.1);
   color-scheme: dark;
 }
 
@@ -327,6 +327,17 @@ button,
     -webkit-backdrop-filter: blur(16px);
   }
 
+  .dark .app-hero {
+    border-color: var(--lk-border-strong);
+    box-shadow:
+      0 4px 28px rgba(0, 0, 0, 0.35),
+      0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    background:
+      radial-gradient(ellipse at 5% 0%, rgba(20, 184, 166, 0.16), transparent 60%),
+      radial-gradient(ellipse at 95% 100%, rgba(45, 212, 191, 0.06), transparent 50%),
+      var(--lk-surface);
+  }
+
   .app-hero--stacked {
     align-items: flex-start;
     flex-direction: column;
@@ -489,8 +500,9 @@ button,
   }
   
   .dark .bento-card {
-    background: #0a0a0a;
-    border-color: #222222;
+    background: var(--lk-surface);
+    border-color: var(--lk-border);
+    box-shadow: 0 1px 0 rgba(255,255,255,0.04) inset;
   }
 
   .glass-panel {
@@ -501,8 +513,10 @@ button,
   }
 
   .dark .glass-panel {
-    background: rgba(0, 0, 0, 0.6);
-    border: 1px solid rgba(255,255,255,0.05);
+    background: rgba(17, 24, 39, 0.75);
+    border: 1px solid rgba(255,255,255,0.08);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
   }
 
   /* Legacy .section-card — maps to lk-panel */
@@ -858,6 +872,12 @@ button,
     transition: background-color 150ms ease, color 150ms ease, transform 150ms ease;
     text-decoration: none;
     position: relative;
+    border: none;
+    background: transparent;
+    cursor: pointer;
+    text-align: left;
+    font-family: inherit;
+    line-height: inherit;
   }
 
   .app-shell-nav-link:hover {
@@ -889,13 +909,13 @@ button,
   }
 
   .dark .app-shell-nav-link:hover {
-    background-color: color-mix(in srgb, var(--lk-surface-hover) 60%, transparent);
+    background-color: var(--lk-surface-hover);
     color: var(--lk-text);
   }
 
   .dark .app-shell-nav-link.is-active {
     background-color: var(--lk-primary-dim);
-    color: color-mix(in srgb, var(--lk-primary-hover) 90%, white 10%);
+    color: var(--lk-primary-light);
   }
 
   /* ── Mobile Dock ── */
@@ -929,8 +949,11 @@ button,
   }
 
   .dark .app-shell-mobile-dock {
-    background-color: var(--lk-surface);
+    background-color: rgba(17, 24, 39, 0.88);
     border-color: var(--lk-border-strong);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    box-shadow: 0 -1px 0 rgba(255,255,255,0.06) inset, 0 8px 32px rgba(0,0,0,0.4);
   }
 
   .app-shell-dock-link {
@@ -1046,6 +1069,11 @@ button,
 
   .no-scrollbar::-webkit-scrollbar { display: none; }
   .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+  /* ── Transaction table row hover (used in Server Component — no JS handlers) ── */
+  .tx-row-hover:hover {
+    background-color: var(--lk-surface-hover);
+  }
 
   /* ── Metric glow (placeholder, simplified) ── */
   .metric-glow-green { /* no-op in lk system */ }

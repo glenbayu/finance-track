@@ -421,46 +421,24 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       className="transactions-page journal-transactions"
       activeNav="transactions"
       month={selectedMonth}
+      maxWidth="7xl"
       eyebrow="Aktivitas Keuangan"
       heroIcon={<ReceiptText size={19} strokeWidth={2.2} />}
       title="Daftar Transaksi"
       description="Semua pemasukan dan pengeluaran pada bulan terpilih."
-      headerActionsClassName="hidden lg:flex lg:flex-1 lg:justify-end lg:pl-6"
+      headerActionsClassName="hidden lg:flex lg:items-center lg:gap-3"
       headerActions={
-        <div className="flex w-full max-w-[560px] flex-col gap-2">
-          {/* Baris Atas: Date & Search */}
-          <div className="flex w-full gap-2">
-            <Suspense fallback={<div className="h-10 w-[175px] animate-pulse rounded-full bg-slate-200 dark:bg-slate-800" />}>
-              <MonthFilter selectedMonth={selectedMonth} compact className="w-[175px] shrink-0" />
-            </Suspense>
-            <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
-              <TransactionsSearch
-                defaultValue={searchValue}
-                className="flex-1"
-                placeholder="Cari catatan, kategori..."
-              />
-            </Suspense>
-          </div>
-          {/* Baris Bawah: 3 Dropdown & Tambah */}
-          <div className="flex w-full gap-2 items-center">
-            <div className="flex-1 min-w-0">
-              <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
-                <TransactionsFilterControls
-                  categories={filterCategories}
-                  selectedType={selectedType}
-                  selectedCategoryId={selectedCategoryId}
-                  selectedSort={selectedSort}
-                />
-              </Suspense>
-            </div>
-            <Link
-              href="/transactions/new"
-              className="btn-primary shrink-0 flex items-center gap-2 rounded-lg px-5 py-[9px] text-sm font-semibold shadow-sm transition-all hover:scale-105"
-            >
-              <ReceiptText size={16} />
-              Tambah Transaksi
-            </Link>
-          </div>
+        <div className="flex items-center gap-3">
+          <Suspense fallback={<div className="h-10 w-[175px] animate-pulse rounded-full bg-slate-200 dark:bg-slate-800" />}>
+            <MonthFilter selectedMonth={selectedMonth} compact className="w-[175px] shrink-0" />
+          </Suspense>
+          <Link
+            href="/transactions/new"
+            className="btn-primary shrink-0 flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold shadow-sm transition-all hover:scale-102"
+          >
+            <ReceiptText size={16} />
+            <span>+ Transaksi</span>
+          </Link>
         </div>
       }
       mobileActions={
@@ -474,7 +452,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               useSmallScreenPlaceholder
             />
           </Suspense>
-          <div className="rounded-2xl border border-slate-200/80 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 shadow-sm p-4">
+          <div className="rounded-2xl border p-4 shadow-sm" style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
             <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
               <TransactionMobileFilter
                 selectedMonth={selectedMonth}
@@ -490,8 +468,57 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         </div>
       }
     >
+      {/* Top Metric Quick Bar (Desktop / Tablet) */}
+      <div className="hidden sm:grid sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+        <div className="p-4 rounded-xl border shadow-xs flex flex-col justify-between"
+          style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pemasukan</span>
+          <span className="mt-1.5 text-xl font-bold text-emerald-600 dark:text-emerald-400">
+            +<CurrencyAmount amountIDR={monthlyIncome} />
+          </span>
+        </div>
+        <div className="p-4 rounded-xl border shadow-xs flex flex-col justify-between"
+          style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pengeluaran</span>
+          <span className="mt-1.5 text-xl font-bold text-rose-600 dark:text-rose-400">
+            -<CurrencyAmount amountIDR={monthlyExpense} />
+          </span>
+        </div>
+        <div className="p-4 rounded-xl border shadow-xs flex flex-col justify-between"
+          style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+          <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Net Cashflow</span>
+          <span className={`mt-1.5 text-xl font-bold ${monthlyIncome - monthlyExpense >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
+            <CurrencyAmount amountIDR={monthlyIncome - monthlyExpense} />
+          </span>
+        </div>
+      </div>
+
+      {/* Unified Filter Toolbar (Desktop) */}
+      <div className="hidden lg:flex items-center gap-3 p-3.5 rounded-xl border shadow-xs mb-4"
+        style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+        <div className="w-[320px] shrink-0">
+          <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+            <TransactionsSearch
+              defaultValue={searchValue}
+              className="w-full"
+              placeholder="Cari catatan, nominal..."
+            />
+          </Suspense>
+        </div>
+        <div className="flex-1 min-w-0">
+          <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+            <TransactionsFilterControls
+              categories={filterCategories}
+              selectedType={selectedType}
+              selectedCategoryId={selectedCategoryId}
+              selectedSort={selectedSort}
+            />
+          </Suspense>
+        </div>
+      </div>
+
       {!hasRolloverThisMonth && (
-        <div className="mb-6 rounded-lg p-4" style={{ backgroundColor: "var(--lk-primary-dim)", border: "1px solid var(--lk-primary)" }}>
+        <div className="mb-4 rounded-xl p-4" style={{ backgroundColor: "var(--lk-primary-dim)", border: "1px solid var(--lk-primary)" }}>
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
             <div>
               <h3 className="text-sm font-semibold" style={{ color: "var(--lk-primary-light)" }}>
@@ -513,18 +540,19 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         </div>
       )}
 
-      <section className="w-full rounded-2xl border border-slate-200/80 dark:border-slate-800/60 bg-white dark:bg-slate-900/60 shadow-sm overflow-hidden">
+      <section className="w-full rounded-2xl border shadow-sm overflow-hidden"
+        style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
         {paginatedTransactions.length === 0 ? (
           <div className="p-6 text-center sm:p-10">
             <div className="mx-auto mb-4 inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-[color:var(--surface-soft)] text-slate-600 shadow-sm dark:text-slate-300">
               <SearchX size={22} />
             </div>
-            <h3 className="text-base font-semibold text-slate-900 dark:text-slate-100">
+            <h3 className="text-base font-semibold" style={{ color: "var(--lk-text)" }}>
               {searchQuery || selectedType !== "all" || selectedCategoryId
                 ? "Transaksi tidak ditemukan"
                 : "Belum ada transaksi bulan ini"}
             </h3>
-            <p className="mx-auto mt-2 max-w-sm text-sm text-slate-500 dark:text-slate-400">
+            <p className="mx-auto mt-2 max-w-sm text-sm" style={{ color: "var(--lk-text-muted)" }}>
               {searchQuery || selectedType !== "all" || selectedCategoryId
                 ? "Coba ubah keyword, tipe transaksi, atau kategori agar data yang kamu cari muncul lagi."
                 : "Mulai catat pemasukan atau pengeluaran supaya dashboard, laporan, dan forecast kamu makin akurat."}
@@ -546,13 +574,14 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
               {sortedDates.map((date, dateIdx) => (
                 <section key={date}>
                   {/* Subtle date divider row inside the bento card */}
-                  <div className={`px-4 py-2 bg-slate-50/70 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800/60 ${dateIdx > 0 ? "border-t" : ""}`}>
-                    <p className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                  <div className={`px-4 py-2 border-b ${dateIdx > 0 ? "border-t" : ""}`}
+                    style={{ backgroundColor: "var(--lk-surface-raised)", borderColor: "var(--lk-border)" }}>
+                    <p className="text-[11px] font-bold uppercase tracking-wider" style={{ color: "var(--lk-text-faint)" }}>
                       {formatDate(date)}
                     </p>
                   </div>
                   {/* Transactions for this date */}
-                  <div className="divide-y divide-slate-100 dark:divide-slate-800/40">
+                  <div className="divide-y" style={{ borderColor: "var(--lk-border)" }}>
                     {groupedTransactions[date].map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
@@ -579,7 +608,8 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           actionWidth={128}
                         >
                           <Link href={`/transactions/${transaction.id}/edit`} className="block group">
-                            <article className="px-4 py-3.5 bg-white dark:bg-slate-900/60 active:bg-slate-50 dark:active:bg-slate-800/50 transition-colors">
+                            <article className="px-4 py-3.5 transition-colors active:opacity-80"
+                            style={{ backgroundColor: "var(--lk-surface)" }}>
                               <div className="flex items-center justify-between gap-3">
                                 <div className="flex items-center gap-3 min-w-0">
                                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${visuals.bg}`}>
@@ -630,22 +660,24 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
 
             <div className="hidden overflow-x-auto md:block">
               <table className="w-full caption-bottom text-sm border-collapse">
-                <thead className="[&_tr]:border-b border-slate-200 dark:border-slate-800/60 bg-slate-50/70 dark:bg-slate-800/40">
-                  <tr className="border-b transition-colors hover:bg-slate-100/50 dark:hover:bg-slate-800/50">
-                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Tanggal</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Tipe</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Kategori</th>
-                    <th className="h-12 px-4 text-left align-middle font-medium text-slate-500 dark:text-slate-400">Catatan</th>
-                    <th className="h-12 px-4 text-right align-middle font-medium text-slate-500 dark:text-slate-400">Jumlah</th>
-                    <th className="h-12 px-4 text-right align-middle font-medium text-slate-500 dark:text-slate-400">Aksi</th>
+                <thead className="[&_tr]:border-b" style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface-raised)" }}>
+                  <tr className="border-b transition-colors" style={{ borderColor: "var(--lk-border)" }}>
+                    <th className="h-12 px-4 text-left align-middle font-medium" style={{ color: "var(--lk-text-muted)" }}>Tanggal</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium" style={{ color: "var(--lk-text-muted)" }}>Tipe</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium" style={{ color: "var(--lk-text-muted)" }}>Kategori</th>
+                    <th className="h-12 px-4 text-left align-middle font-medium" style={{ color: "var(--lk-text-muted)" }}>Catatan</th>
+                    <th className="h-12 px-4 text-right align-middle font-medium" style={{ color: "var(--lk-text-muted)" }}>Jumlah</th>
+                    <th className="h-12 px-4 text-right align-middle font-medium" style={{ color: "var(--lk-text-muted)" }}>Aksi</th>
                   </tr>
                 </thead>
                 <tbody className="[&_tr:last-child]:border-0">
                   {paginatedTransactions.map((transaction) => {
                     const category = toCategory(transaction.categories);
                     return (
-                      <tr key={transaction.id} className="border-b border-slate-200 dark:border-slate-800/60 transition-colors hover:bg-slate-50 dark:hover:bg-slate-900/50">
-                        <td className="p-4 align-middle font-medium text-slate-900 dark:text-slate-100">
+                      <tr key={transaction.id} className="border-b transition-colors tx-row-hover"
+                        style={{ borderColor: "var(--lk-border)" }}
+                      >
+                        <td className="p-4 align-middle font-medium" style={{ color: "var(--lk-text)" }}>
                           {formatDate(transaction.transaction_date)}
                         </td>
                         <td className="p-4 align-middle">
@@ -660,7 +692,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                              transaction.type === "transfer" ? "Transfer" : "Penyesuaian"}
                           </span>
                         </td>
-                        <td className="p-4 align-middle text-slate-600 dark:text-slate-300">
+                        <td className="p-4 align-middle" style={{ color: "var(--lk-text-muted)" }}>
                           <div className="flex items-center gap-2">
                             <div className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-lg ${getCategoryVisuals(category?.name || "", transaction.type).bg}`}>
                               {getCategoryVisuals(category?.name || "", transaction.type).icon}
@@ -676,7 +708,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                             </span>
                           </div>
                         </td>
-                        <td className="p-4 align-middle text-slate-500 dark:text-slate-400 text-sm">
+                        <td className="p-4 align-middle text-sm" style={{ color: "var(--lk-text-muted)" }}>
                           {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}
                         </td>
                         <td className={`p-4 align-middle text-right font-semibold ${

@@ -40,7 +40,7 @@ async function UserProfileSection() {
   const email = user.email || "";
   return (
     <div
-      className="mx-2 mb-2 rounded-xl p-3"
+      className="mx-1 mb-1 rounded-xl p-3"
       style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}
     >
       <div className="flex items-center gap-2.5">
@@ -110,7 +110,7 @@ export default function DesktopSidebar() {
       </nav>
 
       {/* Bottom area */}
-      <div style={{ paddingTop: "0.5rem", borderTop: "1px solid var(--lk-border)", display: "flex", flexDirection: "column", gap: "0.125rem" }}>
+      <div style={{ padding: "0.5rem 0.625rem 0.625rem", borderTop: "1px solid var(--lk-border)", display: "flex", flexDirection: "column", gap: "0.125rem" }}>
         <Suspense fallback={<div className="h-10 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-md mx-3" />}>
           <DesktopSidebarLinks section="bottom" />
         </Suspense>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useSyncExternalStore } from "react";
 import { Moon, Sun } from "lucide-react";
 
 type Theme = "light" | "dark";
@@ -18,6 +18,24 @@ function normalizeTheme(value: string | null): Theme {
   return value === "dark" ? "dark" : "light";
 }
 
+function subscribeTheme(callback: () => void) {
+  window.addEventListener("storage", callback);
+  window.addEventListener(THEME_EVENT, callback);
+  return () => {
+    window.removeEventListener("storage", callback);
+    window.removeEventListener(THEME_EVENT, callback);
+  };
+}
+
+function getThemeSnapshot(): Theme {
+  if (typeof window === "undefined") return "light";
+  return normalizeTheme(window.localStorage.getItem(THEME_KEY));
+}
+
+function getServerThemeSnapshot(): Theme {
+  return "light";
+}
+
 function applyTheme(theme: Theme) {
   const isDark = theme === "dark";
   document.documentElement.classList.toggle("dark", isDark);
@@ -31,36 +49,13 @@ export default function ThemeToggleButton({
   showLabel = true,
   fixed = false,
 }: ThemeToggleButtonProps) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    if (typeof window === "undefined") return "light";
-    return normalizeTheme(window.localStorage.getItem(THEME_KEY));
-  });
-
-  useEffect(() => {
-    const onStorage = (event: StorageEvent) => {
-      if (event.key !== THEME_KEY) return;
-      setTheme(normalizeTheme(event.newValue));
-    };
-    const onThemeEvent = (event: Event) => {
-      const custom = event as CustomEvent<{ theme: Theme }>;
-      const nextTheme = normalizeTheme(custom.detail?.theme ?? null);
-      setTheme(nextTheme);
-    };
-
-    window.addEventListener("storage", onStorage);
-    window.addEventListener(THEME_EVENT, onThemeEvent as EventListener);
-    return () => {
-      window.removeEventListener("storage", onStorage);
-      window.removeEventListener(THEME_EVENT, onThemeEvent as EventListener);
-    };
-  }, []);
+  const theme = useSyncExternalStore(subscribeTheme, getThemeSnapshot, getServerThemeSnapshot);
 
   const toggleTheme = () => {
     const nextTheme: Theme = theme === "light" ? "dark" : "light";
     const root = document.documentElement;
     root.classList.add("theme-transition");
     applyTheme(nextTheme);
-    setTheme(nextTheme);
 
     window.setTimeout(() => {
       root.classList.remove("theme-transition");
@@ -85,7 +80,7 @@ export default function ThemeToggleButton({
       aria-label={`Tema saat ini ${label}. Ketuk untuk ganti tema.`}
       title={`Tema: ${label}`}
     >
-      {theme === "light" ? <Moon size={14} /> : <Sun size={14} />}
+      {theme === "light" ? <Moon size={16} /> : <Sun size={16} />}
       {showLabel ? <span>{label}</span> : <span className="sr-only">{label}</span>}
     </button>
   );

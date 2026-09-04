@@ -57,13 +57,14 @@ export default async function MorePage() {
 
   return (
     <AppShell
-      className="bg-slate-50/50 dark:bg-slate-950/50"
+      className="bg-[var(--lk-bg)]"
       activeNav="more"
+      maxWidth="4xl"
       eyebrow="Ruang Pribadi"
       title="Akun Saya"
       description="Kelola profil dan pengaturan aplikasi."
     >
-      <div className="mx-auto max-w-md space-y-7 pb-24 sm:pb-8">
+      <div className="mx-auto max-w-lg space-y-7 pb-12">
         
         {/* Profile Header */}
         <section className="flex items-start gap-4 px-2">

@@ -83,6 +83,10 @@ export default function WalletManager({ wallets, createAction, editAction, delet
     return groups;
   }, [wallets]);
 
+  const totalBalance = useMemo(() => {
+    return wallets.reduce((acc, w) => acc + (Number(w.balance) || 0), 0);
+  }, [wallets]);
+
   const openCreateModal = () => {
     setEditingWallet(null);
     setIsRolloverEnabled(false);
@@ -151,67 +155,66 @@ export default function WalletManager({ wallets, createAction, editAction, delet
     if (list.length === 0) return null;
     return (
       <div className="mb-6">
-        <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider uppercase" style={{ color: "var(--lk-text-muted)" }}>
+        <h3 className="mb-2.5 px-1 text-[13px] font-bold tracking-wider uppercase" style={{ color: "var(--lk-text-muted)" }}>
           {title} ({list.length})
         </h3>
-        <div className="overflow-hidden rounded-lg shadow-sm" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+        <div className="overflow-hidden rounded-xl shadow-xs divide-y" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)", borderColor: "var(--lk-border)" }}>
           {list.map((wallet) => (
-            <details key={wallet.id} className="group hover-bg-surface-hover" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+            <details key={wallet.id} className="group hover-bg-surface-hover" style={{ borderColor: "var(--lk-border)" }}>
               <summary className="flex cursor-pointer items-center justify-between gap-4 p-4 outline-none list-none [&::-webkit-details-marker]:hidden">
-                <div className="flex min-w-0 items-center gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: "var(--lk-bg)" }}>
+                <div className="flex min-w-0 items-center gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl shadow-xs" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
                     {getWalletIcon(wallet.type)}
                   </div>
                   <div className="min-w-0">
                     <p className="truncate text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>{wallet.name}</p>
                     <p className="truncate text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
-                      {wallet.usageCount > 0 ? `${wallet.usageCount} transaksi` : "Belum dipakai"}
+                      {wallet.usageCount > 0 ? `${wallet.usageCount} transaksi tercatat` : "Belum ada transaksi"}
                     </p>
                   </div>
                 </div>
                 <div className="flex shrink-0 items-center gap-3">
-                  <div className="text-[15px] font-bold" style={{ color: wallet.balance < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
+                  <div className="text-[15px] sm:text-base font-bold" style={{ color: wallet.balance < 0 ? "var(--lk-expense)" : "var(--lk-text)" }}>
                     <CurrencyAmount amountIDR={wallet.balance} />
                   </div>
-                  <div className="transition-transform group-open:rotate-90" style={{ color: "var(--lk-text-muted)" }}>
+                  <div className="transition-transform group-open:rotate-90 text-slate-400">
                     <ChevronRight size={18} />
                   </div>
                 </div>
               </summary>
               
-              
-              <div className="mx-4 mb-4 mt-1 flex flex-wrap gap-2 rounded-lg px-4 pb-4 pt-3" style={{ backgroundColor: "var(--lk-bg)", borderTop: "1px solid var(--lk-border)" }}>
+              <div className="mx-4 mb-4 mt-1 flex flex-wrap gap-2 rounded-xl px-4 pb-4 pt-3.5" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
                 <Link 
                   href={`/transactions/new?type=transfer&source_id=${wallet.id}`}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-85"
                   style={{ backgroundColor: "var(--lk-income-dim)", color: "var(--lk-income)" }}
                 >
-                  <ArrowRightLeft size={14} /> Pindah
+                  <ArrowRightLeft size={14} /> Pindah Saldo
                 </Link>
                 <button
                   type="button"
                   onClick={() => openAdjustModal(wallet)}
-                  className="flex flex-1 items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                  className="flex flex-1 items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-85"
                   style={{ backgroundColor: "var(--lk-surface)", color: "var(--lk-text)", border: "1px solid var(--lk-border)" }}
                 >
-                  <SlidersHorizontal size={14} /> Sesuaikan
+                  <SlidersHorizontal size={14} /> Koreksi Saldo
                 </button>
                 <div className="flex w-full sm:w-auto items-center gap-2">
                   <button
                     type="button"
                     onClick={() => openEditModal(wallet)}
-                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-85"
                     style={{ backgroundColor: "var(--lk-surface)", color: "var(--lk-text)", border: "1px solid var(--lk-border)" }}
                   >
-                    <Edit2 size={16} /> Edit
+                    <Edit2 size={15} /> Edit
                   </button>
                   <button
                     type="button"
                     onClick={() => setWalletToDelete(wallet)}
-                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-md px-3 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-80"
+                    className="flex flex-1 sm:flex-none items-center justify-center gap-2 rounded-lg px-3.5 py-2.5 text-[13px] font-semibold transition-colors hover:opacity-85"
                     style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}
                   >
-                    <Trash2 size={16} /> Hapus
+                    <Trash2 size={15} /> Hapus
                   </button>
                 </div>
               </div>
@@ -225,24 +228,28 @@ export default function WalletManager({ wallets, createAction, editAction, delet
   return (
     <>
       <div className="grid gap-6 lg:grid-cols-12 items-start">
-        {/* Kolom Kiri: Header & Tambah Dompet Baru */}
-        <div className="lg:col-span-4">
-          <div className="rounded-lg p-5 shadow-sm mx-2 sm:mx-0" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-            <div className="flex flex-col gap-2 pb-4">
-              <h2 className="text-[17px] font-semibold" style={{ color: "var(--lk-text)" }}>Daftar Dompet & Rekening</h2>
-              <p className="text-[13px]" style={{ color: "var(--lk-text-muted)" }}>
-                Pusat kontrol sebaran saldo Anda.
-              </p>
+        {/* Kolom Kiri: Ringkasan Saldo & Tambah Dompet */}
+        <div className="lg:col-span-4 space-y-4">
+          <div className="rounded-2xl p-5 shadow-xs" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
+            <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Saldo Seluruh Dompet</span>
+            <div className="mt-2 text-2xl font-bold tracking-tight" style={{ color: totalBalance >= 0 ? "var(--lk-text)" : "var(--lk-expense)" }}>
+              <CurrencyAmount amountIDR={totalBalance} />
             </div>
-            <button onClick={openCreateModal} className="btn-primary flex w-full justify-center items-center gap-2 py-3 rounded-md text-[14px]">
+            <p className="mt-1 text-xs" style={{ color: "var(--lk-text-muted)" }}>
+              {wallets.length} dompet & rekening terhubung
+            </p>
+
+            <button onClick={openCreateModal} className="btn-primary mt-4 flex w-full justify-center items-center gap-2 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all hover:scale-102">
               <Plus size={16} /> Tambah Dompet Baru
             </button>
+          </div>
 
-            <div className="mt-5 space-y-3 pt-4 border-t" style={{ borderColor: "var(--lk-border)" }}>
-              <p className="text-[11px] font-semibold uppercase tracking-wider" style={{ color: "var(--lk-text-muted)" }}>Tipe Dompet</p>
+          <div className="rounded-2xl p-5 shadow-xs" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
+            <p className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--lk-text-muted)" }}>Tipe Dompet</p>
+            <div className="space-y-3.5">
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)" }}>
-                  <Wallet size={14} className="text-emerald-600 dark:text-emerald-400" />
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <Wallet size={15} className="text-emerald-600 dark:text-emerald-400" />
                 </div>
                 <div>
                   <p className="text-[13px] font-semibold" style={{ color: "var(--lk-text)" }}>Cash / Tunai</p>
@@ -250,21 +257,21 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)" }}>
-                  <Landmark size={14} className="text-blue-600 dark:text-blue-400" />
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <Landmark size={15} className="text-blue-600 dark:text-blue-400" />
                 </div>
                 <div>
                   <p className="text-[13px] font-semibold" style={{ color: "var(--lk-text)" }}>Bank & E-Wallet</p>
-                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>Rekening, GoPay, OVO, dll. Mendukung biaya admin bulanan otomatis.</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>BCA, Mandiri, GoPay, OVO, dll. Mendukung auto admin fee.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
-                <div className="mt-0.5 flex h-7 w-7 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)" }}>
-                  <HandCoins size={14} className="text-amber-600 dark:text-amber-400" />
+                <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <HandCoins size={15} className="text-amber-600 dark:text-amber-400" />
                 </div>
                 <div>
                   <p className="text-[13px] font-semibold" style={{ color: "var(--lk-text)" }}>Saldo Tertahan</p>
-                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>Piutang, dana darurat, atau saldo yang sementara dipegang orang lain</p>
+                  <p className="text-[12px] mt-0.5" style={{ color: "var(--lk-text-muted)" }}>Piutang, titipan uang, atau simpanan darurat</p>
                 </div>
               </div>
             </div>

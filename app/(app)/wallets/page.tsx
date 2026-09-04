@@ -170,6 +170,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
       className="bg-[var(--lk-bg)]"
       activeNav="wallets"
       month={selectedMonth}
+      maxWidth="6xl"
       eyebrow="Saldo & Rekening"
       title="Dompet & Rekening"
       description="Kelola daftar rekening, dompet fisik, dan saldo tertahan Anda."
@@ -188,15 +189,13 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
         </div>
       }
     >
-      <div className="mx-auto max-w-5xl">
-        <WalletManager
-          wallets={walletsWithUsage}
-          createAction={createWallet}
-          editAction={editWallet}
-          deleteAction={deleteWallet}
-          adjustAction={adjustWalletBalance}
-        />
-      </div>
+      <WalletManager
+        wallets={walletsWithUsage}
+        createAction={createWallet}
+        editAction={editWallet}
+        deleteAction={deleteWallet}
+        adjustAction={adjustWalletBalance}
+      />
     </AppShell>
   );
 }

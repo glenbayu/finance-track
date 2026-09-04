@@ -549,17 +549,17 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
 
   return (
     <AppShell
-      className="bg-slate-50/50 dark:bg-slate-950/50"
+      className="bg-[var(--lk-bg)]"
       activeNav="categories"
+      maxWidth="6xl"
       eyebrow="Organisasi Data"
+      heroIcon={<Tags size={19} strokeWidth={2.2} />}
       title="Kategori Transaksi"
       description="Kelola kategori pemasukan dan pengeluaran dengan rapi."
     >
-      <div className="mx-auto max-w-5xl pb-24 sm:pb-8 pt-4">
-        <div className="grid gap-6 lg:grid-cols-12 items-start">
-          
-          {/* Kolom Kiri: Form Input & Arsip */}
-          <div className="space-y-6 lg:col-span-5">
+      <div className="grid gap-6 lg:grid-cols-12 items-start">
+        {/* Kolom Kiri: Form Input & Arsip */}
+        <div className="space-y-6 lg:col-span-5">
             {/* Add New Category Section */}
             <section className="px-2">
               <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
@@ -711,9 +711,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
               )}
             </section>
           </div>
-
         </div>
-      </div>
     </AppShell>
   );
 }

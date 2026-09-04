@@ -362,6 +362,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       className="journal-dashboard"
       activeNav="reports"
       month={selectedMonth}
+      maxWidth="7xl"
       eyebrow="Insight Keuangan"
       heroIcon={<BarChart3 size={19} strokeWidth={2.2} />}
       title="Laporan & Analisis"

@@ -3,7 +3,6 @@ import { Toaster } from "sonner";
 import "./globals.css";
 import IdleSessionGuard from "@/components/auth/idle-session-guard";
 import PwaRegistration from "@/components/pwa/pwa-registration";
-import ThemeProvider from "@/components/ui/theme-provider";
 import ToastQueryListener from "@/components/ui/toast-query-listener";
 import { Suspense } from "react";
 
@@ -75,15 +74,13 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased">
-        <ThemeProvider>
-          <IdleSessionGuard />
-          <PwaRegistration />
-          <Suspense>
-            <ToastQueryListener />
-          </Suspense>
-          {children}
-          <Toaster position="bottom-center" toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
-        </ThemeProvider>
+        <IdleSessionGuard />
+        <PwaRegistration />
+        <Suspense>
+          <ToastQueryListener />
+        </Suspense>
+        {children}
+        <Toaster position="bottom-center" toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
       </body>
     </html>
   );

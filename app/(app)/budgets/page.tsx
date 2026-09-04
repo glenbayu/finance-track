@@ -9,6 +9,7 @@ import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
 import { formatDate } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
 import { Suspense } from "react";
+import { Target } from "lucide-react";
 
 type BudgetsPageProps = {
   searchParams?: Promise<{
@@ -233,7 +234,9 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
       className="journal-dashboard"
       activeNav="budgets"
       month={selectedMonth}
+      maxWidth="6xl"
       eyebrow="Rencana Pengeluaran"
+      heroIcon={<Target size={19} strokeWidth={2.2} />}
       title="Anggaran"
       description="Atur limit pengeluaran per kategori agar cashflow tetap sehat."
       headerActionsClassName="lg:flex-nowrap"
@@ -250,42 +253,46 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
 
     >
       {!activeCategories.length ? (
-        <section className="section-card">
-          <h2 className="text-xl font-semibold">Belum ada kategori pengeluaran</h2>
-          <p className="mt-2 text-slate-600 dark:text-slate-300">
-            Buat kategori pengeluaran dulu agar kamu bisa memasang budget per kategori.
+        <section className="rounded-2xl border p-8 text-center" style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+          <h2 className="text-lg font-bold" style={{ color: "var(--lk-text)" }}>Belum ada kategori pengeluaran</h2>
+          <p className="mt-2 text-sm max-w-md mx-auto" style={{ color: "var(--lk-text-muted)" }}>
+            Buat kategori pengeluaran dulu agar kamu bisa memasang target limit pengeluaran per kategori.
           </p>
           <div className="mt-5">
-            <Link href="/categories" className="btn-primary">
+            <Link href="/categories" className="btn-primary inline-flex px-5 py-2.5 rounded-xl text-sm font-semibold">
               Buka Halaman Kategori
             </Link>
           </div>
         </section>
       ) : (
         <>
-          <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Total Anggaran</p>
-              <p className="mt-2 text-xl font-semibold" style={{ color: "var(--lk-text)" }}>
+          <section className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
+            <article className="p-4 rounded-2xl border shadow-xs flex flex-col justify-between"
+              style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Anggaran</p>
+              <p className="mt-2 text-lg sm:text-2xl font-bold tracking-tight" style={{ color: "var(--lk-text)" }}>
                 <CurrencyAmount amountIDR={totalBudget} />
               </p>
             </article>
-            <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Total Terpakai</p>
-              <p className="mt-2 text-xl font-semibold" style={{ color: "var(--lk-expense)" }}>
+            <article className="p-4 rounded-2xl border shadow-xs flex flex-col justify-between"
+              style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Terpakai</p>
+              <p className="mt-2 text-lg sm:text-2xl font-bold tracking-tight text-rose-600 dark:text-rose-400">
                 <CurrencyAmount amountIDR={totalSpent} />
               </p>
             </article>
-            <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Sisa Anggaran</p>
-              <p className="mt-2 text-xl font-semibold" style={{ color: remainingBudget >= 0 ? "var(--lk-income)" : "var(--lk-expense)" }}>
+            <article className="p-4 rounded-2xl border shadow-xs flex flex-col justify-between"
+              style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Sisa Anggaran</p>
+              <p className={`mt-2 text-lg sm:text-2xl font-bold tracking-tight ${remainingBudget >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
                 <CurrencyAmount amountIDR={remainingBudget} />
               </p>
             </article>
-            <article className="stat-card">
-              <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Melewati Batas</p>
-              <p className="mt-2 text-xl font-semibold" style={{ color: categoriesOverBudget > 0 ? "var(--lk-expense)" : "var(--lk-income)" }}>
-                {categoriesOverBudget} kategori
+            <article className="p-4 rounded-2xl border shadow-xs flex flex-col justify-between"
+              style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Over-Budget</p>
+              <p className={`mt-2 text-lg sm:text-2xl font-bold tracking-tight ${categoriesOverBudget > 0 ? "text-rose-600 dark:text-rose-400" : "text-emerald-600 dark:text-emerald-400"}`}>
+                {categoriesOverBudget} <span className="text-xs sm:text-sm font-normal text-slate-500">kategori</span>
               </p>
             </article>
           </section>

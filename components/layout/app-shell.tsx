@@ -25,6 +25,16 @@ type AppShellProps = {
   children: ReactNode;
   layoutStyle?: "default" | "drawer";
   backPath?: string;
+  maxWidth?: "full" | "7xl" | "6xl" | "5xl" | "4xl" | "3xl";
+};
+
+const maxWidthClassMap: Record<NonNullable<AppShellProps["maxWidth"]>, string> = {
+  full: "w-full",
+  "7xl": "max-w-7xl mx-auto w-full",
+  "6xl": "max-w-6xl mx-auto w-full",
+  "5xl": "max-w-5xl mx-auto w-full",
+  "4xl": "max-w-4xl mx-auto w-full",
+  "3xl": "max-w-3xl mx-auto w-full",
 };
 
 export default function AppShell({
@@ -48,7 +58,9 @@ export default function AppShell({
   children,
   layoutStyle = "default",
   backPath,
+  maxWidth = "7xl",
 }: AppShellProps) {
+  const containerWidthClass = maxWidthClassMap[maxWidth] || "max-w-7xl mx-auto w-full";
   const MobileNav = (
     <nav className="app-shell-mobile-dock lg:hidden" aria-label="Navigasi cepat">
       {mobileDockItems.map((item) => {
@@ -112,47 +124,53 @@ export default function AppShell({
 
           {/* Floating Sticky Header Wrapper */}
           <div className="sticky top-0 z-30 px-3 pt-3 pb-0 sm:px-4 sm:pt-4 lg:px-6 lg:pt-5">
-            <header className={`app-hero app-hero--${headerLayout}`}
-              style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
-            >
-              <div className="app-hero__main flex-1 w-full flex items-start justify-between">
-                <div className="flex items-center gap-[0.85rem] min-w-0">
-                  {heroIcon ? <div className="app-hero__icon" aria-hidden="true">{heroIcon}</div> : null}
-                  <div className="min-w-0">
-                    <div className="app-hero__eyebrow">{eyebrow || badge}</div>
-                    <h1 className={`app-hero__title ${titleClassName}`}>
-                      {title}
-                    </h1>
-                    {description && <p className="app-hero__description">{description}</p>}
+            <div className={containerWidthClass}>
+              <header className={`app-hero app-hero--${headerLayout}`}
+                style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+              >
+                <div className="app-hero__main flex-1 w-full flex items-start justify-between">
+                  <div className="flex items-center gap-[0.85rem] min-w-0">
+                    {heroIcon ? <div className="app-hero__icon" aria-hidden="true">{heroIcon}</div> : null}
+                    <div className="min-w-0">
+                      <div className="app-hero__eyebrow">{eyebrow || badge}</div>
+                      <h1 className={`app-hero__title ${titleClassName}`}>
+                        {title}
+                      </h1>
+                      {description && <p className="app-hero__description">{description}</p>}
+                    </div>
                   </div>
+                  
+                  {titleActions && (
+                    <div className="hidden shrink-0 items-center gap-3 lg:flex mt-1">
+                      {titleActions}
+                    </div>
+                  )}
                 </div>
-                
-                {titleActions && (
-                  <div className="hidden shrink-0 items-center gap-3 lg:flex mt-1">
-                    {titleActions}
+
+                {(heroStats || headerActions) && (
+                  <div className={`app-hero__aside ${headerActionsClassName}`}>
+                    {heroStats ? <div className="app-hero__stats">{heroStats}</div> : null}
+                    {headerActions ? <div className="app-hero__actions">{headerActions}</div> : null}
                   </div>
                 )}
-              </div>
-
-              {(heroStats || headerActions) && (
-                <div className={`app-hero__aside ${headerActionsClassName}`}>
-                  {heroStats ? <div className="app-hero__stats">{heroStats}</div> : null}
-                  {headerActions ? <div className="app-hero__actions">{headerActions}</div> : null}
-                </div>
-              )}
-            </header>
+              </header>
+            </div>
           </div>
 
           {/* Mobile Actions (filter row on mobile) */}
           {mobileActions && (
-            <div className="px-4 pt-2 lg:hidden">
-              {mobileActions}
+            <div className="px-3 pt-2 sm:px-4 lg:px-6 lg:hidden">
+              <div className={containerWidthClass}>
+                {mobileActions}
+              </div>
             </div>
           )}
 
           {/* Page Content */}
-          <div className="p-4 pt-4 sm:p-6">
-            {children}
+          <div className="p-3 pt-2.5 sm:p-5 sm:pt-3.5 lg:px-6 lg:pt-3.5 lg:pb-12 pb-24 sm:pb-24">
+            <div className={containerWidthClass}>
+              {children}
+            </div>
           </div>
         </div>
       </div>

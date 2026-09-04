@@ -18,7 +18,7 @@ import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRe
 import { formatDate as formatDateLabel, formatMonthLabel } from "@/lib/utils/format";
 import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/transactions/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
-import { ArrowDownRight, ArrowUpRight, Target, Wallet, Settings, LayoutDashboard } from "lucide-react";
+import { ArrowUpRight, Wallet, Settings, LayoutDashboard, BookOpen } from "lucide-react";
 import { forceRecalculateRollovers } from "@/lib/transactions/rollover";
 import SwipeableRow from "@/components/ui/swipeable-row";
 import EditTransactionButton from "@/components/transactions/edit-transaction-button";
@@ -170,12 +170,6 @@ export default async function Home({ searchParams }: HomeProps) {
     .gte("transaction_date", start)
     .lt("transaction_date", end);
 
-  const { data: budgets } = await supabase
-    .from("budgets")
-    .select("category_id, amount")
-    .eq("user_id", user.id)
-    .eq("month", selectedMonth);
-
   const { data: wallets } = await supabase
     .from("wallets")
     .select("id, name, type")
@@ -263,28 +257,6 @@ export default async function Home({ searchParams }: HomeProps) {
     ?.filter((item) => item.type === "expense")
     .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
   const balance = totalIncome - totalExpense;
-
-  const activeExpenseCategoryIds = new Set(
-    (categories ?? [])
-      .filter((category) => category.type === "expense")
-      .map((category) => category.id),
-  );
-  const totalBudget = (budgets ?? [])
-    .filter((budget) => activeExpenseCategoryIds.has(budget.category_id))
-    .reduce((sum, budget) => sum + Number(budget.amount), 0);
-  const trackedBudgetSpend = allTransactions
-    ?.filter(
-      (transaction) =>
-        transaction.type === "expense" &&
-        !!transaction.category_id &&
-        activeExpenseCategoryIds.has(transaction.category_id),
-    )
-    .reduce((sum, transaction) => sum + Number(transaction.amount), 0) ?? 0;
-  const remainingBudget = totalBudget - trackedBudgetSpend;
-  const budgetUsagePct = totalBudget > 0 ? (trackedBudgetSpend / totalBudget) * 100 : 0;
-  const budgetProgressPct = Math.min(100, Math.max(0, budgetUsagePct));
-  const budgetTone = budgetUsagePct >= 100 ? "danger" : budgetUsagePct >= 70 ? "warn" : "safe";
-  const hasBudget = totalBudget > 0;
 
   const walletBalanceMap = new Map<string, number>();
   wallets?.forEach((wallet) => walletBalanceMap.set(wallet.id, 0));
@@ -407,7 +379,7 @@ export default async function Home({ searchParams }: HomeProps) {
       activeNav="dashboard"
       month={selectedMonth}
       eyebrow="Ringkasan Bulanan"
-      heroIcon={<LayoutDashboard size={19} strokeWidth={2.2} />}
+      heroIcon={<BookOpen size={19} strokeWidth={2.2} />}
       title={`${greeting}, ${firstName}`}
       description="Pantau arus kas dan pola pengeluaran bulananmu di sini."
       headerActionsClassName="lg:flex-nowrap"
@@ -500,7 +472,7 @@ export default async function Home({ searchParams }: HomeProps) {
               </div>
             </InteractiveDotPanel>
 
-            <InteractiveDotPanel className="stat-card self-start h-fit">
+            <InteractiveDotPanel className="stat-card self-start h-fit md:col-span-2">
               <div className="mb-3 flex items-center justify-between">
                 <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Pemasukan</p>
                 <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-income-bg)", color: "var(--lk-income)" }}>
@@ -512,89 +484,6 @@ export default async function Home({ searchParams }: HomeProps) {
                 valueClassName="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
                 showToggle={false}
               />
-            </InteractiveDotPanel>
-
-            <InteractiveDotPanel className="stat-card self-start h-fit">
-              <div className="mb-3 flex items-center justify-between">
-                <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Pengeluaran Bulan Ini</p>
-                <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}>
-                  <ArrowDownRight size={14} />
-                </span>
-              </div>
-              <MaskedCurrencyAmount
-                amountIDR={totalExpense}
-                valueClassName="text-3xl font-extrabold tracking-tight text-slate-900 dark:text-white"
-                showToggle={false}
-              />
-            </InteractiveDotPanel>
-
-            <InteractiveDotPanel className="stat-card self-start h-fit md:col-span-2">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h2 className="text-base font-semibold" style={{ color: "var(--lk-text)" }}>Anggaran Bulan Ini</h2>
-                  <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>Pantau batas pengeluaran kategori aktifmu.</p>
-                </div>
-                <span className="rounded-md p-2" style={{ backgroundColor: "var(--lk-primary-dim)", color: "var(--lk-primary-light)" }}>
-                  <Target size={16} />
-                </span>
-              </div>
-
-              {hasBudget ? (
-                <div className="mt-5">
-                  <div className="flex items-end justify-between gap-4">
-                    <div>
-                      <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Total anggaran</p>
-                      <MaskedCurrencyAmount
-                        amountIDR={totalBudget}
-                        valueClassName="mt-1 text-xl font-bold tracking-tight text-slate-900 dark:text-white"
-                        showToggle={false}
-                      />
-                    </div>
-                    <div className="text-right">
-                      <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Terpakai</p>
-                      <p className="mt-1 text-sm font-semibold" style={{ color: budgetTone === "danger" ? "var(--lk-expense)" : budgetTone === "warn" ? "#f59e0b" : "var(--lk-income)" }}>
-                        {Math.round(budgetUsagePct)}%
-                      </p>
-                    </div>
-                  </div>
-                  <div className="mt-3 h-2 overflow-hidden rounded-full" style={{ backgroundColor: "var(--lk-border)" }}>
-                    <div
-                      className="h-full rounded-full transition-all duration-500"
-                      style={{ width: `${budgetProgressPct}%`, backgroundColor: budgetTone === "danger" ? "var(--lk-expense)" : budgetTone === "warn" ? "#f59e0b" : "var(--lk-income)" }}
-                    />
-                  </div>
-                  <div className="mt-3 flex items-start justify-between gap-3 text-sm">
-                    <div style={{ color: budgetTone === "danger" ? "var(--lk-expense)" : budgetTone === "warn" ? "#f59e0b" : "var(--lk-income)" }}>
-                      <p style={{ color: "var(--lk-text-muted)" }}>Terpakai</p>
-                      <MaskedCurrencyAmount
-                        amountIDR={trackedBudgetSpend}
-                        valueClassName="mt-1 font-semibold"
-                        showToggle={false}
-                      />
-                    </div>
-                    <div className="text-right" style={{ color: remainingBudget < 0 ? "var(--lk-expense)" : "var(--lk-income)" }}>
-                      <p style={{ color: "var(--lk-text-muted)" }}>Sisa</p>
-                      <MaskedCurrencyAmount
-                        amountIDR={remainingBudget}
-                        valueClassName="mt-1 font-semibold"
-                        showToggle={false}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-5 text-sm" style={{ color: "var(--lk-text-muted)" }}>
-                  Belum ada anggaran untuk bulan ini. Tetapkan batas agar pengeluaranmu lebih terarah.
-                </p>
-              )}
-
-              <Link
-                href={`/budgets?month=${selectedMonth}`}
-                className="mt-5 inline-flex text-sm font-semibold underline underline-offset-4"
-                style={{ color: "var(--lk-primary-light)" }}
-              >
-                {hasBudget ? "Kelola anggaran" : "Atur anggaran"}
-              </Link>
             </InteractiveDotPanel>
           </section>
 
@@ -614,13 +503,13 @@ export default async function Home({ searchParams }: HomeProps) {
         </div>
 
         {/* Desktop Bento Grid Layout */}
-        <div className="hidden lg:grid lg:grid-cols-4 gap-4 mt-6 items-start">
+        <div className="hidden lg:grid lg:grid-cols-4 gap-4 mt-0 items-start">
           
           {/* Main Content Column (Left - col-span-3) */}
           <div className="lg:col-span-3 flex flex-col gap-4">
             
-            {/* Top Row: Balance, Income, and Expense */}
-            <div className="grid grid-cols-4 gap-4">
+            {/* Top Row: Balance and Income */}
+            <div className="grid grid-cols-3 gap-4">
               {/* Tile 1: Main Balance */}
               <div className="bento-card col-span-2 flex flex-col justify-between">
                 <div>
@@ -670,7 +559,7 @@ export default async function Home({ searchParams }: HomeProps) {
                 <div>
                   <div className="mb-4 flex items-center justify-between">
                     <p className="text-sm font-medium" style={{ color: "var(--lk-text-muted)" }}>Pemasukan</p>
-                    <span className="rounded-lg p-2 bg-emerald-100 dark:bg-emerald-950/50 text-emerald-600 dark:text-emerald-400">
+                    <span className="rounded-lg p-2" style={{ backgroundColor: "var(--lk-income-bg)", color: "var(--lk-income)" }}>
                       <ArrowUpRight size={16} />
                     </span>
                   </div>
@@ -688,91 +577,7 @@ export default async function Home({ searchParams }: HomeProps) {
                   </p>
                 </div>
               </div>
-
-              <div className="bento-card col-span-1 flex flex-col justify-between">
-                <div>
-                  <div className="mb-4 flex items-center justify-between">
-                    <p className="text-sm font-medium" style={{ color: "var(--lk-text-muted)" }}>Pengeluaran</p>
-                    <span className="rounded-lg p-2" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}>
-                      <ArrowDownRight size={16} />
-                    </span>
-                  </div>
-                  <MaskedCurrencyAmount
-                    amountIDR={totalExpense}
-                    valueClassName="text-3xl font-bold tracking-tight text-slate-900 dark:text-white"
-                    showToggle={false}
-                  />
-                </div>
-
-                <div className="mt-8 pt-5 border-t border-slate-100 dark:border-white/5">
-                  <span className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Pengeluaran tercatat</span>
-                  <p className="mt-1 text-sm font-semibold" style={{ color: "var(--lk-expense)" }}>Bulan ini</p>
-                </div>
-              </div>
             </div>
-
-            <InteractiveDotPanel className="bento-card">
-              <div className="flex items-start justify-between gap-6">
-                <div className="flex items-start gap-3">
-                  <span className="rounded-lg p-2" style={{ backgroundColor: "var(--lk-primary-dim)", color: "var(--lk-primary-light)" }}>
-                    <Target size={18} />
-                  </span>
-                  <div>
-                    <h2 className="text-base font-semibold" style={{ color: "var(--lk-text)" }}>Anggaran Bulan Ini</h2>
-                    <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>Batas pengeluaran untuk kategori aktif.</p>
-                  </div>
-                </div>
-                <Link
-                  href={`/budgets?month=${selectedMonth}`}
-                  className="shrink-0 text-sm font-semibold underline underline-offset-4"
-                  style={{ color: "var(--lk-primary-light)" }}
-                >
-                  {hasBudget ? "Kelola" : "Atur anggaran"}
-                </Link>
-              </div>
-
-              {hasBudget ? (
-                <div className="mt-6">
-                  <div className="grid grid-cols-3 gap-6">
-                    <div>
-                      <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Total anggaran</p>
-                      <MaskedCurrencyAmount
-                        amountIDR={totalBudget}
-                        valueClassName="mt-1 text-xl font-bold tracking-tight text-slate-900 dark:text-white"
-                        showToggle={false}
-                      />
-                    </div>
-                    <div>
-                      <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Terpakai</p>
-                      <div className="mt-1 text-lg font-semibold" style={{ color: budgetTone === "danger" ? "var(--lk-expense)" : budgetTone === "warn" ? "#f59e0b" : "var(--lk-income)" }}>
-                        <MaskedCurrencyAmount amountIDR={trackedBudgetSpend} showToggle={false} />
-                      </div>
-                    </div>
-                    <div>
-                      <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Sisa anggaran</p>
-                      <div className="mt-1 text-lg font-semibold" style={{ color: remainingBudget < 0 ? "var(--lk-expense)" : "var(--lk-income)" }}>
-                        <MaskedCurrencyAmount amountIDR={remainingBudget} showToggle={false} />
-                      </div>
-                    </div>
-                  </div>
-                  <div className="mt-5 flex items-center gap-4">
-                    <div className="h-2 flex-1 overflow-hidden rounded-full" style={{ backgroundColor: "var(--lk-border)" }}>
-                      <div
-                        className="h-full rounded-full transition-all duration-500"
-                        style={{ width: `${budgetProgressPct}%`, backgroundColor: budgetTone === "danger" ? "var(--lk-expense)" : budgetTone === "warn" ? "#f59e0b" : "var(--lk-income)" }}
-                      />
-                    </div>
-                    <span className="text-sm font-semibold" style={{ color: budgetTone === "danger" ? "var(--lk-expense)" : budgetTone === "warn" ? "#f59e0b" : "var(--lk-income)" }}>
-                      {Math.round(budgetUsagePct)}% terpakai
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <p className="mt-6 text-sm" style={{ color: "var(--lk-text-muted)" }}>
-                  Belum ada anggaran untuk bulan ini. Tetapkan batas agar pengeluaranmu lebih terarah.
-                </p>
-              )}
-            </InteractiveDotPanel>
 
             {/* Middle Row: Pie Chart (50%) & Top Categories (50%) */}
             <div className="grid grid-cols-2 gap-4 items-start">

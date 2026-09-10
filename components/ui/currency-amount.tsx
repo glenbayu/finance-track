@@ -2,6 +2,7 @@
 
 import { convertFromIDR, getCurrencySymbol } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
+import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
 
 type CurrencyAmountProps = {
   amountIDR: number;
@@ -19,9 +20,14 @@ export default function CurrencyAmount({
   compact = false,
 }: CurrencyAmountProps) {
   const { formatFromIDR, effectiveCurrency, rateFromIDR } = useDisplayCurrency();
+  const { isHiddenByDefault } = useAmountPrivacy();
   const safeAmount = Number.isFinite(amountIDR) ? amountIDR : 0;
   const displayAmount = absolute ? Math.abs(safeAmount) : safeAmount;
   const fullText = formatFromIDR(displayAmount);
+
+  if (isHiddenByDefault) {
+    return <span className={`tabular-nums ${className}`} aria-label="Nominal disembunyikan">••••••</span>;
+  }
 
   if (compact) {
     const converted = convertFromIDR(displayAmount, effectiveCurrency, rateFromIDR);

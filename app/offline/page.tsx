@@ -23,7 +23,7 @@ export default function OfflinePage() {
         </p>
 
         <div className="mt-4 soft-inset w-full text-xs text-slate-600 dark:text-slate-400 font-medium">
-          Data offline Anda aman di memori lokal.
+          Halaman ini tersedia tanpa internet. Sambungkan kembali untuk melihat data terbaru dan menyimpan perubahan transaksi.
         </div>
 
         <button

@@ -6,6 +6,7 @@ import AppShell from "@/components/layout/app-shell";
 import { isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 import Link from "next/link";
+import { TransactionReturnLink } from "@/components/transactions/transaction-list-context";
 
 const NOTE_MAX_LENGTH = 140;
 
@@ -199,9 +200,9 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
           >
             Duplikat
           </Link>
-          <Link href="/transactions" className="btn-secondary">
-            Kembali ke daftar
-          </Link>
+          <TransactionReturnLink className="btn-secondary">
+            Kembali
+          </TransactionReturnLink>
           <LogoutButton className="btn-secondary gap-2" />
         </>
       }
@@ -213,9 +214,9 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
           >
             Duplikat
           </Link>
-          <Link href="/transactions" className="btn-secondary h-10 flex-1">
-            Kembali ke daftar
-          </Link>
+          <TransactionReturnLink className="btn-secondary h-10 flex-1">
+            Kembali
+          </TransactionReturnLink>
           <LogoutButton
             iconOnly
             className="btn-secondary h-10 w-10 shrink-0 justify-center px-0"

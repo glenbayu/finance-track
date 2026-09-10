@@ -87,6 +87,7 @@ export default function TransactionsSearch({
       />
       <input
         type="text"
+        aria-label="Cari transaksi"
         value={value}
         onChange={(event) => setValue(event.currentTarget.value)}
         onKeyDown={(event) => {

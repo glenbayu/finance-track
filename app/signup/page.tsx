@@ -87,12 +87,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
           <form action={signup} className="space-y-4">
             <div>
-              <label className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+              <label htmlFor="email" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Alamat Email
               </label>
-              <input
+              <input aria-label="Alamat email"
                 type="email"
                 name="email"
+                autoComplete="email"
                 id="email"
                 placeholder="nama@email.com"
                 className="input-base"
@@ -101,12 +102,13 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+              <label htmlFor="password" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Kata Sandi
               </label>
-              <input
+              <input aria-label="Kata sandi"
                 type="password"
                 name="password"
+                autoComplete="new-password"
                 id="password"
                 placeholder="Minimal 6 karakter"
                 className="input-base"

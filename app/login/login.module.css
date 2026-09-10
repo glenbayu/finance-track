@@ -1,0 +1,13 @@
+/* Hallmark · login input focus · existing teal tokens and field geometry.
+ * Pre-emit critique: P5 H4 E4 S5 R5 V3 (component scope).
+ */
+.form input:focus {
+  border-color: var(--lk-primary);
+}
+
+.form input:focus-visible {
+  /* Override the shared !important outline only within the login form. */
+  outline: 2px solid var(--lk-primary) !important;
+  outline-offset: 2px;
+  box-shadow: none;
+}

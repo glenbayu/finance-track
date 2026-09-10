@@ -46,7 +46,7 @@ export function MaskedAmountProvider({
     }
   }, [storageKey]);
 
-  const isHidden = useSyncExternalStore(subscribe, getSnapshot, () => false);
+  const isHidden = useSyncExternalStore(subscribe, getSnapshot, () => true);
   const toggle = useCallback(() => {
     const nextHidden = !getSnapshot();
     try {

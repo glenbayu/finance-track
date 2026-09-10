@@ -103,14 +103,14 @@ export default function TopSpendingInsight({
         <div className="scroll-optimized min-h-0 flex-1 space-y-3 overflow-y-auto pr-1 lg:max-h-[calc(100dvh-18rem)]">
           {data.map((item, index) => (
             <details key={`${item.category_name}-${index}`} className="soft-inset group">
-              <summary className="flex cursor-pointer list-none items-start justify-between gap-3">
+              <summary className="flex cursor-pointer list-none flex-wrap items-start justify-between gap-3">
                 <span className="flex min-w-0 items-start gap-3">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-red-50 text-sm font-semibold text-red-600 dark:bg-rose-500/10 dark:text-[#f87171]">
                     {index + 1}
                   </span>
 
                   <span className="min-w-0">
-                    <span className="block truncate font-medium text-slate-900 dark:text-slate-100">
+                    <span className="block break-words font-medium text-slate-900 dark:text-slate-100">
                       {item.category_name}
                     </span>
                     <span className="block truncate text-sm text-slate-500 dark:text-slate-400">
@@ -119,7 +119,7 @@ export default function TopSpendingInsight({
                   </span>
                 </span>
 
-                <span className="ml-4 flex shrink-0 items-center gap-2">
+                <span className="ml-auto flex shrink-0 items-center gap-2">
                   <span className="flex flex-col items-end leading-tight">
                     <span className="font-semibold text-red-600 dark:text-[#f87171]">
                       {isHidden ? "***" : formatFromIDR(item.amount)}

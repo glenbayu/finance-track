@@ -74,9 +74,9 @@ function fmtChangeText(current: number, previous: number) {
 }
 
 function confidenceLabel(confidence: ForecastConfidence) {
-  if (confidence === "medium") return "Medium";
-  if (confidence === "medium-low") return "Medium-low";
-  if (confidence === "low") return "Low";
+  if (confidence === "medium") return "Sedang";
+  if (confidence === "medium-low") return "Sedang–rendah";
+  if (confidence === "low") return "Rendah";
   return "Butuh data";
 }
 
@@ -380,27 +380,28 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       }
     >
       <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm dark:border-slate-800/60 dark:bg-slate-900 grid sm:grid-cols-2 xl:grid-cols-4 divide-y sm:divide-y-0 sm:divide-x divide-slate-100 dark:divide-slate-800/60">
-        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+        <article className="p-4 sm:p-5">
           <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pemasukan</p>
           <p className="mt-2 text-[22px] font-bold tracking-tight text-emerald-600 dark:text-emerald-400"><CurrencyAmount amountIDR={totalIncome} /></p>
         </article>
-        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+        <article className="p-4 sm:p-5">
           <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pengeluaran</p>
           <p className="mt-2 text-[22px] font-bold tracking-tight text-rose-600 dark:text-rose-400"><CurrencyAmount amountIDR={totalExpense} /></p>
         </article>
-        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
-          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Net Cashflow</p>
+        <article className="p-4 sm:p-5">
+          <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Arus Kas Bersih</p>
           <p className={`mt-2 text-[22px] font-bold tracking-tight ${netCashflow >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-rose-600 dark:text-rose-400"}`}>
             <CurrencyAmount amountIDR={netCashflow} />
           </p>
         </article>
-        <article className="p-5 hover:bg-slate-50/50 transition-colors dark:hover:bg-slate-800/30">
+        <article className="p-4 sm:p-5">
           <p className="text-[13px] font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Jumlah Transaksi</p>
           <p className="mt-2 text-[22px] font-bold tracking-tight" style={{ color: "var(--lk-text)" }}>{transactionCount} <span className="text-sm font-normal" style={{ color: "var(--lk-text-muted)" }}>kali</span></p>
         </article>
       </section>
 
-      <section className="section-card mt-6 space-y-5">
+      <section className="section-card mt-6 space-y-5" aria-labelledby="monthly-comparison-title">
+        <h2 id="monthly-comparison-title" className="text-lg font-semibold">Detail perbandingan bulanan</h2>
         <div className="lg:col-span-2">
           <h2 className="text-xl font-bold" style={{ color: "var(--lk-text)" }}>Bulan {formatMonthLabel(selectedMonth)}</h2>
           <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
@@ -445,7 +446,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </article>
 
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Kategori expense terbesar</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Kategori pengeluaran terbesar</p>
             <p className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>
               {biggestExpenseCategory
                 ? `${biggestExpenseCategory.name}`
@@ -489,7 +490,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           </article>
 
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
-            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Perubahan net cashflow</p>
+            <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Perubahan arus kas bersih</p>
             <div className="flex items-center gap-2">
               <span className={netChange.delta >= 0 ? "chip-income uppercase text-[10px]" : "chip-expense uppercase text-[10px]"}>
                 {netChange.direction}
@@ -533,7 +534,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
             <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Status bulan ini</p>
             <div className="flex items-center gap-2">
               <span className="relative flex h-2.5 w-2.5 mt-0.5">
-                <span className={`absolute inline-flex h-full w-full animate-ping rounded-full opacity-75`} style={{ backgroundColor: totalExpense > totalIncome ? "var(--lk-expense)" : "var(--lk-income)" }}></span>
+                <span className={`absolute inline-flex h-full w-full rounded-full opacity-75`} style={{ backgroundColor: totalExpense > totalIncome ? "var(--lk-expense)" : "var(--lk-income)" }}></span>
                 <span className={`relative inline-flex h-2.5 w-2.5 rounded-full`} style={{ backgroundColor: totalExpense > totalIncome ? "var(--lk-expense)" : "var(--lk-income)" }}></span>
               </span>
               <p className="text-lg font-semibold" style={{ color: totalExpense > totalIncome ? "var(--lk-expense)" : "var(--lk-income)" }}>
@@ -550,7 +551,6 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       <section className="mt-6 grid gap-5 lg:grid-cols-12">
         <ReportsCharts
           trendData={trendData}
-          categoryData={expenseBreakdown}
           forecastCategoryData={categoryForecast}
           trendMonths={12}
         />
@@ -604,8 +604,8 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
           )}
         </article>
 
-        <article className="rounded-lg p-5 shadow-sm xl:col-span-4" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Catatan Estimasi</h3>
+        <article className="rounded-lg p-5 shadow-sm xl:col-span-4" aria-labelledby="forecast-reading-title" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
+          <h3 id="forecast-reading-title" className="font-semibold">Cara membaca estimasi</h3>
           <div className="mt-3 rounded-lg p-4" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
             <ul className="space-y-2 text-sm" style={{ color: "var(--lk-text-muted)" }}>
               <li className="flex items-start gap-2">
@@ -666,10 +666,10 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       </section>
 
       <section className="mt-6 grid gap-5 xl:grid-cols-2 [&>*]:min-w-0 [&>*]:max-w-full">
-        <article className="rounded-lg p-5 shadow-sm min-w-0 w-full max-w-full overflow-hidden" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-          <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Category Forecast (Top)</h3>
+        <article className="section-card p-5 min-w-0 w-full max-w-full overflow-hidden self-start" aria-labelledby="category-forecast-title">
+          <h2 id="category-forecast-title" className="text-lg font-semibold">Rincian estimasi kategori</h2>
           {!categoryForecast.length ? (
-            <p className="mt-3 text-sm" style={{ color: "var(--lk-text-muted)" }}>Forecast kategori belum tersedia.</p>
+            <p className="mt-3 text-sm" style={{ color: "var(--lk-text-muted)" }}>Estimasi kategori belum tersedia.</p>
           ) : (
             <div className="mt-3 space-y-2">
               {categoryForecast.map((item) => (

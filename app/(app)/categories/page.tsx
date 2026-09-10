@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
+import ConfirmSubmitButton from "@/components/ui/confirm-submit-button";
 import { requireUser } from "@/lib/supabase/auth";
 import { FolderSearch, Tags, ChevronRight } from "lucide-react";
 
@@ -460,9 +461,9 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
 
               <form action={deleteCategory} className="flex-1">
                 <input type="hidden" name="id" value={category.id} />
-                <SubmitButton className="btn-secondary h-9 w-full text-[13px] text-rose-600 dark:text-rose-400" pendingText="Menghapus...">
+                <ConfirmSubmitButton title="Hapus kategori?" description={`Kategori ${category.name} akan dihapus permanen. Arsipkan jika hanya ingin menyembunyikannya.`} className="btn-secondary h-9 w-full text-[13px] text-rose-600 dark:text-rose-400">
                   Hapus
-                </SubmitButton>
+                </ConfirmSubmitButton>
               </form>
             </div>
           ) : null}
@@ -480,7 +481,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                     <label className="mb-1 block text-xs font-medium text-slate-700 dark:text-slate-200">
                       Nama kategori
                     </label>
-                    <input
+                    <input aria-label="Nama kategori"
                       type="text"
                       name="name"
                       defaultValue={category.name}
@@ -551,7 +552,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
     <AppShell
       className="bg-[var(--lk-bg)]"
       activeNav="categories"
-      maxWidth="6xl"
+      maxWidth="7xl"
       eyebrow="Organisasi Data"
       heroIcon={<Tags size={19} strokeWidth={2.2} />}
       title="Kategori Transaksi"
@@ -562,15 +563,15 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
         <div className="space-y-6 lg:col-span-5">
             {/* Add New Category Section */}
             <section className="px-2">
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white">Buat Kategori Baru</h2>
+              <details className="section-card p-5">
+                <summary className="cursor-pointer text-base font-semibold">Buat kategori baru</summary>
                 
                 <form action={createCategory} className="mt-5 space-y-4">
                   <div>
                     <label className="mb-2 block text-sm font-medium text-slate-700 dark:text-slate-200">
                       Nama kategori
                     </label>
-                    <input
+                    <input aria-label="Nama kategori"
                       type="text"
                       name="name"
                       placeholder="Contoh: Belanja Bulanan"
@@ -596,13 +597,13 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                     Simpan Kategori Baru
                   </SubmitButton>
                 </form>
-              </div>
+              </details>
             </section>
 
             {/* Archived Categories Section */}
             <section className="px-2">
-              <div className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm dark:border-slate-800 dark:bg-slate-900">
-                <h2 className="text-[17px] font-semibold text-slate-900 dark:text-white mb-4">Arsip Kategori</h2>
+              <details className="section-card p-5">
+                <summary className="mb-4 cursor-pointer text-base font-semibold">Arsip kategori ({archivedCategories.length})</summary>
 
                 {!archivedCategories.length ? (
                   <p className="text-sm text-slate-500 dark:text-slate-400">
@@ -613,7 +614,7 @@ export default async function CategoriesPage({ searchParams }: CategoriesPagePro
                     {archivedCategories.map((category) => renderCategoryCard(category, true))}
                   </div>
                 )}
-              </div>
+              </details>
             </section>
           </div>
 

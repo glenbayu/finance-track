@@ -9,6 +9,7 @@ import {
   normalizeCurrencyCode,
 } from "@/lib/utils/currency";
 import { getRateFromIDRToCurrency } from "@/lib/utils/exchange-rates";
+import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
 
 const STORAGE_KEY = "finance-track-display-currency";
 const CURRENCY_EVENT = "ft_display_currency";
@@ -115,6 +116,7 @@ export function setDisplayCurrencyPreference(nextCurrency: CurrencyCode) {
 }
 
 export function useDisplayCurrency() {
+  const { isHiddenByDefault } = useAmountPrivacy();
   const subscribe = useCallback((callback: () => void) => {
     if (typeof window === "undefined") return () => {};
 
@@ -152,6 +154,7 @@ export function useDisplayCurrency() {
 
   const formatFromIDR = useCallback(
     (amountIDR: number) => {
+      if (isHiddenByDefault) return "••••••";
       const converted = convertFromIDR(
         amountIDR,
         effectiveCurrency,
@@ -159,7 +162,7 @@ export function useDisplayCurrency() {
       );
       return formatCurrency(converted, effectiveCurrency);
     },
-    [effectiveCurrency, effectiveRate],
+    [effectiveCurrency, effectiveRate, isHiddenByDefault],
   );
 
   return useMemo(

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { toast } from "sonner";
+import { readTransactionListUrl } from "@/components/transactions/transaction-list-context";
 
 const PARAM_NAME = "toast";
 
@@ -29,7 +30,9 @@ export default function ToastQueryListener() {
 
     const next = new URLSearchParams(searchParams.toString());
     next.delete(PARAM_NAME);
-    const nextUrl = next.toString() ? `${pathname}?${next.toString()}` : pathname;
+    const nextUrl = next.toString() ? `${pathname}?${next.toString()}`
+      : pathname === "/transactions" && toastKey.startsWith("transaction_") ? readTransactionListUrl()
+      : pathname;
     router.replace(nextUrl, { scroll: false });
   }, [pathname, router, searchParams]);
 

@@ -33,6 +33,7 @@ export default function BudgetAmountInput({
       <input
         type="text"
         inputMode="numeric"
+        aria-label="Nominal anggaran dalam Rupiah"
         value={display}
         onChange={(event) => setDisplay(formatRupiahInput(event.currentTarget.value))}
         placeholder={placeholder}

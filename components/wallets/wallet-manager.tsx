@@ -1,12 +1,12 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { createPortal } from "react-dom";
+import Dialog from "@/components/ui/dialog";
 import FormSelect from "@/components/ui/form-select";
 import SubmitButton from "@/components/ui/submit-button";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import Link from "next/link";
-import { Plus, Edit2, Trash2, Wallet, Landmark, HandCoins, X, ArrowRightLeft, SlidersHorizontal, ChevronRight } from "lucide-react";
+import { Plus, Edit2, Trash2, Wallet, Landmark, HandCoins, ArrowRightLeft, SlidersHorizontal, ChevronRight } from "lucide-react";
 import ConfirmationModal from "@/components/ui/confirmation-modal";
 
 type WalletRow = {
@@ -21,6 +21,7 @@ type WalletRow = {
 
 type WalletManagerProps = {
   wallets: WalletRow[];
+  isCurrentMonth?: boolean;
   createAction: (formData: FormData) => Promise<void>;
   editAction: (formData: FormData) => Promise<void>;
   deleteAction: (formData: FormData) => Promise<void>;
@@ -47,12 +48,13 @@ function getWalletIcon(type: string) {
 }
 
 function formatRupiahInput(value: string) {
+  const sign = value.startsWith("-") ? "-" : "";
   const numeric = value.replace(/\D/g, "");
-  if (!numeric) return "";
-  return new Intl.NumberFormat("id-ID").format(Number(numeric));
+  if (!numeric) return sign;
+  return sign + new Intl.NumberFormat("id-ID").format(Number(numeric));
 }
 
-export default function WalletManager({ wallets, createAction, editAction, deleteAction, adjustAction }: WalletManagerProps) {
+export default function WalletManager({ wallets, isCurrentMonth = true, createAction, editAction, deleteAction, adjustAction }: WalletManagerProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingWallet, setEditingWallet] = useState<WalletRow | null>(null);
   const [walletToDelete, setWalletToDelete] = useState<WalletRow | null>(null);
@@ -109,7 +111,7 @@ export default function WalletManager({ wallets, createAction, editAction, delet
 
   const openAdjustModal = (wallet: WalletRow) => {
     setWalletToAdjust(wallet);
-    setAdjustAmountDisplay(formatRupiahInput(String(Math.abs(wallet.balance))));
+    setAdjustAmountDisplay(formatRupiahInput(String(wallet.balance)));
     setErrorMsg("");
     setIsAdjustModalOpen(true);
   };
@@ -227,9 +229,9 @@ export default function WalletManager({ wallets, createAction, editAction, delet
 
   return (
     <>
-      <div className="grid gap-6 lg:grid-cols-12 items-start">
+      <div className="wallet-layout grid gap-6 lg:grid-cols-12 items-start">
         {/* Kolom Kiri: Ringkasan Saldo & Tambah Dompet */}
-        <div className="lg:col-span-4 space-y-4">
+        <div className="min-w-0 lg:col-span-4 space-y-4">
           <div className="rounded-2xl p-5 shadow-xs" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
             <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Saldo Seluruh Dompet</span>
             <div className="mt-2 text-2xl font-bold tracking-tight" style={{ color: totalBalance >= 0 ? "var(--lk-text)" : "var(--lk-expense)" }}>
@@ -240,13 +242,13 @@ export default function WalletManager({ wallets, createAction, editAction, delet
             </p>
 
             <button onClick={openCreateModal} className="btn-primary mt-4 flex w-full justify-center items-center gap-2 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition-all hover:scale-102">
-              <Plus size={16} /> Tambah Dompet Baru
+              <Plus size={16} /> Tambah Dompet
             </button>
           </div>
 
-          <div className="rounded-2xl p-5 shadow-xs" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
-            <p className="text-[11px] font-bold uppercase tracking-wider mb-3" style={{ color: "var(--lk-text-muted)" }}>Tipe Dompet</p>
-            <div className="space-y-3.5">
+          <section className="section-card p-5" aria-labelledby="wallet-type-info-title">
+            <h2 id="wallet-type-info-title" className="text-sm font-semibold">Tentang tipe dompet</h2>
+            <div className="mt-4 space-y-3.5">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
                   <Wallet size={15} className="text-emerald-600 dark:text-emerald-400" />
@@ -275,11 +277,11 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                 </div>
               </div>
             </div>
-          </div>
+          </section>
         </div>
 
         {/* Kolom Kanan: Daftar Dompet Aktif */}
-        <div className="lg:col-span-8 space-y-6">
+        <div className="min-w-0 lg:col-span-8 space-y-6">
           <div>
             {renderWalletList("Cash / Tunai", groupedWallets.cash)}
             {renderWalletList("Bank & E-Wallet", groupedWallets.bank)}
@@ -296,22 +298,11 @@ export default function WalletManager({ wallets, createAction, editAction, delet
         </div>
       </div>
 
-      {isModalOpen && typeof document !== "undefined" && createPortal(
-        <div className="modal-overlay z-[100] flex items-center justify-center">
-          <div className="modal-card relative w-full max-w-md" role="dialog" aria-modal="true">
-            <button
-              onClick={closeModal}
-              className="absolute right-4 top-4 hover-opacity"
-              style={{ color: "var(--lk-text-muted)" }}
-            >
-              <X size={20} />
-            </button>
-            <h3 className="mb-4 text-lg font-bold" style={{ color: "var(--lk-text)" }}>
-              {editingWallet ? "Edit Dompet" : "Tambah Dompet Baru"}
-            </h3>
+      {isModalOpen && (
+        <Dialog isOpen={isModalOpen} onClose={closeModal} title={editingWallet ? "Edit Dompet" : "Tambah Dompet"}>
             
             {errorMsg && (
-              <div className="mb-4 rounded p-3 text-sm" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)", border: "1px solid var(--lk-expense)" }}>
+              <div role="alert" className="mb-4 rounded p-3 text-sm" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)", border: "1px solid var(--lk-expense)" }}>
                 {errorMsg}
               </div>
             )}
@@ -319,7 +310,7 @@ export default function WalletManager({ wallets, createAction, editAction, delet
             <form action={handleSubmit} className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">Nama Dompet</label>
-                <input
+                <input aria-label="Nama dompet"
                   type="text"
                   name="name"
                   defaultValue={editingWallet?.name || ""}
@@ -365,7 +356,7 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                     <label className="mb-2 block text-sm font-medium">Nominal Biaya Admin</label>
                     <div className="relative">
                       <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 text-sm">Rp</span>
-                      <input
+                      <input aria-label="Biaya admin dalam Rupiah"
                         type="number"
                         name="admin_fee_amount"
                         defaultValue={editingWallet ? editingWallet.admin_fee_amount : 6000}
@@ -385,44 +376,33 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                 </SubmitButton>
               </div>
             </form>
-          </div>
-        </div>
-      , document.body)}
+        </Dialog>
+      )}
       
-      {isAdjustModalOpen && typeof document !== "undefined" && createPortal(
-        <div className="modal-overlay z-[100] flex items-center justify-center">
-          <div className="modal-card relative w-full max-w-md" role="dialog" aria-modal="true">
-            <button
-              onClick={closeAdjustModal}
-              className="absolute right-4 top-4 hover-opacity"
-              style={{ color: "var(--lk-text-muted)" }}
-            >
-              <X size={20} />
-            </button>
-            <h3 className="mb-1 text-lg font-bold" style={{ color: "var(--lk-text)" }}>
-              Sesuaikan Saldo
-            </h3>
+      {isAdjustModalOpen && (
+        <Dialog isOpen={isAdjustModalOpen} onClose={closeAdjustModal} title="Sesuaikan Saldo">
             <p className="mb-4 text-sm" style={{ color: "var(--lk-text-muted)" }}>
               Koreksi saldo <strong>{walletToAdjust?.name}</strong> tanpa mempengaruhi laporan pengeluaran.
             </p>
+            <p className="ui-alert mb-4">Koreksi dicatat pada tanggal hari ini dan dibandingkan dengan saldo bulan berjalan. Saldo negatif berarti dompet sedang defisit.</p>
             
             {errorMsg && (
-              <div className="mb-4 rounded p-3 text-sm" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)", border: "1px solid var(--lk-expense)" }}>
+              <div role="alert" className="mb-4 rounded p-3 text-sm" style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)", border: "1px solid var(--lk-expense)" }}>
                 {errorMsg}
               </div>
             )}
 
-            <form action={handleAdjustSubmit} className="space-y-4">
+            {!isCurrentMonth ? <div className="space-y-3"><p className="text-sm">Anda sedang melihat bulan lain. Buka bulan berjalan agar koreksi memakai saldo yang tepat.</p><Link href="/wallets" className="btn-primary">Buka bulan berjalan</Link></div> : <form action={handleAdjustSubmit} className="space-y-4">
               <div>
                 <label className="mb-2 block text-sm font-medium">Saldo Riil (Saat ini)</label>
-                <input
+                <input aria-label="Saldo aktual dalam Rupiah"
                   type="text"
-                  inputMode="numeric"
+                  inputMode="decimal"
+                  pattern="-?[0-9]+(\.[0-9]{3})*"
                   placeholder="Contoh: 1.000.000"
                   value={adjustAmountDisplay}
                   onChange={(e) => {
-                    const raw = e.target.value.replace(/\D/g, "");
-                    setAdjustAmountDisplay(formatRupiahInput(raw));
+                    setAdjustAmountDisplay(formatRupiahInput(e.target.value));
                   }}
                   className="input-base text-lg font-bold"
                   required
@@ -430,8 +410,11 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                 <input
                   type="hidden"
                   name="balance"
-                  value={adjustAmountDisplay.replace(/\D/g, "")}
+                  value={adjustAmountDisplay.replace(/[^\d-]/g, "")}
                 />
+                <button type="button" className="btn-secondary mt-2" onClick={() => setAdjustAmountDisplay(current => current.startsWith("-") ? current.slice(1) : `-${current}`)}>
+                  {adjustAmountDisplay.startsWith("-") ? "Jadikan saldo positif" : "Jadikan saldo negatif"}
+                </button>
               </div>
 
               <div className="pt-2">
@@ -439,10 +422,9 @@ export default function WalletManager({ wallets, createAction, editAction, delet
                   Simpan Saldo Aktual
                 </SubmitButton>
               </div>
-            </form>
-          </div>
-        </div>
-      , document.body)}
+            </form>}
+        </Dialog>
+      )}
 
       <ConfirmationModal
         isOpen={!!walletToDelete}

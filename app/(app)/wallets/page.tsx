@@ -44,12 +44,14 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
   const balanceMap = new Map<string, number>();
   
   if (walletIds.length > 0) {
-    const { data: txData } = await supabase
+    const { data: txData, error: transactionsError } = await supabase
       .from("transactions")
       .select("type, amount, wallet_id, destination_wallet_id")
       .eq("user_id", user.id)
       .gte("transaction_date", start)
       .lt("transaction_date", end);
+
+    if (transactionsError) throw new Error("Saldo dompet belum dapat dimuat. Coba lagi setelah koneksi tersedia.");
 
     walletIds.forEach(id => {
       usageMap.set(id, 0);
@@ -170,7 +172,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
       className="bg-[var(--lk-bg)]"
       activeNav="wallets"
       month={selectedMonth}
-      maxWidth="6xl"
+      maxWidth="7xl"
       eyebrow="Saldo & Rekening"
       title="Dompet & Rekening"
       description="Kelola daftar rekening, dompet fisik, dan saldo tertahan Anda."
@@ -191,6 +193,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     >
       <WalletManager
         wallets={walletsWithUsage}
+        isCurrentMonth={selectedMonth === getCurrentMonth()}
         createAction={createWallet}
         editAction={editWallet}
         deleteAction={deleteWallet}

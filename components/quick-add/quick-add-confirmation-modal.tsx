@@ -16,6 +16,7 @@ type QuickAddConfirmationModalProps = {
   onClose: () => void;
   onConfirm: () => void;
   isSubmitting?: boolean;
+  errorMessage?: string;
 };
 
 export default function QuickAddConfirmationModal({
@@ -26,6 +27,7 @@ export default function QuickAddConfirmationModal({
   onClose,
   onConfirm,
   isSubmitting = false,
+  errorMessage,
 }: QuickAddConfirmationModalProps) {
   const editHref = useMemo(() => {
     if (!template) return "/transactions/new";
@@ -47,6 +49,8 @@ export default function QuickAddConfirmationModal({
       }
     >
       <div className="space-y-3">
+        {errorMessage && <p role="alert" className="ui-alert ui-alert--error">{errorMessage}</p>}
+        <p className="ui-alert">Template memakai dompet yang pertama dibuat. Pilih “Edit dulu” untuk memeriksa atau mengganti dompet sebelum menyimpan.</p>
         <div className="soft-inset">
           <div className="flex items-start gap-2.5">
             <TemplateIcon icon={template.icon} color={template.color} />
@@ -77,6 +81,7 @@ export default function QuickAddConfirmationModal({
           </label>
           <input
             type="date"
+            aria-label="Tanggal transaksi"
             value={dateValue}
             onChange={(event) => onDateChange(event.currentTarget.value)}
             className="input-base"
@@ -98,6 +103,7 @@ export default function QuickAddConfirmationModal({
           type="button"
           onClick={onConfirm}
           disabled={isSubmitting}
+          aria-busy={isSubmitting}
           className="btn-primary h-10 px-4 disabled:opacity-60"
         >
           {isSubmitting ? "Menambahkan..." : "Tambah Transaksi"}

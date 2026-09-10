@@ -7,8 +7,8 @@ import ToastQueryListener from "@/components/ui/toast-query-listener";
 import { Suspense } from "react";
 
 export const metadata: Metadata = {
-  applicationName: "Finance Tracker",
-  title: "Finance Tracker",
+  applicationName: "Finance Journal",
+  title: "Finance Journal",
   description:
     "Personal finance tracker for monitoring income, expenses, budgets, and analytics.",
   manifest: "/manifest.webmanifest",
@@ -18,7 +18,7 @@ export const metadata: Metadata = {
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",
-    title: "Finance Tracker",
+    title: "Finance Journal",
   },
   icons: {
     icon: [
@@ -80,7 +80,7 @@ export default function RootLayout({
           <ToastQueryListener />
         </Suspense>
         {children}
-        <Toaster position="bottom-center" toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
+        <Toaster position="bottom-center" offset={24} mobileOffset={{ bottom: 96, left: 16, right: 16 }} toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
       </body>
     </html>
   );

@@ -11,6 +11,9 @@ import { useMaskedAmounts } from "@/components/ui/masked-amount";
 import InteractiveDotPanel from "@/components/ui/interactive-dot-panel";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import { useEffect, useState, useMemo } from "react";
+import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { summarizeCategories } from "@/lib/ui/presentation";
 type ExpenseChartItem = {
   name: string;
   value: number;
@@ -27,6 +30,8 @@ const COLORS_DARK = ["#2dd4bf", "#14b8a6", "#0d9488", "#0f766e", "#475569", "#33
 const MAX_CATEGORIES = 6;
 
 export default function ExpenseChart({ data }: ExpenseChartProps) {
+  const { isHiddenByDefault } = useAmountPrivacy();
+  const reducedMotion = useReducedMotion();
   const masked = useMaskedAmounts();
   const isHidden = masked?.isHidden ?? false;
   const { formatFromIDR } = useDisplayCurrency();
@@ -52,7 +57,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   const COLORS = isDark ? COLORS_DARK : COLORS_LIGHT;
 
   // Limit to max 6 categories
-  const limitedData = useMemo(() => data.slice(0, MAX_CATEGORIES), [data]);
+  const limitedData = useMemo(() => summarizeCategories(data, MAX_CATEGORIES), [data]);
   const totalExpense = useMemo(() => data.reduce((sum, item) => sum + item.value, 0), [data]);
   const breakdown = useMemo(() => limitedData.map((item, index) => ({
     ...item,
@@ -60,6 +65,8 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
     percentage: totalExpense > 0 ? Math.round((item.value / totalExpense) * 100) : 0,
   })), [limitedData, COLORS, totalExpense]);
   const topCategory = breakdown[0];
+
+  if (isHiddenByDefault) return <div className="section-card"><h2 className="text-lg font-semibold">Pengeluaran per Kategori</h2><p className="mt-3 text-sm text-[var(--lk-text-muted)]">Grafik disembunyikan saat privasi nominal aktif.</p></div>;
 
   if (!data.length) {
     return (
@@ -82,7 +89,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
             <div className="h-[180px] w-[180px] rounded-full bg-slate-100/50 animate-pulse dark:bg-slate-900/20" />
           ) : (
             <ResponsiveContainer width="100%" aspect={1} minHeight={160}>
-              <PieChart accessibilityLayer={false}>
+              <PieChart accessibilityLayer>
                 <Pie
                   data={limitedData}
                   dataKey="value"
@@ -91,6 +98,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                   innerRadius="56%"
                   paddingAngle={2}
                   labelLine={false}
+                  isAnimationActive={!reducedMotion}
                   animationDuration={isAndroid ? 0 : 550}
                 >
                   {limitedData.map((_, index) => (
@@ -151,7 +159,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                     className="h-2.5 w-2.5 shrink-0 rounded-full"
                     style={{ backgroundColor: item.color }}
                   />
-                  <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                  <p className="break-words text-sm font-semibold text-slate-900 dark:text-slate-100">
                     {item.name}
                   </p>
                 </div>
@@ -179,7 +187,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
       </div>
 
       {/* ── DESKTOP layout: chart left, list right (original) ── */}
-      <div className="mt-4 hidden sm:flex items-start gap-5">
+      <div className="mt-4 hidden sm:flex flex-col items-center gap-5">
         <div className="shrink-0 w-[180px]">
           <div className="relative mx-auto w-full">
             {!mounted ? (
@@ -188,7 +196,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
             ) : (
               <>
                 <ResponsiveContainer width="100%" aspect={1} minHeight={160}>
-                  <PieChart accessibilityLayer={false}>
+                  <PieChart accessibilityLayer>
                     <Pie
                       data={limitedData}
                       dataKey="value"
@@ -197,7 +205,8 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
                       innerRadius="56%"
                       paddingAngle={2}
                       labelLine={false}
-                      animationDuration={isAndroid ? 0 : 550}
+                      isAnimationActive={!reducedMotion}
+                  animationDuration={isAndroid ? 0 : 550}
                     >
                       {limitedData.map((_, index) => (
                         <Cell
@@ -255,13 +264,13 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
         </div>
 
         {/* Legend / Breakdown - fills remaining space, max 6 with scroll */}
-        <div className="flex-1 min-w-0">
+        <div className="w-full min-w-0">
           <div className="w-full space-y-2 max-h-[380px] overflow-y-auto pr-0.5 scroll-optimized">
             {breakdown.map((item) => (
               <div key={item.name} className="soft-inset p-3">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-slate-900 dark:text-slate-100">
+                    <p className="break-words text-sm font-semibold text-slate-900 dark:text-slate-100">
                       {item.name}
                     </p>
                     <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">

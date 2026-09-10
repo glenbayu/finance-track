@@ -1,75 +1,124 @@
 "use client";
 
-import { useState } from "react";
-import { Edit2, X } from "lucide-react";
+import { useActionState, useRef, useState } from "react";
+import { Edit2 } from "lucide-react";
+import { toast } from "sonner";
+import Dialog from "@/components/ui/dialog";
 import SubmitButton from "@/components/ui/submit-button";
 import { updateProfile } from "@/app/(app)/more/actions";
+import { PROFILE_NAME_MAX_LENGTH, validateProfileName } from "@/lib/profile";
+import styles from "./edit-profile-modal.module.css";
 
-export default function EditProfileModal({ currentName }: { currentName: string }) {
+type EditProfileModalProps = {
+  currentName: string;
+  email: string;
+  emailVerified: boolean;
+  joinedAt: string;
+};
+
+export default function EditProfileModal({ currentName, email, emailVerified, joinedAt }: EditProfileModalProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [name, setName] = useState(currentName);
+  const [nameError, setNameError] = useState<string>();
   const [errorMsg, setErrorMsg] = useState("");
-  
+  const [touched, setTouched] = useState(false);
+  const submitting = useRef(false);
+  const nameInput = useRef<HTMLInputElement>(null);
+  const joinedDate = new Date(joinedAt);
+  const joinedLabel = Number.isNaN(joinedDate.getTime()) ? null : new Intl.DateTimeFormat("id-ID", {
+    day: "numeric", month: "long", year: "numeric", timeZone: "Asia/Jakarta",
+  }).format(joinedDate);
+
   const handleUpdate = async (formData: FormData) => {
+    if (submitting.current) return;
+    const validationError = validateProfileName(name);
+    setTouched(true);
+    setNameError(validationError);
     setErrorMsg("");
+    if (validationError) {
+      nameInput.current?.focus();
+      return;
+    }
+    submitting.current = true;
     try {
-      await updateProfile(formData);
+      const result = await updateProfile(formData);
+      if (!result.ok) {
+        if (result.field === "name") {
+          setNameError(result.error);
+          nameInput.current?.focus();
+        } else setErrorMsg(result.error);
+        return;
+      }
+      setName(result.name);
       setIsOpen(false);
-    } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Gagal memperbarui profil.";
-      setErrorMsg(message);
+      toast.success("Profil berhasil diperbarui.");
+    } catch {
+      setErrorMsg("Profil belum tersimpan. Periksa koneksi lalu coba lagi.");
+    } finally {
+      submitting.current = false;
     }
   };
 
-  return (
-    <>
-      <button 
-        onClick={() => setIsOpen(true)} 
-        className="mt-1.5 inline-flex items-center gap-1.5 rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-700 hover:bg-blue-200 transition-colors dark:bg-blue-500/20 dark:text-blue-400 dark:hover:bg-blue-500/30"
-      >
-        <Edit2 size={12} />
-        Edit Profil
-      </button>
+  const [, submitProfile, pending] = useActionState(async (_previous: null, formData: FormData) => {
+    await handleUpdate(formData);
+    return null;
+  }, null);
 
-      {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-900/50 backdrop-blur-sm dark:bg-slate-900/80 p-4">
-          <div className="relative w-full max-w-sm rounded-3xl bg-white p-6 shadow-2xl dark:bg-slate-900 border border-slate-100 dark:border-slate-800 animate-in fade-in zoom-in-95 duration-200">
-            <button
-              onClick={() => setIsOpen(false)}
-              className="absolute right-4 top-4 text-slate-400 hover:text-slate-600 transition-colors dark:hover:text-slate-200"
-            >
-              <X size={20} />
-            </button>
-            <h3 className="mb-2 text-lg font-bold text-slate-900 dark:text-white">
-              Edit Profil
-            </h3>
-            <p className="mb-6 text-sm text-slate-500 dark:text-slate-400">
-              Ubah nama panggilan yang akan ditampilkan.
-            </p>
-            
-            {errorMsg && (
-              <div className="mb-4 rounded-lg bg-rose-50 p-3 text-sm text-rose-600 dark:bg-rose-500/10 dark:text-rose-400 border border-rose-100 dark:border-rose-500/20">
-                {errorMsg}
-              </div>
-            )}
-
-            <form action={handleUpdate} className="space-y-4">
-              <div>
-                <input
-                  type="text"
-                  name="name"
-                  defaultValue={currentName}
-                  placeholder="Nama Lengkap..."
-                  className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm outline-none focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500 dark:border-slate-700 dark:bg-slate-800 dark:text-white dark:focus:border-indigo-400"
-                  required
-                />
-              </div>
-              <SubmitButton className="btn-primary w-full py-3 rounded-xl font-semibold" pendingText="Menyimpan...">
-                Simpan Perubahan
-              </SubmitButton>
-            </form>
+  return <>
+    <button type="button" onClick={() => {
+      setName(currentName);
+      setNameError(undefined);
+      setTouched(false);
+      setErrorMsg("");
+      setIsOpen(true);
+    }} className="btn-secondary mt-2 gap-2">
+      <Edit2 size={14} aria-hidden="true" />Edit Profil
+    </button>
+    {isOpen && <Dialog isOpen={isOpen} closeDisabled={pending} onClose={() => { if (!submitting.current) setIsOpen(false); }}
+      title="Edit Profil" description="Atur nama yang tampil di aplikasi dan periksa informasi akun kamu.">
+      <form action={submitProfile} noValidate className={`${styles.form} space-y-6`} aria-busy={pending}>
+        {errorMsg && <div role="alert" className="ui-alert ui-alert--error">{errorMsg}</div>}
+        <div>
+          <label htmlFor="profile-name" className="mb-2 block text-sm font-medium">Nama tampilan <span className="font-normal text-[var(--lk-text-muted)]">(wajib)</span></label>
+          <input ref={nameInput} id="profile-name" type="text" name="name" autoComplete="name"
+            value={name} required aria-required="true" maxLength={PROFILE_NAME_MAX_LENGTH} readOnly={pending}
+            placeholder="Contoh: Rani Putri" className="input-base placeholder:[font:inherit]"
+            aria-invalid={Boolean(nameError)} aria-describedby="profile-name-help"
+            onBlur={() => { setTouched(true); setNameError(validateProfileName(name)); }}
+            onChange={(event) => {
+              setName(event.target.value);
+              if (touched) setNameError(validateProfileName(event.target.value));
+            }} />
+          <p id="profile-name-help" aria-live="polite" className={`mt-2 min-h-5 text-sm ${nameError ? "text-[var(--lk-expense)]" : "text-[var(--lk-text-muted)]"}`}>
+            {nameError || "Boleh nama lengkap atau panggilan. Maksimal 80 karakter."}
+          </p>
+        </div>
+        <section aria-labelledby="profile-account-title" className="space-y-4 border-t border-[var(--lk-border)] pt-5">
+          <h3 id="profile-account-title" className="text-sm font-semibold">Informasi akun</h3>
+          <div>
+            <label htmlFor="profile-email" className="mb-2 block text-sm font-medium">Email login</label>
+            <input id="profile-email" type="email" value={email} readOnly autoComplete="email"
+              className="input-base" aria-describedby="profile-email-help" />
+            <p id="profile-email-help" className="mt-2 text-sm text-[var(--lk-text-muted)]">Email terkait dengan akses akun. Perubahannya memerlukan alur verifikasi terpisah yang belum tersedia.</p>
+          </div>
+          <dl className="space-y-3 text-sm">
+            <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
+              <dt className="text-[var(--lk-text-muted)]">Verifikasi email</dt>
+              <dd>{emailVerified ? "Terverifikasi" : "Belum terverifikasi"}</dd>
+            </div>
+            {joinedLabel && <div className="flex flex-wrap justify-between gap-x-4 gap-y-1">
+              <dt className="text-[var(--lk-text-muted)]">Bergabung sejak</dt><dd>{joinedLabel}</dd>
+            </div>}
+          </dl>
+        </section>
+        <div>
+          {pending && <p role="status" className="mb-3 text-sm text-[var(--lk-text-muted)]">Sedang menyimpan profil. Tunggu hingga selesai.</p>}
+          <div className="flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
+            <button type="button" className="btn-secondary" disabled={pending} onClick={() => setIsOpen(false)}>Batal</button>
+            <SubmitButton className="btn-primary" disabled={pending} pendingText="Menyimpan...">Simpan Perubahan</SubmitButton>
           </div>
         </div>
-      )}
-    </>
-  );
+      </form>
+    </Dialog>}
+  </>;
 }

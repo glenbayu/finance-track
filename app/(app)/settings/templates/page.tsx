@@ -1,4 +1,5 @@
 import Link from "next/link";
+import ConfirmSubmitButton from "@/components/ui/confirm-submit-button";
 import AppShell from "@/components/layout/app-shell";
 import QuickAddTemplateForm from "@/components/quick-add/quick-add-template-form";
 import TemplateIcon from "@/components/quick-add/template-icon";
@@ -254,10 +255,10 @@ function TemplateItemCard({ template, categories, index, total }: TemplateItemCa
         </form>
         <form action={deleteQuickAddTemplate}>
           <input type="hidden" name="template_id" value={template.id} />
-          <button type="submit" className="btn-secondary h-10 w-full justify-center gap-1 text-rose-600 dark:text-rose-300">
+          <ConfirmSubmitButton title="Hapus template?" description="Template akan dihapus permanen. Transaksi yang sudah dicatat tidak berubah." className="btn-secondary h-10 w-full justify-center gap-1 text-rose-600 dark:text-rose-300">
             <Trash2 size={14} />
             Hapus
-          </button>
+          </ConfirmSubmitButton>
         </form>
       </div>
 

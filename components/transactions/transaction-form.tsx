@@ -62,7 +62,7 @@ const TYPE_CONFIG = {
   expense: {
     label: "Pengeluaran",
     Icon: ArrowDownLeft,
-    accentHex: "#e11d48",
+    accentHex: "var(--lk-expense)",
     amountColor: "text-rose-600 dark:text-rose-400",
     placeholderColor: "placeholder:text-rose-200 dark:placeholder:text-rose-800/40",
     submitClass: "bg-rose-600 hover:bg-rose-700",
@@ -72,18 +72,18 @@ const TYPE_CONFIG = {
   income: {
     label: "Pemasukan",
     Icon: ArrowUpRight,
-    accentHex: "#059669",
+    accentHex: "var(--lk-income)",
     amountColor: "text-emerald-600 dark:text-emerald-400",
     placeholderColor:
       "placeholder:text-emerald-200 dark:placeholder:text-emerald-800/40",
-    submitClass: "bg-emerald-600 hover:bg-emerald-700",
+    submitClass: "bg-emerald-700 hover:bg-emerald-800",
     chipSelected:
       "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
   },
   transfer: {
     label: "Transfer",
     Icon: ArrowLeftRight,
-    accentHex: "#2563eb",
+    accentHex: "var(--lk-primary)",
     amountColor: "text-blue-600 dark:text-blue-400",
     placeholderColor: "placeholder:text-blue-200 dark:placeholder:text-blue-800/40",
     submitClass: "bg-blue-600 hover:bg-blue-700",
@@ -137,7 +137,7 @@ export default function TransactionForm({
   }, [filteredCategories, recentCategories, type]);
 
   return (
-    <form action={action} className="space-y-4">
+    <form action={action} className="transaction-entry space-y-4">
       {infoMessage && (
         <div className="flex items-start gap-2.5 rounded-xl border border-teal-200/60 bg-teal-50/60 px-4 py-3 text-sm text-teal-700 dark:border-teal-900/30 dark:bg-teal-950/20 dark:text-teal-300">
           <svg className="mt-0.5 shrink-0" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
@@ -156,6 +156,7 @@ export default function TransactionForm({
               <button
                 key={t}
                 type="button"
+                aria-pressed={isActive}
                 onClick={() => { setType(t); setCategoryId(""); }}
                 className={`relative flex flex-1 items-center justify-center gap-1.5 py-3.5 text-[11px] font-semibold transition-all sm:text-xs ${
                   isActive
@@ -163,7 +164,7 @@ export default function TransactionForm({
                     : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300"
                 }`}
               >
-                <Icon size={12} className="shrink-0" />
+                <Icon size={12} className="hidden shrink-0 sm:block" />
                 <span>{c.label}</span>
                 {isActive && (
                   <span
@@ -189,20 +190,21 @@ export default function TransactionForm({
               ? "Jumlah Pemasukan"
               : "Jumlah Transfer"}
           </p>
-          <div className="inline-flex items-baseline justify-center gap-1">
+          <div className="amount-wrap inline-flex items-baseline justify-center gap-1">
             <span className={`text-2xl font-black transition-colors duration-200 ${cfg.amountColor}`}>
               Rp
             </span>
             <input
               type="text"
               inputMode="numeric"
+              aria-label="Nominal transaksi dalam Rupiah"
               placeholder="0"
               value={amountDisplay}
               onChange={(e) => {
                 const raw = e.target.value.replace(/\D/g, "");
                 setAmountDisplay(formatRupiahInput(raw));
               }}
-              className={`min-w-[2ch] w-auto max-w-[220px] bg-transparent text-left text-5xl font-black outline-none border-none p-0 focus:ring-0 transition-colors duration-200 tabular-nums ${cfg.amountColor} ${cfg.placeholderColor}`}
+              className={`amount-input min-w-[2ch] w-auto max-w-[220px] bg-transparent text-left text-5xl font-black outline-none border-none p-0 focus:ring-0 transition-colors duration-200 tabular-nums ${cfg.amountColor} ${cfg.placeholderColor}`}
               style={{ width: `${Math.max(2, amountDisplay.length || 1)}ch` }}
               required
             />
@@ -220,7 +222,7 @@ export default function TransactionForm({
           style={{ borderTop: "1px solid var(--lk-border)", borderColor: "var(--lk-border)" }}
         >
           {/* Tanggal */}
-          <div className="flex items-center gap-3 px-4 py-3.5">
+          <div className="field-row px-4 py-3.5">
             <div
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
               style={{ backgroundColor: "var(--lk-bg)" }}
@@ -239,7 +241,7 @@ export default function TransactionForm({
           </div>
 
           {/* Dompet */}
-          <div className="flex items-center gap-3 px-4 py-3">
+          <div className="field-row px-4 py-3">
             <div
               className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
               style={{ backgroundColor: "var(--lk-bg)" }}
@@ -262,7 +264,7 @@ export default function TransactionForm({
 
           {/* Dompet Tujuan */}
           {type === "transfer" && (
-            <div className="flex items-center gap-3 px-4 py-3">
+            <div className="field-row px-4 py-3">
               <div
                 className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                 style={{ backgroundColor: "var(--lk-bg)" }}
@@ -287,7 +289,7 @@ export default function TransactionForm({
           {/* Kategori */}
           {type !== "transfer" && (
             <div className="px-4 py-3">
-              <div className="flex items-center gap-3">
+              <div className="field-row">
                 <div
                   className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                   style={{ backgroundColor: "var(--lk-bg)" }}
@@ -312,7 +314,7 @@ export default function TransactionForm({
                 </div>
               </div>
               {recentCategoryChips.length > 0 && (
-                <div className="mt-2.5 flex flex-wrap gap-1.5 pl-11">
+                <div className="category-chips mt-2.5 flex flex-wrap gap-1.5">
                   {recentCategoryChips.map((c) => (
                     <button
                       key={c.id}
@@ -374,6 +376,7 @@ export default function TransactionForm({
                   </div>
                   <textarea
                     name="note"
+                    aria-label="Catatan"
                     rows={2}
                     placeholder="Contoh: makan siang, tiket bioskop..."
                     maxLength={NOTE_MAX_LENGTH}

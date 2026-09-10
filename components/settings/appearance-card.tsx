@@ -17,9 +17,9 @@ export default function AppearanceCard({ flat = false }: AppearanceCardProps) {
     }`} style={!flat ? { backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" } : { borderColor: "var(--lk-border)" }}>
         
         {/* Theme Toggle (Kept for redundancy or users accessing direct URL) */}
-        <div className="flex items-center justify-between p-4" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+        <div className="settings-preference-row flex items-center justify-between gap-4 p-4" style={{ borderBottom: "1px solid var(--lk-border)" }}>
           <div>
-            <p className="text-[15px] font-medium" style={{ color: "var(--lk-text)" }}>Tema Gelap (Dark Mode)</p>
+            <p className="text-[15px] font-medium" style={{ color: "var(--lk-text)" }}>Tema tampilan</p>
             <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Atur tampilan antarmuka.</p>
           </div>
           <ThemeToggleButton
@@ -29,13 +29,13 @@ export default function AppearanceCard({ flat = false }: AppearanceCardProps) {
         </div>
 
         {/* Privacy Toggle */}
-        <div className="flex items-center justify-between p-4" style={{ borderBottom: "1px solid var(--lk-border)" }}>
-          <div className="min-w-0 pr-4">
+        <div className="settings-preference-row flex items-center justify-between gap-4 p-4" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+          <div className="min-w-0">
             <p className="text-[15px] font-medium" style={{ color: "var(--lk-text)" }}>
               Sembunyikan Nominal
             </p>
             <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>
-              Nilai uang otomatis disamarkan.
+              Nominal dan grafik disamarkan. Nilai dalam formulir tetap terlihat saat diedit.
             </p>
           </div>
           <button

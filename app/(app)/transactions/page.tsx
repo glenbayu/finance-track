@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { groupAdjacentDates } from "@/lib/ui/presentation";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, SearchX, ReceiptText } from "lucide-react";
@@ -405,16 +406,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
     .reduce((sum, t) => sum + Number(t.amount), 0);
 
   // Group transactions by date for mobile view
-  const groupedTransactions = paginatedTransactions.reduce((groups, transaction) => {
-    const date = transaction.transaction_date;
-    if (!groups[date]) {
-      groups[date] = [];
-    }
-    groups[date].push(transaction);
-    return groups;
-  }, {} as Record<string, TransactionRow[]>);
-  
-  const sortedDates = Object.keys(groupedTransactions).sort((a, b) => new Date(b).getTime() - new Date(a).getTime());
+  const mobileGroups = groupAdjacentDates(paginatedTransactions);
 
   return (
     <AppShell
@@ -469,7 +461,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
       }
     >
       {/* Top Metric Quick Bar (Desktop / Tablet) */}
-      <div className="hidden sm:grid sm:grid-cols-3 gap-3 sm:gap-4 mb-4">
+      <div className="hidden lg:grid lg:grid-cols-3 gap-3 sm:gap-4 mb-4">
         <div className="p-4 rounded-xl border shadow-xs flex flex-col justify-between"
           style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
           <span className="text-xs font-semibold uppercase tracking-wider text-slate-500 dark:text-slate-400">Total Pemasukan</span>
@@ -525,7 +517,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                 Rollover saldo belum diterapkan
               </h3>
               <p className="mt-1 text-xs" style={{ color: "var(--lk-text-muted)" }}>
-                Terapkan rollover saldo sisa bulan lalu dan potong biaya admin Rp 6.000 otomatis untuk dompet bank kamu.
+                Rollover dan biaya admin mengikuti pengaturan tiap dompet. Proses otomatis juga berjalan saat Ringkasan dibuka.
               </p>
             </div>
             <form action={runMonthlyRollover} className="shrink-0">
@@ -571,8 +563,8 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
         ) : (
           <>
             <div className="md:hidden flex flex-col">
-              {sortedDates.map((date, dateIdx) => (
-                <section key={date}>
+              {mobileGroups.map(({ date, items }, dateIdx) => (
+                <section key={`${date}-${dateIdx}`}>
                   {/* Subtle date divider row inside the bento card */}
                   <div className={`px-4 py-2 border-b ${dateIdx > 0 ? "border-t" : ""}`}
                     style={{ backgroundColor: "var(--lk-surface-raised)", borderColor: "var(--lk-border)" }}>
@@ -582,7 +574,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                   </div>
                   {/* Transactions for this date */}
                   <div className="divide-y" style={{ borderColor: "var(--lk-border)" }}>
-                    {groupedTransactions[date].map((transaction) => {
+                    {items.map((transaction) => {
                       const category = toCategory(transaction.categories);
                       const amountValue = Number(transaction.amount);
                       const useCompactAmount = Math.abs(amountValue) >= 100000;
@@ -610,13 +602,13 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           <Link href={`/transactions/${transaction.id}/edit`} className="block group">
                             <article className="px-4 py-3.5 transition-colors active:opacity-80"
                             style={{ backgroundColor: "var(--lk-surface)" }}>
-                              <div className="flex items-center justify-between gap-3">
-                                <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex flex-wrap items-center justify-between gap-3">
+                                <div className="flex w-full sm:w-auto sm:flex-1 items-center gap-3 min-w-0">
                                   <div className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-xl ${visuals.bg}`}>
                                     {visuals.icon}
                                   </div>
                                   <div className="min-w-0">
-                                    <p className="truncate font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
+                                    <p className="break-words font-semibold text-sm text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-400 transition-colors">
                                       {transaction.type === "transfer" || transaction.type === "adjustment"
                                         ? categoryName
                                         : category?.name
@@ -631,7 +623,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                                   </div>
                                 </div>
 
-                                <div className="flex flex-col items-end gap-1 shrink-0">
+                                <div className="ml-auto flex flex-col items-end gap-1 shrink-0">
                                   <p className={`whitespace-nowrap text-sm font-semibold ${
                                     transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" :
                                     transaction.type === "expense" ? "text-rose-600 dark:text-rose-400" :

@@ -16,7 +16,7 @@ import ThemeRow from "@/components/more/theme-row";
 export default async function MorePage() {
   const { user } = await requireUser();
   const email = user?.email || "pengguna@example.com";
-  const fullName = user?.user_metadata?.full_name || email.split("@")[0];
+  const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || email.split("@")[0];
   const initial = fullName.charAt(0).toUpperCase();
 
   const dataManagementGroup = [
@@ -82,7 +82,7 @@ export default async function MorePage() {
               <div className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
                 Akun Aktif
               </div>
-              <EditProfileModal currentName={fullName} />
+              <EditProfileModal currentName={fullName} email={user.email || ""} emailVerified={Boolean(user.email_confirmed_at)} joinedAt={user.created_at} />
             </div>
           </div>
         </section>
@@ -151,7 +151,7 @@ export default async function MorePage() {
         
         {/* Footer info */}
         <div className="text-center pb-4 opacity-50">
-          <p className="text-[11px] font-medium text-slate-500">Finance Tracker v1.0.0</p>
+          <p className="text-[11px] font-medium text-slate-500">Finance Journal</p>
         </div>
       </div>
     </AppShell>

@@ -44,13 +44,13 @@ export const desktopNavMainItems: DesktopNavItem[] = [
 ];
 
 export const desktopNavBottomItems: DesktopNavItem[] = [
-  { key: "settings", label: "Pengaturan", path: "/settings", icon: Settings },
+  { key: "settings", label: "Profil & Pengaturan", path: "/settings", icon: Settings },
 ];
 
 export const mobileDockItems: MobileDockItem[] = [
   {
     key: "dashboard",
-    label: "Home",
+    label: "Ringkasan",
     path: "/",
     icon: Home,
     primary: false,
@@ -66,7 +66,7 @@ export const mobileDockItems: MobileDockItem[] = [
   },
   {
     key: "add",
-    label: "Add",
+    label: "Tambah",
     path: "/transactions/new",
     icon: PlusCircle,
     primary: true,
@@ -92,7 +92,7 @@ export const mobileDockItems: MobileDockItem[] = [
 
 export function withMonth(path: string, month?: string) {
   if (!month) return path;
-  if (path === "/" || path === "/transactions" || path === "/reports" || path === "/budgets") {
+  if (path === "/" || path === "/transactions" || path === "/reports" || path === "/budgets" || path === "/wallets") {
     return `${path}?month=${encodeURIComponent(month)}`;
   }
   return path;

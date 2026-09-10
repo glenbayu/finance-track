@@ -83,7 +83,7 @@ export default function QuickAddTemplateForm({
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
           <label className="mb-2 block text-sm font-semibold">Nama Template</label>
-          <input
+          <input aria-label="Nama template"
             name="name"
             defaultValue={initialValue?.name ?? ""}
             maxLength={QUICK_ADD_TEMPLATE_NAME_MAX}
@@ -133,7 +133,7 @@ export default function QuickAddTemplateForm({
         </div>
         <div>
           <label className="mb-2 block text-sm font-semibold">Nominal Default (opsional)</label>
-          <input
+          <input aria-label="Nominal dalam Rupiah"
             type="text"
             inputMode="numeric"
             placeholder="Contoh: 25.000"
@@ -153,14 +153,14 @@ export default function QuickAddTemplateForm({
 
       <div className="grid gap-4 lg:grid-cols-2">
         <div>
-          <label className="mb-2 block text-sm font-semibold">Icon</label>
+          <label className="mb-2 block text-sm font-semibold">Ikon</label>
           <FormSelect
             name="icon"
             value={icon}
             onValueChange={(nextValue) => setIcon(normalizeTemplateIcon(nextValue))}
             options={QUICK_ADD_TEMPLATE_ICON_OPTIONS.map((item) => ({
               value: item,
-              label: item,
+              label: ({"Utensils":"Makanan","Coffee":"Kopi","Fuel":"Bahan bakar","Car":"Transportasi","ShoppingBag":"Belanja","ReceiptText":"Tagihan","Home":"Rumah","Heart":"Kesehatan","Gift":"Hadiah","Gamepad2":"Hiburan","Briefcase":"Pekerjaan","Wallet":"Dompet","PiggyBank":"Tabungan","MoreHorizontal":"Lainnya"} as Record<string, string>)[item] ?? item,
             }))}
             required
           />
@@ -173,7 +173,7 @@ export default function QuickAddTemplateForm({
             onValueChange={(nextValue) => setColor(normalizeTemplateColor(nextValue))}
             options={QUICK_ADD_TEMPLATE_COLOR_OPTIONS.map((item) => ({
               value: item,
-              label: item[0].toUpperCase() + item.slice(1),
+              label: ({ emerald: "Hijau", teal: "Toska", blue: "Biru", amber: "Kuning", rose: "Merah muda", violet: "Ungu", slate: "Abu-abu" })[item],
             }))}
             required
           />
@@ -184,7 +184,7 @@ export default function QuickAddTemplateForm({
         <div className="flex items-center gap-2">
           <TemplateIcon icon={icon} color={color} />
           <div>
-            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Preview icon</p>
+            <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Pratinjau ikon</p>
             <p className="text-xs text-slate-500 dark:text-slate-400">Dipakai di dashboard dan shortcut.</p>
           </div>
         </div>
@@ -201,7 +201,7 @@ export default function QuickAddTemplateForm({
 
       <div>
         <label className="mb-2 block text-sm font-semibold">Catatan Default (opsional)</label>
-        <textarea
+        <textarea aria-label="Catatan"
           name="note"
           defaultValue={initialValue?.note ?? ""}
           maxLength={QUICK_ADD_TEMPLATE_NOTE_MAX}

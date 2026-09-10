@@ -11,6 +11,9 @@ import {
 import { convertFromIDR, formatCurrency } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import { useEffect, useState } from "react";
+import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import CurrencyAmount from "@/components/ui/currency-amount";
 
 type MonthlyExpenseTrendItem = {
   month: string;
@@ -75,6 +78,8 @@ export default function MonthlyExpenseTrend({
   data,
 }: MonthlyExpenseTrendProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
+  const { isHiddenByDefault } = useAmountPrivacy();
+  const reducedMotion = useReducedMotion();
   const [isDark, setIsDark] = useState(false);
   const [mounted, setMounted] = useState(false);
 
@@ -98,6 +103,8 @@ export default function MonthlyExpenseTrend({
   // Deep Teal for AreaChart
   const strokeColor = isDark ? "#2dd4bf" : "#0f766e";
 
+  if (isHiddenByDefault) return <p className="ui-alert">Tren pengeluaran disembunyikan saat privasi nominal aktif.</p>;
+
   return (
     <div className="flex flex-col h-full w-full">
       <div className="mb-6 pl-2">
@@ -114,6 +121,7 @@ export default function MonthlyExpenseTrend({
           <ResponsiveContainer width="100%" height="100%" minHeight={220}>
             <AreaChart
               data={chartData}
+              accessibilityLayer
               margin={{ top: 10, right: 0, left: -20, bottom: 0 }}
             >
               <defs>
@@ -126,13 +134,13 @@ export default function MonthlyExpenseTrend({
                 dataKey="label"
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#94a3b8" }}
+                tick={{ fontSize: 11, fill: "var(--lk-text-muted)" }}
                 dy={10}
               />
               <YAxis
                 axisLine={false}
                 tickLine={false}
-                tick={{ fontSize: 11, fill: isDark ? "#64748b" : "#94a3b8" }}
+                tick={{ fontSize: 11, fill: "var(--lk-text-muted)" }}
                 tickFormatter={(val) => {
                   if (val >= 1000000) return `${(val / 1000000).toFixed(1)} jt`;
                   if (val >= 1000) return `${(val / 1000).toFixed(0)} rb`;
@@ -151,12 +159,17 @@ export default function MonthlyExpenseTrend({
                 fillOpacity={1}
                 fill="url(#colorExpense)"
                 animationDuration={1000}
+                isAnimationActive={!reducedMotion}
                 activeDot={{ r: 4, strokeWidth: 0, fill: strokeColor }}
               />
             </AreaChart>
           </ResponsiveContainer>
         )}
       </div>
+      <details className="mt-4">
+        <summary className="cursor-pointer py-2 text-sm font-medium">Lihat data pengeluaran</summary>
+        <div className="overflow-x-auto"><table className="chart-data"><caption className="sr-only">Pengeluaran bulanan dalam mata uang tampilan</caption><thead><tr><th scope="col">Bulan</th><th scope="col">Pengeluaran</th></tr></thead><tbody>{data.map((item) => <tr key={item.month}><th scope="row">{formatMonthLabel(item.month)}</th><td><CurrencyAmount amountIDR={item.expense} /></td></tr>)}</tbody></table></div>
+      </details>
     </div>
   );
 }

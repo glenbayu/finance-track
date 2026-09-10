@@ -1,0 +1,15 @@
+/* Hallmark · component: profile form · existing system · P5 H4 E4 S5 R5 V3 */
+.form :is(input, select, textarea):focus {
+  border-color: var(--lk-primary);
+}
+
+.form :is(input, select, textarea, button):focus-visible {
+  /* Scoped replacement for the global !important blue focus indicator. */
+  outline: 2px solid var(--lk-primary) !important;
+  outline-offset: 2px;
+  box-shadow: none;
+}
+
+.form :is(input, select, textarea)[aria-invalid="true"] {
+  border-color: var(--lk-expense);
+}

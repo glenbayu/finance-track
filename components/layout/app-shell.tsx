@@ -30,8 +30,8 @@ type AppShellProps = {
 
 const maxWidthClassMap: Record<NonNullable<AppShellProps["maxWidth"]>, string> = {
   full: "w-full",
-  "7xl": "max-w-7xl mx-auto w-full",
-  "6xl": "max-w-6xl mx-auto w-full",
+  "7xl": "max-w-[1600px] mx-auto w-full",
+  "6xl": "max-w-[1440px] mx-auto w-full",
   "5xl": "max-w-5xl mx-auto w-full",
   "4xl": "max-w-4xl mx-auto w-full",
   "3xl": "max-w-3xl mx-auto w-full",
@@ -119,14 +119,14 @@ export default function AppShell({
 
   return (
     <>
-      <div className={`min-w-0 w-full animate-fade-in-up ${className} ${containerClassName}`}>
+      <div className={`min-w-0 w-full ${className} ${containerClassName}`}>
         <div className={`min-w-0 ${contentClassName}`}>
 
           {/* Floating Sticky Header Wrapper */}
-          <div className="sticky top-0 z-30 px-3 pt-3 pb-0 sm:px-4 sm:pt-4 lg:px-6 lg:pt-5">
+          <div className="sticky top-0 z-30 px-3 pt-3 pb-0 sm:px-4 sm:pt-4 lg:px-5 lg:pt-4">
             <div className={containerWidthClass}>
               <header className={`app-hero app-hero--${headerLayout}`}
-                style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0, backdropFilter: "blur(16px)", WebkitBackdropFilter: "blur(16px)" }}
+                style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0 }}
               >
                 <div className="app-hero__main flex-1 w-full flex items-start justify-between">
                   <div className="flex items-center gap-[0.85rem] min-w-0">
@@ -159,7 +159,7 @@ export default function AppShell({
 
           {/* Mobile Actions (filter row on mobile) */}
           {mobileActions && (
-            <div className="px-3 pt-2 sm:px-4 lg:px-6 lg:hidden">
+            <div className="px-3 pt-2 sm:px-4 lg:px-5 lg:hidden">
               <div className={containerWidthClass}>
                 {mobileActions}
               </div>
@@ -167,7 +167,7 @@ export default function AppShell({
           )}
 
           {/* Page Content */}
-          <div className="p-3 pt-2.5 sm:p-5 sm:pt-3.5 lg:px-6 lg:pt-3.5 lg:pb-12 pb-24 sm:pb-24">
+          <div className="p-3 pt-2.5 sm:p-5 sm:pt-3.5 lg:px-5 lg:pt-3.5 lg:pb-12 pb-24 sm:pb-24">
             <div className={containerWidthClass}>
               {children}
             </div>

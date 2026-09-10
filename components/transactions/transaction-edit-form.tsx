@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import Link from "next/link";
+import { TransactionReturnLink } from "@/components/transactions/transaction-list-context";
 import {
   Calendar,
   Tag,
@@ -54,7 +54,7 @@ const NOTE_MAX_LENGTH = 140;
 function formatRupiahInput(value: string) {
   const numeric = value.replace(/\D/g, "");
   if (!numeric) return "";
-  return new Intl.NumberFormat("id-ID").format(Number(numeric));
+  return (value.startsWith("-") ? "-" : "") + new Intl.NumberFormat("id-ID").format(Number(numeric));
 }
 
 export default function TransactionEditForm({
@@ -85,6 +85,7 @@ export default function TransactionEditForm({
   );
 
   const isAdjustment = type === "adjustment";
+  const isNegativeAdjustment = isAdjustment && transaction.amount < 0;
 
   /* ─── Accent helpers ─── */
   const accentText =
@@ -105,19 +106,19 @@ export default function TransactionEditForm({
     type === "expense"
       ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500"
       : type === "income"
-        ? "bg-emerald-600 hover:bg-emerald-700 focus-visible:ring-emerald-500"
+        ? "bg-emerald-700 hover:bg-emerald-800 focus-visible:ring-emerald-500"
         : "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500";
 
   const capsuleColor =
     type === "expense"
-      ? "bg-rose-500"
+      ? "bg-rose-700"
       : type === "income"
-        ? "bg-emerald-500"
+        ? "bg-emerald-700"
         : "bg-blue-500";
 
   return (
     <div className="section-card mt-4 p-4 sm:p-5">
-      <form action={action} className="space-y-5">
+      <form action={action} className="transaction-entry space-y-5">
         <input type="hidden" name="id" value={transaction.id} />
 
       {/* ── 1. Segmented Control / Adjustment Badge ── */}
@@ -125,7 +126,7 @@ export default function TransactionEditForm({
         <div className="relative rounded-2xl bg-slate-100/80 p-1 dark:bg-slate-800/70 ring-1 ring-black/5 dark:ring-white/5">
           <div
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(33.333%-2px)] rounded-xl shadow-sm ${capsuleColor} transition-transform duration-300 ease-[cubic-bezier(0.34,1.56,0.64,1)]`}
+            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(33.333%-2px)] rounded-xl shadow-sm ${capsuleColor} transition-transform duration-300 ease-out`}
             style={{
               transform:
                 type === "expense"
@@ -146,6 +147,7 @@ export default function TransactionEditForm({
               <button
                 key={id}
                 type="button"
+                aria-pressed={type === id}
                 onClick={() => {
                   const hasMatchingCat = categories.some(
                     (item) => item.type === id && item.id === categoryId,
@@ -159,7 +161,7 @@ export default function TransactionEditForm({
                     : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                 }`}
               >
-                <Icon size={14} className="shrink-0 sm:size-4" />
+                <Icon size={14} className="hidden shrink-0 sm:block sm:size-4" />
                 <span className="truncate">{label}</span>
               </button>
             ))}
@@ -170,7 +172,7 @@ export default function TransactionEditForm({
         <div className="flex items-center gap-3 rounded-2xl bg-slate-100/80 px-4 py-3 dark:bg-slate-850/60 ring-1 ring-black/5 dark:ring-white/5">
           <Settings2 size={18} className="text-slate-500" />
           <span className="text-sm font-semibold text-slate-600 dark:text-slate-355">
-            Penyesuaian Saldo (Read-only type)
+            Penyesuaian Saldo · tipe tetap
           </span>
         </div>
       )}
@@ -189,6 +191,8 @@ export default function TransactionEditForm({
           <input
             type="text"
             inputMode="numeric"
+            readOnly={isNegativeAdjustment}
+            aria-label="Nominal transaksi dalam Rupiah"
             placeholder="0"
             value={amountDisplay}
             onChange={(e) => {
@@ -199,8 +203,10 @@ export default function TransactionEditForm({
             required
           />
         </div>
-        <input type="hidden" name="amount" value={amountDisplay.replace(/\D/g, "")} />
+        <input type="hidden" name="amount" value={amountDisplay.replace(isAdjustment ? /[^\d-]/g : /\D/g, "")} />
       </div>
+
+      {isNegativeAdjustment && <p className="ui-alert">Transaksi koreksi negatif belum dapat disimpan melalui formulir ini. Tanda minus dipertahankan. Gunakan Koreksi Saldo di halaman Dompet untuk penyesuaian baru.</p>}
 
       {/* ── 3. Grouped Row List (iOS Settings / Modern Banking Style) ── */}
       <div className="overflow-hidden rounded-xl border border-slate-250/60 dark:border-slate-800 divide-y divide-slate-100 dark:divide-slate-800 bg-slate-50/40 dark:bg-slate-950/20">
@@ -308,6 +314,7 @@ export default function TransactionEditForm({
             </div>
             <textarea
               name="note"
+              aria-label="Catatan"
               rows={3}
               placeholder="Contoh: makan siang, bayar tagihan, dll..."
               maxLength={NOTE_MAX_LENGTH}
@@ -322,17 +329,17 @@ export default function TransactionEditForm({
 
       {/* ── 4. Action Buttons ── */}
       <div className="flex flex-col-reverse gap-3 sm:flex-row">
-        <Link
-          href="/transactions"
+        <TransactionReturnLink
           className="btn-secondary flex-1 py-3 text-center text-base"
         >
           Batal
-        </Link>
+        </TransactionReturnLink>
         <SubmitButton
           className={`flex-1 rounded-xl py-3 text-base font-bold text-white shadow-md transition-all duration-200 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ${submitCls}`}
-          pendingText="Mengupdate..."
+          disabled={isNegativeAdjustment}
+          pendingText="Menyimpan..."
         >
-          Update Transaksi
+          Simpan Perubahan
         </SubmitButton>
       </div>
     </form>

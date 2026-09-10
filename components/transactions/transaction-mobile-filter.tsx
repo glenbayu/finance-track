@@ -86,22 +86,22 @@ export default function TransactionMobileFilter({
   };
 
   const typeOptions = [
-    { value: "all", label: "Tipe" },
-    { value: "income", label: "Income" },
-    { value: "expense", label: "Expense" },
+    { value: "all", label: "Semua jenis" },
+    { value: "income", label: "Pemasukan" },
+    { value: "expense", label: "Pengeluaran" },
     { value: "transfer", label: "Transfer" },
     { value: "adjustment", label: "Koreksi" },
   ];
 
   const categoryOptions = useMemo(() => [
-    { value: "", label: "Kategori" },
+    { value: "", label: "Semua kategori" },
     ...categories
       .filter(c => selectedType === "all" || c.type === selectedType)
       .map(c => ({ value: c.id, label: c.name }))
   ], [categories, selectedType]);
 
   const sortOptions = [
-    { value: "", label: "Urut" },
+    { value: "", label: "Terbaru" },
     { value: "date_desc", label: "Terbaru" },
     { value: "date_asc", label: "Terlama" },
     { value: "amount_desc", label: "Tertinggi" },
@@ -113,16 +113,23 @@ export default function TransactionMobileFilter({
       if (!container || !button) return;
 
       const targetLeft =
-        button.offsetLeft - (container.clientWidth / 2) + (button.clientWidth / 2);
+        container.scrollLeft + button.getBoundingClientRect().left - container.getBoundingClientRect().left - (container.clientWidth / 2) + (button.clientWidth / 2);
 
       container.scrollTo({
         left: Math.max(0, targetLeft),
-        behavior: "smooth",
+        behavior: "instant",
       });
     };
 
-    centerButton(yearScrollerRef.current, activeYearButtonRef.current);
-    centerButton(monthScrollerRef.current, activeMonthButtonRef.current);
+    const centerActive = () => {
+      centerButton(yearScrollerRef.current, activeYearButtonRef.current);
+      centerButton(monthScrollerRef.current, activeMonthButtonRef.current);
+    };
+    centerActive();
+    const observer = new ResizeObserver(centerActive);
+    if (yearScrollerRef.current) observer.observe(yearScrollerRef.current);
+    if (monthScrollerRef.current) observer.observe(monthScrollerRef.current);
+    return () => observer.disconnect();
   }, [currentMonth, currentYear]);
 
   return (
@@ -139,14 +146,14 @@ export default function TransactionMobileFilter({
           </div>
         )}
         <div className="flex-1 text-center py-4 px-2 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Income</p>
-          <p className="mt-1 text-base font-bold text-emerald-600 tracking-tight truncate">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Pemasukan</p>
+          <p className="mt-1 text-base font-bold text-[var(--lk-income)] tracking-tight truncate">
             +<CurrencyAmount amountIDR={totalIncome} absolute />
           </p>
         </div>
         <div className="flex-1 text-center py-4 px-2 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Expense</p>
-          <p className="mt-1 text-base font-bold text-rose-600 tracking-tight truncate">
+          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Pengeluaran</p>
+          <p className="mt-1 text-base font-bold text-[var(--lk-expense)] tracking-tight truncate">
             -<CurrencyAmount amountIDR={totalExpense} absolute />
           </p>
         </div>
@@ -161,6 +168,7 @@ export default function TransactionMobileFilter({
           <button
             key={year}
             ref={year === currentYear ? activeYearButtonRef : null}
+            aria-pressed={year === currentYear}
             onClick={() => handleYearChange(year)}
             disabled={isPending}
             className={`snap-center shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
@@ -186,6 +194,7 @@ export default function TransactionMobileFilter({
             <button
               key={name}
               ref={isActive ? activeMonthButtonRef : null}
+              aria-pressed={isActive}
               onClick={() => handleMonthChange(idx)}
               disabled={isPending}
               className={`snap-center shrink-0 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.01em] transition-all duration-200 ${
@@ -202,7 +211,7 @@ export default function TransactionMobileFilter({
       </div>
 
       {/* Quick Filters */}
-      <div className={`grid grid-cols-[minmax(0,0.9fr)_minmax(0,1.15fr)_minmax(0,0.95fr)] gap-2 pb-1 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 pb-1 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
         <div className="min-w-0">
           <FormSelect
             name="type"

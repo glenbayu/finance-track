@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 
 type ErrorPageProps = {
   error: Error & { digest?: string };
@@ -23,11 +24,12 @@ export default function ErrorPage({ error, reset }: ErrorPageProps) {
             Aksi kamu gagal diproses. Coba ulangi, atau refresh halaman.
           </p>
 
-          <div className="mt-5 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800 dark:border-rose-900 dark:bg-rose-950/40 dark:text-rose-200">
+          <div role="alert" className="mt-5 ui-alert ui-alert--error">
             {safeMessage}
           </div>
 
           <div className="mt-6 flex flex-col gap-2 sm:flex-row">
+            <Link href="/transactions" className="btn-secondary">Lihat transaksi</Link>
             <button type="button" className="btn-primary" onClick={reset}>
               Coba lagi
             </button>

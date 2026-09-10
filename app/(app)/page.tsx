@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import MonthlyExpenseTrend from "@/components/dashboard/monthly-expense-trend";
 import QuickAddTransaction from "@/components/quick-add/quick-add-transaction";
 import TopSpendingInsight from "@/components/dashboard/top-spending-insight";
@@ -32,54 +31,6 @@ type HomeProps = {
   }>;
 };
 
-async function quickAddTransaction(formData: FormData) {
-  "use server";
-
-  const { supabase, user } = await requireUser();
-
-  const type = formData.get("type") as "income" | "expense";
-  const amount = Number(formData.get("amount"));
-  const categoryId = formData.get("category_id") as string;
-
-  if (!type || !categoryId) {
-    throw new Error("Data quick add belum lengkap.");
-  }
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    throw new Error("Jumlah transaksi harus lebih dari 0.");
-  }
-
-  const { data: category, error: categoryError } = await supabase
-    .from("categories")
-    .select("id")
-    .eq("id", categoryId)
-    .or(`user_id.eq.${user.id},user_id.is.null`)
-    .is("archived_at", null)
-    .single();
-
-  if (categoryError || !category) {
-    throw new Error("Kategori tidak valid.");
-  }
-
-  const today = getCurrentDate();
-
-  const { error } = await supabase.from("transactions").insert({
-    user_id: user.id,
-    type,
-    amount,
-    category_id: categoryId,
-    note: "Quick Add",
-    transaction_date: today,
-  });
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  revalidatePath("/");
-  revalidatePath("/transactions");
-}
-
 export default async function Home({ searchParams }: HomeProps) {
   const { supabase, user } = await requireUser();
   await forceRecalculateRollovers(supabase, user.id);
@@ -88,14 +39,7 @@ export default async function Home({ searchParams }: HomeProps) {
     params?.month ?? getCurrentMonth();
   const today = getCurrentDate();
 
-  const { data: categories } = await supabase
-    .from("categories")
-    .select("id, name, type")
-    .or(`user_id.eq.${user.id},user_id.is.null`)
-    .is("archived_at", null)
-    .order("name", { ascending: true });
-
-  const { data: quickAddTemplates } = await supabase
+  const { data: quickAddTemplates, error: templatesError } = await supabase
     .from("quick_add_templates")
     .select(`
       id,
@@ -150,7 +94,7 @@ export default async function Home({ searchParams }: HomeProps) {
     .order("created_at", { ascending: false })
     .limit(5);
 
-  const { data: allTransactions } = await supabase
+  const { data: allTransactions, error: totalsError } = await supabase
     .from("transactions")
     .select(`
       id,
@@ -170,13 +114,13 @@ export default async function Home({ searchParams }: HomeProps) {
     .gte("transaction_date", start)
     .lt("transaction_date", end);
 
-  const { data: wallets } = await supabase
+  const { data: wallets, error: walletsError } = await supabase
     .from("wallets")
     .select("id, name, type")
     .eq("user_id", user.id)
     .order("name", { ascending: true });
 
-  const { data: previousExpenses } = await supabase
+  const { data: previousExpenses, error: previousError } = await supabase
     .from("transactions")
     .select(`
       id,
@@ -192,12 +136,16 @@ export default async function Home({ searchParams }: HomeProps) {
     .gte("transaction_date", previousStart)
     .lt("transaction_date", previousEnd);
 
-  const { data: historyTransactions } = await supabase
+  const { data: historyTransactions, error: historyError } = await supabase
     .from("transactions")
     .select("id, type, amount, transaction_date")
     .eq("user_id", user.id)
     .gte("transaction_date", historyStartDate)
     .lt("transaction_date", end);
+
+  if (templatesError || error || totalsError || walletsError || previousError || historyError) {
+    throw new Error("Ringkasan belum dapat dimuat. Coba lagi; saldo tidak ditampilkan sampai data lengkap.");
+  }
 
   type ExpenseGroup = {
     categoryId: string | null;
@@ -405,8 +353,6 @@ export default async function Home({ searchParams }: HomeProps) {
             />
           </div>
           <QuickAddTransaction
-            categories={categories ?? []}
-            action={quickAddTransaction}
             templates={activeTemplates}
             today={today}
             createFromTemplateAction={createTransactionFromTemplate}
@@ -421,7 +367,7 @@ export default async function Home({ searchParams }: HomeProps) {
           <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
             Kelihatannya kamu belum punya dompet (wallet) untuk mulai mencatat. Yuk, buat dompet pertamamu sekarang!
           </p>
-          <Link href="/wallets/new" className="btn-primary mt-4 inline-flex">
+          <Link href="/wallets" className="btn-primary mt-4 inline-flex">
             + Buat Dompet Pertama
           </Link>
         </div>
@@ -435,7 +381,7 @@ export default async function Home({ searchParams }: HomeProps) {
               <div className="mb-3 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Sisa Saldo</p>
-                  <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="hover:opacity-70 transition-opacity" title="Atur Dompet">
+                  <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="icon-target hover:opacity-70 transition-opacity" aria-label="Atur Dompet" title="Atur Dompet">
                     <Settings size={14} />
                   </Link>
                 </div>
@@ -516,7 +462,7 @@ export default async function Home({ searchParams }: HomeProps) {
                   <div className="mb-4 flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <p className="text-sm font-medium" style={{ color: "var(--lk-text-muted)" }}>Sisa Saldo Bulan Ini</p>
-                      <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="hover:text-[var(--lk-text)] transition-colors" title="Atur Dompet">
+                      <Link href="/wallets" style={{ color: "var(--lk-text-muted)" }} className="icon-target hover:text-[var(--lk-text)] transition-colors" aria-label="Atur Dompet" title="Atur Dompet">
                         <Settings size={14} />
                       </Link>
                     </div>
@@ -605,8 +551,6 @@ export default async function Home({ searchParams }: HomeProps) {
             {/* Tile 3: Quick Add */}
             <div className="bento-card !p-0">
               <QuickAddTransaction
-                categories={categories ?? []}
-                action={quickAddTransaction}
                 templates={activeTemplates}
                 today={today}
                 createFromTemplateAction={createTransactionFromTemplate}
@@ -637,9 +581,7 @@ export default async function Home({ searchParams }: HomeProps) {
             </Link>
           </div>
 
-          {error ? (
-            <p className="text-rose-600">Error: {error.message}</p>
-          ) : !transactions || transactions.length === 0 ? (
+          {!transactions || transactions.length === 0 ? (
             <div className="rounded-2xl p-6 text-center border border-slate-200/50 bg-slate-50/50 dark:border-white/5 dark:bg-white/5">
               <span className="mx-auto inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-slate-100 text-slate-400 dark:bg-slate-800 dark:text-slate-500">
                 <LayoutDashboard size={22} />

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import BudgetAmountInput from "@/components/budgets/budget-amount-input";
 import AppShell from "@/components/layout/app-shell";
 import SubmitButton from "@/components/ui/submit-button";
+import ConfirmSubmitButton from "@/components/ui/confirm-submit-button";
 import MonthFilter from "@/components/ui/month-filter";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import { getCurrentMonth, getMonthRange, isMonthValue } from "@/lib/utils/date";
@@ -234,7 +235,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
       className="journal-dashboard"
       activeNav="budgets"
       month={selectedMonth}
-      maxWidth="6xl"
+      maxWidth="7xl"
       eyebrow="Rencana Pengeluaran"
       heroIcon={<Target size={19} strokeWidth={2.2} />}
       title="Anggaran"
@@ -297,89 +298,102 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
             </article>
           </section>
 
-          {!hasAnyBudget ? (
-            <section className="mt-6 rounded-xl p-8 text-center" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-              <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full" style={{ backgroundColor: "var(--lk-primary-dim)" }}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" style={{ color: "var(--lk-primary-light)" }}>
-                  <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
-                </svg>
+          {!hasAnyBudget && (
+            <section className="mt-6 rounded-2xl p-6 border shadow-xs" style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}>
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl" style={{ backgroundColor: "var(--lk-primary-dim)", color: "var(--lk-primary-light)" }}>
+                    <Target size={22} />
+                  </div>
+                  <div>
+                    <h3 className="text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>Belum Ada Anggaran Tersimpan untuk Bulan Ini</h3>
+                    <p className="text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
+                      Pilih kategori di daftar bawah untuk menetapkan batas pengeluaran. Sistem akan membandingkan realisasi pengeluaranmu secara otomatis.
+                    </p>
+                  </div>
+                </div>
               </div>
-              <h3 className="text-[16px] font-semibold" style={{ color: "var(--lk-text)" }}>Belum ada anggaran tersimpan</h3>
-              <p className="mt-2 text-sm max-w-md mx-auto" style={{ color: "var(--lk-text-muted)" }}>
-                Buka kategori di bawah untuk menetapkan batas pengeluaran. Sistem akan membandingkan realisasi pengeluaranmu secara otomatis setiap bulan.
-              </p>
-              <div className="mt-6 grid grid-cols-3 gap-4 max-w-lg mx-auto">
-                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                  <p className="text-2xl font-bold mb-1" style={{ color: "var(--lk-primary-light)" }}>1</p>
-                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Buka kategori</p>
+              <div className="mt-4 grid grid-cols-3 gap-3 max-w-lg">
+                <div className="rounded-xl p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <p className="text-lg font-bold mb-0.5" style={{ color: "var(--lk-primary-light)" }}>1</p>
+                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Pilih kategori di bawah</p>
                 </div>
-                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                  <p className="text-2xl font-bold mb-1" style={{ color: "var(--lk-primary-light)" }}>2</p>
-                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Isi nominal</p>
+                <div className="rounded-xl p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <p className="text-lg font-bold mb-0.5" style={{ color: "var(--lk-primary-light)" }}>2</p>
+                  <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Isi nominal limit</p>
                 </div>
-                <div className="rounded-lg p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
-                  <p className="text-2xl font-bold mb-1" style={{ color: "var(--lk-primary-light)" }}>3</p>
+                <div className="rounded-xl p-3 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
+                  <p className="text-lg font-bold mb-0.5" style={{ color: "var(--lk-primary-light)" }}>3</p>
                   <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>Klik Simpan</p>
                 </div>
               </div>
             </section>
-          ) : (
-            <section className="mt-6">
-              <div className="mb-3 px-4">
-                <h2 className="text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>Daftar Anggaran</h2>
+          )}
+
+          <section className="mt-6">
+            <div className="mb-3 px-1 flex items-center justify-between">
+              <div>
+                <h2 className="text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>Daftar Anggaran per Kategori</h2>
+                <p className="text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
+                  Klik kategori untuk melihat rincian pemakaian atau mengatur batas nominal anggaran.
+                </p>
               </div>
-              <div className="overflow-hidden rounded-md" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
-                {budgetCards.map((item) => {
-                  const tone = progressTone(item.usedPct);
-                  const clampedPct = Math.min(100, Math.max(0, item.usedPct));
-                  const isDanger = tone === "danger";
+            </div>
+            <div className="overflow-hidden rounded-2xl border shadow-xs" style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}>
+              {budgetCards.map((item) => {
+                const tone = progressTone(item.usedPct);
+                const clampedPct = Math.min(100, Math.max(0, item.usedPct));
+                const isDanger = tone === "danger";
 
-                  return (
-                    <details
-                      key={item.category.id}
-                      className="group hover-bg-surface-hover transition-colors"
-                      style={{ borderBottom: "1px solid var(--lk-border)", backgroundColor: isDanger ? "var(--lk-expense-dim)" : "transparent" }}
-                    >
-                      <summary className="flex cursor-pointer list-none items-center justify-between p-4 outline-none [&::-webkit-details-marker]:hidden">
-                        <div className="flex w-full items-center justify-between gap-3 pr-4">
-                          <div className="min-w-0 flex-1">
-                            <h3 className="truncate text-[15px] font-medium" style={{ color: isDanger ? "var(--lk-expense)" : "var(--lk-text)" }}>
-                              {item.category.name}
-                            </h3>
-                            <p className="text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
-                              {item.budgetAmount > 0 ? (
-                                <CurrencyAmount amountIDR={item.spentAmount} />
-                              ) : (
-                                "Belum diset"
-                              )}
-                              {item.budgetAmount > 0 && " terpakai"}
-                            </p>
-                          </div>
-
-                          <div className="flex flex-col items-end gap-1.5 shrink-0">
+                return (
+                  <details
+                    key={item.category.id}
+                    className="group hover-bg-surface-hover transition-colors"
+                    style={{ borderBottom: "1px solid var(--lk-border)", backgroundColor: isDanger ? "var(--lk-expense-dim)" : "transparent" }}
+                  >
+                    <summary className="flex cursor-pointer list-none items-center justify-between p-4 outline-none [&::-webkit-details-marker]:hidden">
+                      <div className="flex w-full items-center justify-between gap-3 pr-4">
+                        <div className="min-w-0 flex-1">
+                          <h3 className="truncate text-[15px] font-medium" style={{ color: isDanger ? "var(--lk-expense)" : "var(--lk-text)" }}>
+                            {item.category.name}
+                          </h3>
+                          <p className="text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
                             {item.budgetAmount > 0 ? (
-                              <div className="flex flex-col items-end">
-                                <span className="text-[13px] font-bold" style={{ color: isDanger ? "var(--lk-expense)" : "var(--lk-text)" }}>
-                                  {Math.round(item.usedPct)}%
-                                </span>
-                                <div className="w-16 h-1.5 mt-1 overflow-hidden rounded-full" style={{ backgroundColor: "var(--lk-border)" }}>
-                                  <div
-                                    className={`h-full rounded-full transition-all duration-500 ${isDanger ? "animate-pulse" : ""}`}
-                                    style={{ width: `${clampedPct}%`, backgroundColor: isDanger ? "var(--lk-expense)" : tone === "warn" ? "#f59e0b" : "var(--lk-income)" }}
-                                  />
-                                </div>
-                              </div>
+                              <CurrencyAmount amountIDR={item.spentAmount} />
                             ) : (
-                              <span className="text-[13px] font-medium" style={{ color: "var(--lk-text-muted)" }}>
-                                -
-                              </span>
+                              "Belum diset"
                             )}
-                          </div>
+                            {item.budgetAmount > 0 && " terpakai"}
+                          </p>
                         </div>
-                        <div className="transition-transform group-open:rotate-90" style={{ color: "var(--lk-text-muted)" }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+
+                        <div className="flex flex-col items-end gap-1.5 shrink-0">
+                          {item.budgetAmount > 0 ? (
+                            <div className="flex flex-col items-end">
+                              <span className="text-[13px] font-bold" style={{ color: isDanger ? "var(--lk-expense)" : "var(--lk-text)" }}>
+                                {Math.round(item.usedPct)}%
+                              </span>
+                              <div className="w-16 h-1.5 mt-1 overflow-hidden rounded-full" style={{ backgroundColor: "var(--lk-border)" }}>
+                                <div
+                                  className={`h-full rounded-full transition-all duration-500 ${isDanger ? "animate-pulse" : ""}`}
+                                  style={{ width: `${clampedPct}%`, backgroundColor: isDanger ? "var(--lk-expense)" : tone === "warn" ? "#f59e0b" : "var(--lk-income)" }}
+                                />
+                              </div>
+                            </div>
+                          ) : (
+                            <span
+                              className="text-xs font-semibold px-2.5 py-1 rounded-lg transition-colors group-hover:opacity-90"
+                              style={{ backgroundColor: "var(--lk-primary-dim)", color: "var(--lk-primary-light)" }}
+                            >
+                              + Atur Anggaran
+                            </span>
+                          )}
                         </div>
-                      </summary>
+                      </div>
+                      <div className="transition-transform group-open:rotate-90" style={{ color: "var(--lk-text-muted)" }}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6" /></svg>
+                      </div>
+                    </summary>
 
                       {/* Expanded Content */}
                       <div className="mx-4 mb-4 mt-1 rounded-lg px-4 pb-4 pt-3" style={{ backgroundColor: isDanger ? "var(--lk-expense-dim)" : "var(--lk-bg)", borderTop: "1px solid var(--lk-border)" }}>
@@ -420,13 +434,13 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
                             </SubmitButton>
 
                             {item.budget && (
-                              <button
+                              <ConfirmSubmitButton title="Hapus anggaran?" description="Batas anggaran kategori untuk bulan ini akan dihapus. Transaksi tidak ikut dihapus."
                                 formAction={deleteBudget}
                                 className="inline-flex h-11 items-center justify-center rounded-md px-4 text-sm font-semibold transition-colors hover:opacity-80"
                                 style={{ backgroundColor: "var(--lk-expense-dim)", color: "var(--lk-expense)" }}
                               >
                                 Hapus
-                              </button>
+                              </ConfirmSubmitButton>
                             )}
                           </div>
                         </form>
@@ -436,7 +450,6 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
                 })}
               </div>
             </section>
-          )}
 
           {archivedBudgetCards.length ? (
             <section className="mt-6">

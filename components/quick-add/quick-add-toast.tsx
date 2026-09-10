@@ -31,7 +31,7 @@ export default function QuickAddToast({
   if (!isOpen) return null;
 
   return (
-    <div className="pointer-events-none fixed inset-x-0 bottom-24 z-[120] flex justify-center px-4 lg:bottom-6">
+    <div role="status" className="pointer-events-none fixed inset-x-0 bottom-24 z-[120] flex justify-center px-4 lg:bottom-6">
       <div className="pointer-events-auto w-full max-w-md rounded-2xl border border-[color:var(--stroke)] bg-[color:var(--surface)]/96 p-3 shadow-[0_20px_42px_-24px_rgba(20,20,20,0.5)] backdrop-blur">
         <div className="flex items-start gap-2.5">
           <span className="mt-0.5 inline-flex h-7 w-7 items-center justify-center rounded-full bg-emerald-100 text-emerald-700 dark:bg-emerald-950/45 dark:text-emerald-300">

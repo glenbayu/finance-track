@@ -2,6 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SubmitButton from "@/components/ui/submit-button";
+import styles from "./login.module.css";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -90,33 +91,35 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
           )}
 
-          <form action={login} className="space-y-4">
+          <form action={login} className={`space-y-4 ${styles.form}`}>
             <input type="hidden" name="next" value={nextPath} />
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+              <label htmlFor="email" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Alamat Email
               </label>
-              <input
+              <input aria-label="Alamat email"
                 type="email"
                 name="email"
+                autoComplete="email"
                 id="email"
                 placeholder="nama@email.com"
-                className="input-base"
+                className="input-base placeholder:[font:inherit]"
                 required
               />
             </div>
 
             <div>
-              <label className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+              <label htmlFor="password" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Kata Sandi
               </label>
-              <input
+              <input aria-label="Kata sandi"
                 type="password"
                 name="password"
+                autoComplete="current-password"
                 id="password"
                 placeholder="••••••••"
-                className="input-base"
+                className="input-base placeholder:[font:inherit]"
                 required
               />
             </div>

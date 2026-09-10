@@ -46,7 +46,7 @@ export function useAmountPrivacy() {
   const isHiddenByDefault = useSyncExternalStore(
     subscribe,
     getSnapshot,
-    () => false,
+    () => true,
   );
 
   useEffect(() => {

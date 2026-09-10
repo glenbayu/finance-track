@@ -6,7 +6,6 @@ import {
   BarChart,
   CartesianGrid,
   Cell,
-  Legend,
   Line,
   LineChart,
   ResponsiveContainer,
@@ -17,6 +16,10 @@ import {
 import { convertFromIDR, formatCurrency, getCurrencySymbol } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import type { CategoryForecastResult } from "@/lib/reports/forecast";
+import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import CurrencyAmount from "@/components/ui/currency-amount";
+import styles from "./reports-charts.module.css";
 
 export type ReportsTrendItem = {
   month: string;
@@ -25,14 +28,8 @@ export type ReportsTrendItem = {
   cashflow: number;
 };
 
-export type ReportsCategoryItem = {
-  name: string;
-  value: number;
-};
-
 type ReportsChartsProps = {
   trendData: ReportsTrendItem[];
-  categoryData?: ReportsCategoryItem[];
   forecastCategoryData: CategoryForecastResult[];
   trendMonths: number;
 };
@@ -184,6 +181,8 @@ export default function ReportsCharts({
   trendMonths,
 }: ReportsChartsProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
+  const { isHiddenByDefault } = useAmountPrivacy();
+  const reducedMotion = useReducedMotion();
   const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   const [mounted, setMounted] = useState(false);
   const [localTrendMonths, setLocalTrendMonths] = useState(trendMonths);
@@ -195,6 +194,7 @@ export default function ReportsCharts({
   }, []);
 
   const visibleTrendData = trendData.slice(-localTrendMonths);
+  const rangeIndex = [6, 10, 12].indexOf(localTrendMonths);
 
   const convertedTrendData = visibleTrendData.map((item) => ({
     ...item,
@@ -210,26 +210,47 @@ export default function ReportsCharts({
   const currencySymbol = getCurrencySymbol(effectiveCurrency);
   const maxForecastValue = forecastBars.reduce((max, item) => Math.max(max, item.value), 0);
 
+  if (isHiddenByDefault) return <p className="ui-alert lg:col-span-12">Grafik laporan disembunyikan saat privasi nominal aktif.</p>;
+
   return (
     <>
+      <details className="section-card lg:col-span-12">
+        <summary className="cursor-pointer py-2 font-medium">Lihat tabel data laporan</summary>
+        <div className="overflow-x-auto"><table className="chart-data"><caption className="sr-only">Pemasukan, pengeluaran, dan arus kas bulanan</caption><thead><tr><th scope="col">Bulan</th><th scope="col">Pemasukan</th><th scope="col">Pengeluaran</th><th scope="col">Arus kas</th></tr></thead><tbody>{visibleTrendData.map((item) => <tr key={item.month}><th scope="row">{item.month}</th><td><CurrencyAmount amountIDR={item.income} /></td><td><CurrencyAmount amountIDR={item.expense} /></td><td><CurrencyAmount amountIDR={item.cashflow} /></td></tr>)}</tbody></table></div>
+      </details>
       <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-12">
         <h2 className="text-lg font-semibold">Trend Pemasukan vs Pengeluaran</h2>
         <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
           <p className="text-sm text-slate-500 dark:text-slate-400">
             Pergerakan bulanan berdasarkan data transaksi tersimpan.
           </p>
-          <div className="relative z-10 flex items-center gap-1 rounded-full border border-slate-200 bg-slate-50 p-1 dark:border-white/10 dark:bg-white/5" aria-label="Rentang chart">
+          <div className={styles.rangeFilter} aria-label="Rentang waktu grafik" style={{ "--range-index": rangeIndex } as React.CSSProperties}>
+            <span className={styles.rangeIndicator} aria-hidden="true" />
             {[6, 10, 12].map((months) => (
               <button
                 key={months}
                 type="button"
                 onClick={() => setLocalTrendMonths(months)}
-                className={`rounded-full px-3 py-1 text-xs font-semibold transition-colors ${localTrendMonths === months ? "bg-slate-900 text-white dark:bg-white dark:text-slate-900" : "text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white"}`}
+                aria-pressed={localTrendMonths === months}
+                className={`${styles.rangeButton} ${localTrendMonths === months ? styles.rangeButtonActive : ""}`}
               >
-                {months}B
+                {months} bln
               </button>
             ))}
           </div>
+        </div>
+
+        <div className={`${styles.seriesLegend} mt-4`} aria-label="Seri grafik">
+            {(["income", "expense"] as const).map((key) => {
+              const color = key === "income" ? "var(--lk-income)" : "var(--lk-expense)";
+              return <button key={key} type="button" aria-pressed={visibleLines[key]}
+                className={`${styles.legendButton} ${visibleLines[key] ? styles.legendButtonActive : ""}`}
+                style={{ "--series-color": color } as React.CSSProperties}
+                onClick={() => setVisibleLines((current) => ({ ...current, [key]: !current[key] }))}>
+                <span className={styles.legendLine} aria-hidden="true" />
+                {key === "income" ? "Pemasukan" : "Pengeluaran"}
+              </button>;
+            })}
         </div>
 
         {!trendData.length ? (
@@ -240,8 +261,9 @@ export default function ReportsCharts({
           <div className="relative mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <LineChart
+                key={localTrendMonths}
                 data={convertedTrendData}
-                accessibilityLayer={false}
+                accessibilityLayer
                 margin={{
                   top: 10,
                   right: 10,
@@ -270,19 +292,6 @@ export default function ReportsCharts({
                   wrapperStyle={{ pointerEvents: "none", zIndex: 30 }}
                   cursor={{ stroke: "var(--stroke)", strokeDasharray: "4 4" }}
                 />
-                <Legend
-                  verticalAlign="top"
-                  height={36}
-                  onClick={(entry) => {
-                    const key = String(entry.dataKey) as "income" | "expense";
-                    if (key === "income" || key === "expense") {
-                      setVisibleLines((current) => ({ ...current, [key]: !current[key] }));
-                    }
-                  }}
-                  formatter={(value, entry) => (
-                    <span className={visibleLines[String(entry.dataKey) as "income" | "expense"] === false ? "opacity-40 line-through" : ""}>{value}</span>
-                  )}
-                />
                 {visibleLines.income ? (
                   <Line
                     type="monotone"
@@ -292,7 +301,10 @@ export default function ReportsCharts({
                     strokeWidth={2.6}
                     dot={false}
                     activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
-                    isAnimationActive={!isAndroid}
+                    animationDuration={850}
+                    animationBegin={60}
+                    animationEasing="ease-out"
+                    isAnimationActive={!isAndroid && !reducedMotion}
                   />
                 ) : null}
                 {visibleLines.expense ? (
@@ -304,7 +316,10 @@ export default function ReportsCharts({
                     strokeWidth={2.6}
                     dot={false}
                     activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
-                    isAnimationActive={!isAndroid}
+                    animationDuration={850}
+                    animationBegin={60}
+                    animationEasing="ease-out"
+                    isAnimationActive={!isAndroid && !reducedMotion}
                   />
                 ) : null}
               </LineChart>
@@ -316,19 +331,19 @@ export default function ReportsCharts({
 
 
       <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-7">
-        <h2 className="text-lg font-semibold">Trend Cashflow</h2>
+        <h2 className="text-lg font-semibold">Tren Arus Kas</h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
           Nilai positif berarti pemasukan lebih besar dari pengeluaran.
         </p>
 
         {!convertedTrendData.length ? (
-          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Belum ada data cashflow.</p>
+          <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">Belum ada data arus kas.</p>
         ) : !mounted ? (
           <div className="mt-4 h-[240px] w-full bg-slate-100/50 dark:bg-slate-900/20 rounded-xl animate-pulse" />
         ) : (
           <div className="mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
-              <BarChart data={convertedTrendData} accessibilityLayer={false}>
+              <BarChart data={convertedTrendData} accessibilityLayer>
                 <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="month"
@@ -354,7 +369,7 @@ export default function ReportsCharts({
                     color: "var(--foreground)",
                   }}
                 />
-                <Bar dataKey="cashflow" radius={[8, 8, 0, 0]} isAnimationActive={!isAndroid}>
+                <Bar dataKey="cashflow" radius={[8, 8, 0, 0]} isAnimationActive={!isAndroid && !reducedMotion}>
                   {convertedTrendData.map((item) => (
                     <Cell key={item.month} fill={item.cashflow >= 0 ? "#10b981" : "#ef4444"} />
                   ))}
@@ -366,14 +381,14 @@ export default function ReportsCharts({
       </article>
 
       <article className="section-card min-w-0 max-w-full overflow-hidden lg:col-span-5">
-        <h2 className="text-lg font-semibold">Forecast per Kategori</h2>
+        <h2 className="text-lg font-semibold">Estimasi per Kategori</h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Estimasi kategori expense bulan berikutnya.
+          Estimasi pengeluaran per kategori bulan berikutnya.
         </p>
 
         {!forecastBars.length ? (
           <p className="mt-4 text-sm text-slate-500 dark:text-slate-400">
-            Forecast kategori belum tersedia.
+            Estimasi kategori belum tersedia.
           </p>
         ) : (
           <>
@@ -409,7 +424,7 @@ export default function ReportsCharts({
                   <BarChart
                     layout="vertical"
                     data={forecastBars}
-                    accessibilityLayer={false}
+                    accessibilityLayer
                     margin={{ top: 4, right: 12, left: 10, bottom: 4 }}
                   >
                     <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" horizontal={false} />
@@ -424,7 +439,7 @@ export default function ReportsCharts({
                         color: "var(--foreground)",
                       }}
                     />
-                    <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="#0ea5a5" isAnimationActive={!isAndroid} />
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="#0ea5a5" isAnimationActive={!isAndroid && !reducedMotion} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

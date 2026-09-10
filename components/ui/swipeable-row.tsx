@@ -2,6 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
+import { Ellipsis, X } from "lucide-react";
 
 type SwipeableRowProps = {
   children: ReactNode;
@@ -30,7 +31,7 @@ export default function SwipeableRow({
   const applyTransform = useCallback((px: number, animate: boolean) => {
     const el = contentRef.current;
     if (!el) return;
-    if (animate) {
+    if (animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       el.style.transition = "transform 280ms cubic-bezier(0.16, 1, 0.3, 1)";
     } else {
       el.style.transition = "none";
@@ -147,11 +148,14 @@ export default function SwipeableRow({
       className={`relative overflow-hidden w-full select-none ${className}`}
       ref={rowRef}
       style={{ WebkitOverflowScrolling: "touch" }}
+      onKeyDown={(event) => { if (event.key === "Escape") reset(); }}
     >
       {/* Background layer: action buttons panel */}
       <div
         className="absolute inset-y-0 right-0 flex items-stretch justify-end"
         style={{ width: `${actionWidth}px` }}
+        inert={!isSwiped}
+        aria-hidden={!isSwiped}
       >
         {actions}
       </div>
@@ -163,7 +167,7 @@ export default function SwipeableRow({
         onTouchMove={handleTouchMove}
         onTouchEnd={handleTouchEnd}
         onClick={isSwiped ? reset : undefined}
-        className="relative z-10 w-full"
+        className="relative z-10 w-full pr-11 bg-[var(--lk-surface)]"
         style={{
           transform: "translate3d(0, 0, 0)",
           willChange: "transform",
@@ -172,6 +176,12 @@ export default function SwipeableRow({
         }}
       >
         {children}
+        <button type="button" className="absolute right-0 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center text-[var(--lk-text-muted)]"
+          aria-label={isSwiped ? "Tutup aksi transaksi" : "Aksi transaksi"} aria-expanded={isSwiped}
+          onTouchStart={(event) => event.stopPropagation()}
+          onClick={(event) => { event.stopPropagation(); if (isSwiped) reset(); else { applyTransform(-actionWidth, true); swipedRef.current = true; setIsSwiped(true); } }}>
+          {isSwiped ? <X size={18} /> : <Ellipsis size={18} />}
+        </button>
       </div>
     </div>
   );

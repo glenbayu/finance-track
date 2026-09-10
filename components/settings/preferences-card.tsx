@@ -37,11 +37,11 @@ export default function PreferencesCard({ flat = false }: PreferencesCardProps) 
                 Mata Uang Layar
               </label>
               <p className="text-xs" style={{ color: "var(--lk-text-muted)" }}>
-                Pilih mata uang untuk menampilkan nominal di dashboard.
+                Pilih mata uang untuk menampilkan nominal di seluruh aplikasi.
               </p>
             </div>
             <div className="w-full sm:w-48 shrink-0">
-              <FormSelect
+              <FormSelect label="Mata uang tampilan"
                 name="display_currency"
                 value={currency}
                 onValueChange={(nextValue) =>
@@ -90,7 +90,7 @@ export default function PreferencesCard({ flat = false }: PreferencesCardProps) 
   return (
     <section>
       <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider uppercase" style={{ color: "var(--lk-text-muted)" }}>
-        Bahasa & Mata Uang
+        Mata uang
       </h3>
       {content}
     </section>

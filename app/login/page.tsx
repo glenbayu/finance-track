@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SubmitButton from "@/components/ui/submit-button";
-import styles from "./login.module.css";
+import PasswordInput from "@/components/auth/password-input";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -49,33 +49,54 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <main
       className="flex min-h-screen items-center justify-center p-4"
-      style={{ backgroundColor: "var(--lk-bg)" }}
+      style={{
+        background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(15,118,110,0.18) 0%, transparent 60%), var(--lk-bg)",
+        position: "relative",
+        overflow: "hidden",
+      }}
     >
-      <div className="w-full max-w-[380px]">
+      {/* Subtle grid pattern overlay */}
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          inset: 0,
+          backgroundImage: "linear-gradient(var(--lk-border) 1px, transparent 1px), linear-gradient(90deg, var(--lk-border) 1px, transparent 1px)",
+          backgroundSize: "48px 48px",
+          opacity: 0.25,
+          pointerEvents: "none",
+        }}
+      />
+
+      <div className="w-full max-w-[420px]" style={{ position: "relative", zIndex: 1 }}>
         {/* Logo */}
         <div className="mb-8 text-center">
           <div
-            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg"
-            style={{ backgroundColor: "var(--lk-primary)" }}
+            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg"
+            style={{
+              background: "linear-gradient(135deg, var(--lk-primary) 0%, var(--lk-primary-hover) 100%)",
+              boxShadow: "0 8px 32px rgba(15,118,110,0.35)",
+            }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
           </div>
-          <h1 className="text-xl font-bold" style={{ color: "var(--lk-text)" }}>Finance Journal</h1>
-          <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>
+          <h1 className="text-2xl font-bold" style={{ color: "var(--lk-text)", fontFamily: "var(--font-display, inherit)" }}>Finance Journal</h1>
+          <p className="mt-1.5 text-sm" style={{ color: "var(--lk-text-muted)" }}>
             Masuk ke akun kamu
           </p>
         </div>
 
         <div
-          className="rounded-lg p-6"
+          className="rounded-2xl p-7 shadow-xl"
           style={{
             backgroundColor: "var(--lk-surface)",
             border: "1px solid var(--lk-border-strong)",
+            backdropFilter: "blur(8px)",
           }}
         >
           {params?.message && (
             <div
-              className="mb-5 rounded-md px-4 py-3 text-sm"
+              className="mb-5 rounded-xl px-4 py-3 text-sm"
               style={{ backgroundColor: "var(--lk-income-bg)", color: "var(--lk-income)", border: "1px solid rgba(117,218,168,0.2)" }}
             >
               {params.message}
@@ -84,21 +105,22 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
           {params?.error && (
             <div
-              className="mb-5 rounded-md px-4 py-3 text-sm"
+              className="mb-5 rounded-xl px-4 py-3 text-sm"
               style={{ backgroundColor: "var(--lk-expense-bg)", color: "var(--lk-expense)", border: "1px solid rgba(255,180,171,0.2)" }}
             >
               {params.error}
             </div>
           )}
 
-          <form action={login} className={`space-y-4 ${styles.form}`}>
+          <form action={login} className="space-y-5">
             <input type="hidden" name="next" value={nextPath} />
 
             <div>
               <label htmlFor="email" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
                 Alamat Email
               </label>
-              <input aria-label="Alamat email"
+              <input
+                aria-label="Alamat email"
                 type="email"
                 name="email"
                 autoComplete="email"
@@ -110,21 +132,15 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </div>
 
             <div>
-              <label htmlFor="password" className="mb-1.5 block text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
-                Kata Sandi
-              </label>
-              <input aria-label="Kata sandi"
-                type="password"
-                name="password"
-                autoComplete="current-password"
-                id="password"
-                placeholder="••••••••"
-                className="input-base placeholder:[font:inherit]"
-                required
-              />
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="password" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+                  Kata Sandi
+                </label>
+              </div>
+              <PasswordInput />
             </div>
 
-            <SubmitButton className="btn-primary mt-2 w-full py-2.5 text-sm font-semibold rounded-md" pendingText="Memeriksa...">
+            <SubmitButton className="btn-primary mt-1 w-full py-2.5 text-sm font-semibold rounded-xl" pendingText="Memeriksa...">
               Masuk
             </SubmitButton>
           </form>
@@ -140,8 +156,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
             </Link>
           </p>
         </div>
+
+        <p className="mt-4 text-center text-[11px]" style={{ color: "var(--lk-text-faint)" }}>
+          Finance Journal · v0.1.0
+        </p>
       </div>
     </main>
   );
 }
-

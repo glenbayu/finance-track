@@ -1,16 +1,22 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, useTransition } from "react";
+import type { ReactNode } from "react";
+import { createPortal } from "react-dom";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { ArrowUpDown } from "lucide-react";
+import { ArrowUpDown, ChevronDown, ChevronLeft, ChevronRight } from "lucide-react";
 import CurrencyAmount from "@/components/ui/currency-amount";
-import FormSelect from "@/components/ui/form-select";
-import { pad2 } from "@/lib/utils/date";
+import FilterSelect from "./filter-select";
+import { getCurrentMonth, pad2 } from "@/lib/utils/date";
+
+type TxType = "income" | "expense" | "transfer" | "adjustment";
+type TypeFilter = "all" | TxType;
+type SortMode = "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
 
 type CategoryOption = {
   id: string;
   name: string;
-  type: "income" | "expense" | "transfer" | "adjustment";
+  type: TxType;
 };
 
 type TransactionMobileFilterProps = {
@@ -18,16 +24,194 @@ type TransactionMobileFilterProps = {
   totalIncome: number;
   totalExpense: number;
   categories: CategoryOption[];
-  selectedType: "all" | "income" | "expense" | "transfer" | "adjustment";
+  selectedType: TypeFilter;
   selectedCategoryId: string;
-  selectedSort: "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
+  selectedSort: SortMode;
   className?: string;
 };
 
 const monthNames = [
-  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun", 
-  "Jul", "Agu", "Sep", "Okt", "Nov", "Des"
+  "Jan", "Feb", "Mar", "Apr", "Mei", "Jun",
+  "Jul", "Agu", "Sep", "Okt", "Nov", "Des",
 ];
+
+const typeChips: { value: TypeFilter; label: string }[] = [
+  { value: "all", label: "Semua" },
+  { value: "income", label: "Pemasukan" },
+  { value: "expense", label: "Pengeluaran" },
+  { value: "transfer", label: "Transfer" },
+  { value: "adjustment", label: "Koreksi" },
+];
+
+const sortOptions: { value: SortMode; label: string }[] = [
+  { value: "date_desc", label: "Terbaru" },
+  { value: "date_asc", label: "Terlama" },
+  { value: "amount_desc", label: "Tertinggi" },
+  { value: "amount_asc", label: "Terendah" },
+];
+
+function formatMonthLabel(year: number, month: number) {
+  return new Intl.DateTimeFormat("id-ID", {
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(new Date(Date.UTC(year, month - 1, 1)));
+}
+
+/* ── Tombol ikon kecil (panah bulan / tahun) ── */
+function IconButton({
+  label,
+  onClick,
+  disabled,
+  children,
+}: {
+  label: string;
+  onClick: () => void;
+  disabled?: boolean;
+  children: ReactNode;
+}) {
+  return (
+    <button
+      type="button"
+      aria-label={label}
+      onClick={onClick}
+      disabled={disabled}
+      className="grid shrink-0 place-items-center rounded-xl border disabled:opacity-50"
+      style={{
+        width: "2.5rem",
+        height: "2.5rem",
+        minWidth: "2.5rem",
+        minHeight: "2.5rem",
+        padding: 0,
+        lineHeight: 0,
+        borderColor: "var(--lk-border)",
+        background: "var(--lk-surface-raised)",
+        color: "var(--lk-text-muted)",
+        WebkitTapHighlightColor: "transparent",
+      }}
+    >
+      {children}
+    </button>
+  );
+}
+
+/* ── Bottom sheet pilih bulan & tahun ── */
+function MonthPickerSheet({
+  year,
+  month,
+  onSelect,
+  onClose,
+}: {
+  year: number;
+  month: number;
+  onSelect: (year: number, month: number) => void;
+  onClose: () => void;
+}) {
+  const [pickerYear, setPickerYear] = useState(year);
+  const [entered, setEntered] = useState(false);
+
+  // Komponen ini hanya dirender setelah dibuka (client), jadi aman memanggil getCurrentMonth di sini
+  const [todayYear, todayMonth] = useMemo(
+    () => getCurrentMonth().split("-").map((n) => parseInt(n, 10)),
+    [],
+  );
+
+  useEffect(() => {
+    const raf = requestAnimationFrame(() => setEntered(true));
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", onKey);
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("keydown", onKey);
+      document.body.style.overflow = prevOverflow;
+    };
+  }, [onClose]);
+
+  return createPortal(
+    <div className="fixed inset-0 z-[100]" role="dialog" aria-modal="true" aria-label="Pilih bulan">
+      <div
+        className="absolute inset-0 bg-black/40"
+        style={{ opacity: entered ? 1 : 0, transition: "opacity 200ms ease" }}
+        onClick={onClose}
+      />
+      <div
+        className="absolute inset-x-0 bottom-0 rounded-t-2xl border-t px-4 pb-4"
+        style={{
+          background: "var(--lk-surface)",
+          borderColor: "var(--lk-border)",
+          paddingBottom: "calc(1rem + env(safe-area-inset-bottom, 0px))",
+          transform: entered ? "translateY(0)" : "translateY(100%)",
+          transition: "transform 220ms cubic-bezier(0.32, 0.72, 0, 1)",
+        }}
+      >
+        <div className="mx-auto mt-2.5 h-1 w-9 rounded-full" style={{ background: "var(--lk-border)" }} />
+
+        <div className="flex items-center justify-between pb-3 pt-3">
+          <p className="text-sm font-semibold" style={{ color: "var(--lk-text)" }}>
+            Pilih bulan
+          </p>
+          <button
+            type="button"
+            onClick={() => onSelect(todayYear, todayMonth)}
+            className="rounded-full px-3 text-xs font-semibold"
+            style={{
+              height: "2rem",
+              minHeight: "2rem",
+              color: "var(--lk-primary)",
+              background: "var(--lk-primary-dim)",
+            }}
+          >
+            Bulan ini
+          </button>
+        </div>
+
+        {/* Tahun */}
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <IconButton label="Tahun sebelumnya" onClick={() => setPickerYear((y) => y - 1)}>
+            <ChevronLeft size={18} />
+          </IconButton>
+          <p className="text-base font-bold tabular-nums" style={{ color: "var(--lk-text)" }}>
+            {pickerYear}
+          </p>
+          <IconButton label="Tahun berikutnya" onClick={() => setPickerYear((y) => y + 1)}>
+            <ChevronRight size={18} />
+          </IconButton>
+        </div>
+
+        {/* Grid bulan */}
+        <div className="grid grid-cols-3 gap-2">
+          {monthNames.map((name, idx) => {
+            const isSelected = pickerYear === year && idx + 1 === month;
+            return (
+              <button
+                key={name}
+                type="button"
+                aria-pressed={isSelected}
+                onClick={() => onSelect(pickerYear, idx + 1)}
+                className="rounded-xl border text-sm font-semibold"
+                style={{
+                  height: "2.75rem",
+                  minHeight: "2.75rem",
+                  borderColor: isSelected ? "var(--lk-text)" : "var(--lk-border)",
+                  background: isSelected ? "var(--lk-text)" : "var(--lk-surface-raised)",
+                  color: isSelected ? "var(--lk-bg)" : "var(--lk-text)",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                {name}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    </div>,
+    document.body,
+  );
+}
 
 export default function TransactionMobileFilter({
   selectedMonth,
@@ -43,32 +227,13 @@ export default function TransactionMobileFilter({
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
-  const yearScrollerRef = useRef<HTMLDivElement | null>(null);
-  const monthScrollerRef = useRef<HTMLDivElement | null>(null);
-  const activeYearButtonRef = useRef<HTMLButtonElement | null>(null);
-  const activeMonthButtonRef = useRef<HTMLButtonElement | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const chipsRef = useRef<HTMLDivElement | null>(null);
+  const activeChipRef = useRef<HTMLButtonElement | null>(null);
 
   const [yearStr, monthStr] = selectedMonth.split("-");
-  const currentYear = parseInt(yearStr);
-  const currentMonth = parseInt(monthStr);
-
-  const years = useMemo(() => {
-    const yearsArray = [];
-    for (let i = currentYear - 2; i <= currentYear + 2; i++) {
-      yearsArray.push(i);
-    }
-    return yearsArray;
-  }, [currentYear]);
-
-  const handleYearChange = (year: number) => {
-    const nextMonth = `${year}-${pad2(currentMonth)}`;
-    updateParams({ month: nextMonth });
-  };
-
-  const handleMonthChange = (monthIdx: number) => {
-    const nextMonth = `${currentYear}-${pad2(monthIdx + 1)}`;
-    updateParams({ month: nextMonth });
-  };
+  const currentYear = parseInt(yearStr, 10);
+  const currentMonth = parseInt(monthStr, 10);
 
   const updateParams = (patch: Record<string, string>) => {
     const params = new URLSearchParams(searchParams.toString());
@@ -79,61 +244,87 @@ export default function TransactionMobileFilter({
       }
     });
     params.delete("page");
-    
+
     startTransition(() => {
       router.replace(`${pathname}?${params.toString()}`, { scroll: false });
     });
   };
 
-  const typeOptions = [
-    { value: "all", label: "Semua jenis" },
-    { value: "income", label: "Pemasukan" },
-    { value: "expense", label: "Pengeluaran" },
-    { value: "transfer", label: "Transfer" },
-    { value: "adjustment", label: "Koreksi" },
-  ];
+  const goToMonth = (year: number, month: number) => {
+    updateParams({ month: `${year}-${pad2(month)}` });
+  };
 
-  const categoryOptions = useMemo(() => [
-    { value: "", label: "Semua kategori" },
-    ...categories
-      .filter(c => selectedType === "all" || c.type === selectedType)
-      .map(c => ({ value: c.id, label: c.name }))
-  ], [categories, selectedType]);
+  const shiftMonth = (delta: number) => {
+    const d = new Date(Date.UTC(currentYear, currentMonth - 1 + delta, 1));
+    goToMonth(d.getUTCFullYear(), d.getUTCMonth() + 1);
+  };
 
-  const sortOptions = [
-    { value: "", label: "Terbaru" },
-    { value: "date_desc", label: "Terbaru" },
-    { value: "date_asc", label: "Terlama" },
-    { value: "amount_desc", label: "Tertinggi" },
-    { value: "amount_asc", label: "Terendah" },
-  ];
+  const closePicker = useCallback(() => setPickerOpen(false), []);
 
+  const handleTypeChange = (next: TypeFilter) => {
+    // Pertahankan kategori kalau masih cocok dengan tipe yang baru
+    const keepCategory =
+      next === "all" ||
+      categories.some((c) => c.id === selectedCategoryId && c.type === next);
+    updateParams({
+      type: next === "all" ? "" : next,
+      category: keepCategory ? selectedCategoryId : "",
+    });
+  };
+
+  const categoryOptions = useMemo(
+    () => [
+      { value: "", label: "Semua kategori" },
+      ...categories
+        .filter((c) => selectedType === "all" || c.type === selectedType)
+        .map((c) => ({ value: c.id, label: c.name })),
+    ],
+    [categories, selectedType],
+  );
+
+  // Geser chip tipe yang aktif ke tengah supaya selalu kelihatan
   useEffect(() => {
-    const centerButton = (container: HTMLDivElement | null, button: HTMLButtonElement | null) => {
-      if (!container || !button) return;
-
-      const targetLeft =
-        container.scrollLeft + button.getBoundingClientRect().left - container.getBoundingClientRect().left - (container.clientWidth / 2) + (button.clientWidth / 2);
-
-      container.scrollTo({
-        left: Math.max(0, targetLeft),
-        behavior: "instant",
-      });
-    };
-
-    const centerActive = () => {
-      centerButton(yearScrollerRef.current, activeYearButtonRef.current);
-      centerButton(monthScrollerRef.current, activeMonthButtonRef.current);
-    };
-    centerActive();
-    const observer = new ResizeObserver(centerActive);
-    if (yearScrollerRef.current) observer.observe(yearScrollerRef.current);
-    if (monthScrollerRef.current) observer.observe(monthScrollerRef.current);
-    return () => observer.disconnect();
-  }, [currentMonth, currentYear]);
+    const container = chipsRef.current;
+    const button = activeChipRef.current;
+    if (!container || !button) return;
+    container.scrollTo({
+      left: Math.max(0, button.offsetLeft - (container.clientWidth - button.clientWidth) / 2),
+      behavior: "smooth",
+    });
+  }, [selectedType]);
 
   return (
-    <div className={`space-y-4 lg:hidden overflow-x-hidden ${className}`}>
+    <div className={`space-y-3 lg:hidden overflow-x-hidden ${className}`}>
+      {/* Month navigator */}
+      <div className={`flex items-center gap-2 ${isPending ? "opacity-70" : ""}`}>
+        <IconButton label="Bulan sebelumnya" onClick={() => shiftMonth(-1)} disabled={isPending}>
+          <ChevronLeft size={18} />
+        </IconButton>
+
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-label="Pilih bulan dan tahun"
+          onClick={() => setPickerOpen(true)}
+          className="flex min-w-0 flex-1 items-center justify-center gap-1.5 rounded-xl border px-3 text-sm font-semibold"
+          style={{
+            height: "2.5rem",
+            minHeight: "2.5rem",
+            borderColor: "var(--lk-border)",
+            background: "var(--lk-surface-raised)",
+            color: "var(--lk-text)",
+            WebkitTapHighlightColor: "transparent",
+          }}
+        >
+          <span className="truncate">{formatMonthLabel(currentYear, currentMonth)}</span>
+          <ChevronDown size={14} className="shrink-0" style={{ color: "var(--lk-text-faint)" }} />
+        </button>
+
+        <IconButton label="Bulan berikutnya" onClick={() => shiftMonth(1)} disabled={isPending}>
+          <ChevronRight size={18} />
+        </IconButton>
+      </div>
+
       {/* Summary Card */}
       <div className={`relative flex items-center rounded-xl bg-slate-50/80 dark:bg-slate-800/40 divide-x divide-slate-200/60 dark:divide-slate-700/60 p-0 overflow-hidden transition-opacity duration-200 ${isPending ? "opacity-60" : ""}`}>
         {/* Loading shimmer overlay */}
@@ -159,94 +350,74 @@ export default function TransactionMobileFilter({
         </div>
       </div>
 
-      {/* Year Selector */}
-      <div
-        ref={yearScrollerRef}
-        className={`no-scrollbar -mx-4 flex snap-x snap-mandatory items-center gap-2.5 overflow-x-auto px-5 pb-1 [scroll-padding-inline:1.25rem] ${isPending ? "opacity-70" : ""}`}
-      >
-        {years.map((year) => (
-          <button
-            key={year}
-            ref={year === currentYear ? activeYearButtonRef : null}
-            aria-pressed={year === currentYear}
-            onClick={() => handleYearChange(year)}
-            disabled={isPending}
-            className={`snap-center shrink-0 rounded-full border px-4 py-2 text-sm font-semibold transition-all duration-200 ${
-              year === currentYear
-                ? "border-slate-900 bg-slate-900 text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.7)] dark:border-white dark:bg-white dark:text-slate-900"
-                : "border-slate-200 bg-white/88 text-slate-500 hover:border-slate-300 hover:text-slate-700 dark:border-slate-700 dark:bg-slate-800/80 dark:text-slate-400 dark:hover:border-slate-600 dark:hover:text-slate-200"
-            }`}
-          >
-            {year}
-          </button>
-        ))}
-        <div aria-hidden="true" className="w-1 shrink-0" />
-      </div>
-
-      {/* Month Selector */}
-      <div
-        ref={monthScrollerRef}
-        className={`no-scrollbar -mx-4 flex snap-x snap-mandatory items-center gap-2.5 overflow-x-auto px-5 pb-1 [scroll-padding-inline:1.25rem] ${isPending ? "opacity-70" : ""}`}
-      >
-        {monthNames.map((name, idx) => {
-          const isActive = idx + 1 === currentMonth;
-          return (
-            <button
-              key={name}
-              ref={isActive ? activeMonthButtonRef : null}
-              aria-pressed={isActive}
-              onClick={() => handleMonthChange(idx)}
-              disabled={isPending}
-              className={`snap-center shrink-0 rounded-full border px-4 py-2 text-xs font-semibold tracking-[0.01em] transition-all duration-200 ${
-                isActive
-                  ? "border-slate-900 bg-slate-900 text-white shadow-[0_12px_24px_-18px_rgba(15,23,42,0.7)] dark:border-white dark:bg-white dark:text-slate-900"
-                  : "bg-white/88 border-slate-200 text-slate-500 dark:bg-slate-800/80 dark:border-slate-700 dark:text-slate-400"
-              }`}
-            >
-              {name}
-            </button>
-          );
-        })}
-        <div aria-hidden="true" className="w-1 shrink-0" />
-      </div>
-
-      {/* Quick Filters */}
-      <div className={`grid grid-cols-1 sm:grid-cols-3 gap-2 pb-1 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
-        <div className="min-w-0">
-          <FormSelect
-            name="type"
-            value={selectedType}
-            options={typeOptions}
-            disabled={isPending}
-            onValueChange={(val) => updateParams({ type: val === "all" ? "" : val, category: "" })}
-          />
+      {/* Filters */}
+      <div className={`space-y-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
+        {/* Jenis transaksi: chip horizontal */}
+        <div
+          ref={chipsRef}
+          role="group"
+          aria-label="Jenis transaksi"
+          className="no-scrollbar relative -mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-0.5"
+        >
+          {typeChips.map((chip) => {
+            const isActive = chip.value === selectedType;
+            return (
+              <button
+                key={chip.value}
+                ref={isActive ? activeChipRef : null}
+                type="button"
+                aria-pressed={isActive}
+                onClick={() => handleTypeChange(chip.value)}
+                className="inline-flex shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold"
+                style={{
+                  height: "2.25rem",
+                  minHeight: "2.25rem",
+                  borderColor: isActive ? "var(--lk-text)" : "var(--lk-border)",
+                  background: isActive ? "var(--lk-text)" : "var(--lk-surface-raised)",
+                  color: isActive ? "var(--lk-bg)" : "var(--lk-text-muted)",
+                  WebkitTapHighlightColor: "transparent",
+                }}
+              >
+                {chip.label}
+              </button>
+            );
+          })}
         </div>
-        <div className="min-w-0">
-          <FormSelect
-            name="category"
+
+        {/* Kategori & urutan */}
+        <div className="grid grid-cols-2 gap-2">
+          <FilterSelect
+            label="Kategori"
             value={selectedCategoryId}
             options={categoryOptions}
-            disabled={isPending}
-            onValueChange={(val) => updateParams({ category: val })}
+            searchable
+            active={Boolean(selectedCategoryId)}
+            onChange={(val) => updateParams({ category: val })}
+            className="w-full"
           />
-        </div>
-        <div className="min-w-0 relative">
-          <FormSelect
-            name="sort"
-            value={selectedSort === "date_desc" ? "" : selectedSort}
+          <FilterSelect
+            label="Urutkan"
+            value={selectedSort}
             options={sortOptions}
-            icon={<ArrowUpDown size={12} className="text-slate-400" />}
-            disabled={isPending}
-            onValueChange={(val) => updateParams({ sort: val })}
+            icon={<ArrowUpDown size={12} />}
+            active={selectedSort !== "date_desc"}
+            onChange={(val) => updateParams({ sort: val === "date_desc" ? "" : val })}
+            className="w-full"
           />
-          {isPending && (
-            <svg className="animate-spin pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-3 w-3 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-            </svg>
-          )}
         </div>
       </div>
+
+      {pickerOpen && (
+        <MonthPickerSheet
+          year={currentYear}
+          month={currentMonth}
+          onClose={closePicker}
+          onSelect={(y, m) => {
+            setPickerOpen(false);
+            goToMonth(y, m);
+          }}
+        />
+      )}
     </div>
   );
 }

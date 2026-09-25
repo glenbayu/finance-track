@@ -120,12 +120,22 @@ export default function QuickAddTransaction({
         </div>
 
         {templates.length === 0 ? (
-          <div className="soft-inset">
-            <p className="text-sm" style={{ color: "var(--lk-text-muted)" }}>Belum ada template aktif.</p>
-            <Link href="/settings/templates" className="mt-2 inline-flex text-sm font-semibold" style={{ color: "var(--lk-primary-light)" }}>
-              + Tambah template
+          <div className="flex flex-col items-center gap-3 rounded-xl py-6 text-center" style={{ backgroundColor: "var(--lk-bg)", border: "1px dashed var(--lk-border)" }}>
+            <div>
+              <p className="text-sm font-semibold" style={{ color: "var(--lk-text)" }}>Belum ada template</p>
+              <p className="mt-0.5 text-xs max-w-[200px]" style={{ color: "var(--lk-text-muted)" }}>
+                Buat template untuk catat transaksi rutin dengan satu ketuk.
+              </p>
+            </div>
+            <Link
+              href="/settings/templates"
+              className="inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-xs font-semibold transition-opacity hover:opacity-80"
+              style={{ backgroundColor: "var(--lk-primary-dim)", color: "var(--lk-primary-light)" }}
+            >
+              + Buat Template Pertama
             </Link>
           </div>
+
         ) : (
           <>
             <div className="grid grid-cols-2 gap-3 lg:hidden">

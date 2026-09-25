@@ -1,6 +1,12 @@
 @custom-variant dark (&:where(.dark, .dark *));
 @import "tailwindcss";
 
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, sans-serif;
+}
+
+
 html {
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
@@ -163,6 +169,20 @@ button,
   textarea,
   select {
     font-size: 16px;
+    /* Remove iOS Safari native input/select inner shadow & appearance */
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Restore date picker icon on iOS — don't fully kill it */
+  input[type="date"] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  /* Suppress tap highlight ring on inputs */
+  input, select, textarea {
+    -webkit-tap-highlight-color: transparent;
   }
 }
 
@@ -282,6 +302,24 @@ button,
   animation: slide-fade-in 220ms cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
+/* ── Custom FormSelect dropdown panel animation ── */
+@keyframes form-select-in {
+  from { opacity: 0; transform: translateY(-6px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.form-select-panel ul::-webkit-scrollbar {
+  width: 4px;
+}
+.form-select-panel ul::-webkit-scrollbar-track {
+  background: transparent;
+}
+.form-select-panel ul::-webkit-scrollbar-thumb {
+  background: var(--lk-border-strong);
+  border-radius: 4px;
+}
+
+
 /* ── Filter Pending Overlay ── */
 .filter-pending {
   opacity: 0.55;
@@ -297,14 +335,14 @@ button,
 
   /* ── Page Shell & Container ── */
   .page-shell {
-    @apply px-0;
+    padding-inline: 0;
     min-height: 100vh;
     min-height: 100svh;
     min-height: 100dvh;
   }
 
   .page-container {
-    @apply w-full;
+    width: 100%;
   }
 
   /* ── Compact App Hero ── */
@@ -379,6 +417,7 @@ button,
     font-weight: 850;
     line-height: 1.12;
     letter-spacing: -0.035em;
+    font-family: var(--font-display, inherit);
   }
 
   .app-hero__description {
@@ -559,13 +598,7 @@ button,
     padding: 1rem;
   }
 
-  /* Legacy dark overrides — no-op since we're dark-only */
-  .dark .hero-panel,
-  .dark .section-card,
-  .dark .stat-card,
-  .dark .soft-inset {
-    /* Already handled by lk tokens above */
-  }
+
 
   /* ── Buttons ── */
   .btn-primary {
@@ -1077,10 +1110,7 @@ button,
     background-color: var(--lk-surface-hover);
   }
 
-  /* ── Metric glow (placeholder, simplified) ── */
-  .metric-glow-green { /* no-op in lk system */ }
-  .metric-glow-blue  { /* no-op */ }
-  .metric-glow-red   { /* no-op */ }
+
 
   /* ── Android optimization ── */
   .is-android {
@@ -1166,10 +1196,25 @@ html, body { overflow-x: clip; }
 body { font-variant-numeric: tabular-nums; }
 h1, h2, h3 { font-style: normal; overflow-wrap: anywhere; min-width: 0; }
 button, a, input, select, textarea, summary { -webkit-tap-highlight-color: transparent; }
-:is(button, a, input, select, textarea, summary, [tabindex]):focus-visible {
-  outline: 3px solid var(--lk-focus) !important;
-  outline-offset: 3px;
-  box-shadow: 0 0 0 2px var(--lk-surface);
+/* Focus ring — only show on keyboard navigation (hover: hover = non-touch devices)
+   On touch/iOS devices we suppress the aggressive box outline entirely
+   and rely on the input-base :focus border + shadow instead. */
+@media (hover: hover) {
+  :is(button, a, summary, [tabindex]):focus-visible {
+    outline: 3px solid var(--lk-focus) !important;
+    outline-offset: 3px;
+    box-shadow: 0 0 0 2px var(--lk-surface);
+  }
+}
+
+/* On ALL devices: inputs/selects use a clean teal border highlight on focus,
+   NO ugly outline box. */
+:is(input, select, textarea):focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+}
+:is(input, select, textarea):focus {
+  outline: none !important;
 }
 :is(button, input, select, textarea):disabled { cursor: not-allowed; opacity: 0.6; }
 .btn-primary, .dark .btn-primary { color: var(--lk-primary-ink); }
@@ -1197,7 +1242,7 @@ textarea { resize: vertical; }
   -webkit-backdrop-filter: none !important;
 }
 .app-hero__eyebrow { display: none; }
-.app-hero__title { font-size: clamp(1.25rem, 2vw, 1.6rem); font-weight: 700; line-height: 1.25; letter-spacing: -0.025em; }
+.app-hero__title { font-size: clamp(1.25rem, 2vw, 1.6rem); font-weight: 700; line-height: 1.25; letter-spacing: -0.025em; font-family: var(--font-display, inherit); }
 .app-hero__description { font-size: 0.875rem; }
 .app-hero__actions { flex-wrap: wrap; }
 .app-shell-page > div { min-width: 0; }
@@ -1244,6 +1289,14 @@ textarea { resize: vertical; }
 .transaction-entry :is(button, a) { min-height: 44px; }
 .transaction-entry button { white-space: nowrap; }
 .transaction-entry .category-chips button { max-width: 100%; overflow: hidden; text-overflow: ellipsis; }
+/* Amount hero input — never show outline box in any focus state */
+.amount-input,
+.amount-input:focus,
+.amount-input:focus-visible {
+  outline: none !important;
+  box-shadow: none !important;
+  border: none !important;
+}
 .page-shell.journal-auth > .page-container { margin-inline: auto; }
 @media (min-width: 40rem) {
   .transaction-entry .field-row { grid-template-columns: 2rem minmax(5rem, 1fr) minmax(0, 1.5fr); }
@@ -1266,4 +1319,65 @@ body { font-family: var(--font-inter); }
 @media (max-width: 39.99rem) {
   .settings-preference-row { flex-direction: column; align-items: flex-start; }
   .settings-preference-row > :last-child { align-self: flex-start; }
+}
+
+/* ── More Page — iOS Settings Style ── */
+.more-menu-row:hover {
+  background-color: var(--lk-surface-hover);
+}
+.more-menu-row:active {
+  background-color: var(--lk-surface-raised);
+}
+
+.more-logout-row {
+  display: flex !important;
+  flex-direction: row !important;
+  width: 100%;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 0.5rem;
+  padding: 0.95rem 1rem;
+  font-size: 0.925rem;
+  font-weight: 600;
+  color: var(--lk-expense);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  transition: background-color 120ms ease;
+  min-height: 48px;
+  -webkit-tap-highlight-color: transparent;
+}
+.more-logout-row:hover {
+  background-color: var(--lk-expense-bg);
+}
+.more-logout-row:active {
+  background-color: color-mix(in srgb, var(--lk-expense) 15%, transparent);
+}
+
+.theme-toggle-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  border-radius: 9999px;
+  border: 1px solid var(--lk-border-strong);
+  background: var(--lk-surface-raised);
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--lk-text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 120ms ease, border-color 120ms ease;
+  min-height: 36px;
+  -webkit-tap-highlight-color: transparent;
+}
+.theme-toggle-pill:hover {
+  background-color: var(--lk-surface-hover);
+  border-color: var(--lk-primary);
+}
+.theme-knob {
+  min-width: 0 !important;
+  min-height: 0 !important;
+  width: 28px !important;
+  height: 28px !important;
 }

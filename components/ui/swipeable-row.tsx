@@ -2,7 +2,6 @@
 
 import { useRef, useState, useEffect, useCallback } from "react";
 import type { ReactNode } from "react";
-import { Ellipsis, X } from "lucide-react";
 
 type SwipeableRowProps = {
   children: ReactNode;
@@ -21,8 +20,9 @@ export default function SwipeableRow({
   const startX = useRef(0);
   const startY = useRef(0);
   const isDragging = useRef(false);
+  const hasMoved = useRef(false);
   const isVerticalScroll = useRef(false);
-  const swipedRef = useRef(false); // mirror of isSwiped for perf
+  const swipedRef = useRef(false);
   const translationRef = useRef(0);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
@@ -57,63 +57,57 @@ export default function SwipeableRow({
       }
     };
 
-    document.addEventListener("mousedown", handleGlobalTap);
-    document.addEventListener("touchstart", handleGlobalTap);
+    document.addEventListener("pointerdown", handleGlobalTap);
     return () => {
-      document.removeEventListener("mousedown", handleGlobalTap);
-      document.removeEventListener("touchstart", handleGlobalTap);
+      document.removeEventListener("pointerdown", handleGlobalTap);
     };
   }, [isSwiped, reset]);
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    if (!touch) return;
-    startX.current = touch.clientX;
-    startY.current = touch.clientY;
+  const onStart = (clientX: number, clientY: number) => {
+    startX.current = clientX;
+    startY.current = clientY;
     isDragging.current = true;
+    hasMoved.current = false;
     isVerticalScroll.current = false;
 
-    // Cancel any pending animation frame
     if (rafId.current) cancelAnimationFrame(rafId.current);
-
-    // Remove transition for immediate response
     const el = contentRef.current;
     if (el) el.style.transition = "none";
   };
 
-  const handleTouchMove = (e: React.TouchEvent) => {
+  const onMove = (clientX: number, clientY: number, e?: React.UIEvent) => {
     if (!isDragging.current) return;
-    const touch = e.touches[0];
-    if (!touch) return;
 
-    const diffX = touch.clientX - startX.current;
-    const diffY = touch.clientY - startY.current;
+    const diffX = clientX - startX.current;
+    const diffY = clientY - startY.current;
 
-    // Detect vertical scrolling
-    if (!isVerticalScroll.current && Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 8) {
-      isVerticalScroll.current = true;
-      isDragging.current = false;
-      applyTransform(swipedRef.current ? -actionWidth : 0, true);
-      return;
+    // Detect if this gesture is vertical scrolling
+    if (!isVerticalScroll.current && !hasMoved.current) {
+      if (Math.abs(diffY) > Math.abs(diffX) && Math.abs(diffY) > 6) {
+        isVerticalScroll.current = true;
+        isDragging.current = false;
+        applyTransform(swipedRef.current ? -actionWidth : 0, true);
+        return;
+      }
+      if (Math.abs(diffX) > 6) {
+        hasMoved.current = true;
+      }
     }
 
     if (isVerticalScroll.current) return;
 
-    // Prevent vertical window scroll when swiping horizontally
-    if (Math.abs(diffX) > 10 && e.cancelable) {
-      e.preventDefault();
-    }
-
     let target = swipedRef.current ? -actionWidth + diffX : diffX;
 
-    // Swipe restrictions: left only, with dampening
-    if (target > 0) target = 0;
+    // Resistance when pulling right past 0
+    if (target > 0) {
+      target = target * 0.2;
+    }
+    // Resistance when pulling left past actionWidth
     if (target < -actionWidth) {
       const excess = target + actionWidth;
       target = -actionWidth + excess * 0.25;
     }
 
-    // Use requestAnimationFrame for buttery smooth updates
     if (rafId.current) cancelAnimationFrame(rafId.current);
     rafId.current = requestAnimationFrame(() => {
       const el = contentRef.current;
@@ -124,14 +118,13 @@ export default function SwipeableRow({
     });
   };
 
-  const handleTouchEnd = () => {
-    if (isVerticalScroll.current) return;
+  const onEnd = () => {
+    if (!isDragging.current && !hasMoved.current) return;
     isDragging.current = false;
 
     if (rafId.current) cancelAnimationFrame(rafId.current);
 
-    // Snapping logic
-    const threshold = -actionWidth / 2.5;
+    const threshold = -actionWidth / 3;
     if (translationRef.current < threshold) {
       applyTransform(-actionWidth, true);
       swipedRef.current = true;
@@ -147,7 +140,7 @@ export default function SwipeableRow({
     <div
       className={`relative overflow-hidden w-full select-none ${className}`}
       ref={rowRef}
-      style={{ WebkitOverflowScrolling: "touch" }}
+      style={{ touchAction: "pan-y" }}
       onKeyDown={(event) => { if (event.key === "Escape") reset(); }}
     >
       {/* Background layer: action buttons panel */}
@@ -160,28 +153,42 @@ export default function SwipeableRow({
         {actions}
       </div>
 
-      {/* Foreground layer: Swipeable card content — GPU-accelerated */}
+      {/* Foreground layer: Swipeable card content */}
       <div
         ref={contentRef}
-        onTouchStart={handleTouchStart}
-        onTouchMove={handleTouchMove}
-        onTouchEnd={handleTouchEnd}
-        onClick={isSwiped ? reset : undefined}
-        className="relative z-10 w-full pr-11 bg-[var(--lk-surface)]"
+        onPointerDown={(e) => {
+          onStart(e.clientX, e.clientY);
+        }}
+        onPointerMove={(e) => {
+          onMove(e.clientX, e.clientY, e);
+        }}
+        onPointerUp={(e) => {
+          onEnd();
+        }}
+        onPointerCancel={() => {
+          onEnd();
+        }}
+        onClickCapture={(e) => {
+          // If the user swiped/dragged, prevent triggering click navigation on inner link
+          if (hasMoved.current) {
+            e.preventDefault();
+            e.stopPropagation();
+            hasMoved.current = false;
+          } else if (isSwiped) {
+            e.preventDefault();
+            e.stopPropagation();
+            reset();
+          }
+        }}
+        className="relative z-10 w-full bg-[var(--lk-surface)]"
         style={{
           transform: "translate3d(0, 0, 0)",
           willChange: "transform",
-          backfaceVisibility: "hidden",
-          WebkitBackfaceVisibility: "hidden",
+          touchAction: "pan-y",
+          cursor: "grab",
         }}
       >
         {children}
-        <button type="button" className="absolute right-0 top-1/2 -translate-y-1/2 grid h-11 w-11 place-items-center text-[var(--lk-text-muted)]"
-          aria-label={isSwiped ? "Tutup aksi transaksi" : "Aksi transaksi"} aria-expanded={isSwiped}
-          onTouchStart={(event) => event.stopPropagation()}
-          onClick={(event) => { event.stopPropagation(); if (isSwiped) reset(); else { applyTransform(-actionWidth, true); swipedRef.current = true; setIsSwiped(true); } }}>
-          {isSwiped ? <X size={18} /> : <Ellipsis size={18} />}
-        </button>
       </div>
     </div>
   );

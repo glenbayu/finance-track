@@ -246,9 +246,16 @@ export default function WalletManager({ wallets, isCurrentMonth = true, createAc
             </button>
           </div>
 
-          <section className="section-card p-5" aria-labelledby="wallet-type-info-title">
-            <h2 id="wallet-type-info-title" className="text-sm font-semibold">Tentang tipe dompet</h2>
-            <div className="mt-4 space-y-3.5">
+          <details className="section-card overflow-hidden" style={{ borderRadius: "1rem" }}>
+            <summary
+              className="flex cursor-pointer items-center justify-between p-5 outline-none list-none [&::-webkit-details-marker]:hidden select-none"
+              style={{ color: "var(--lk-text)" }}
+            >
+              <h2 id="wallet-type-info-title" className="text-sm font-semibold">Tentang tipe dompet</h2>
+              <span className="text-xs" style={{ color: "var(--lk-text-faint)" }}>Lihat panduan</span>
+            </summary>
+            <div className="px-5 pb-5 space-y-3.5" style={{ borderTop: "1px solid var(--lk-border)" }}>
+              <div className="mt-4 space-y-3.5">
               <div className="flex items-start gap-3">
                 <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-lg" style={{ backgroundColor: "var(--lk-bg)", border: "1px solid var(--lk-border)" }}>
                   <Wallet size={15} className="text-emerald-600 dark:text-emerald-400" />
@@ -277,7 +284,9 @@ export default function WalletManager({ wallets, isCurrentMonth = true, createAc
                 </div>
               </div>
             </div>
-          </section>
+            </div>
+          </details>
+
         </div>
 
         {/* Kolom Kanan: Daftar Dompet Aktif */}

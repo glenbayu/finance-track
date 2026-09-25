@@ -66,7 +66,7 @@ export default function ExpenseChart({ data }: ExpenseChartProps) {
   })), [limitedData, COLORS, totalExpense]);
   const topCategory = breakdown[0];
 
-  if (isHiddenByDefault) return <div className="section-card"><h2 className="text-lg font-semibold">Pengeluaran per Kategori</h2><p className="mt-3 text-sm text-[var(--lk-text-muted)]">Grafik disembunyikan saat privasi nominal aktif.</p></div>;
+
 
   if (!data.length) {
     return (

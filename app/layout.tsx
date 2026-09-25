@@ -1,6 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Inter, Plus_Jakarta_Sans } from "next/font/google";
 import { Toaster } from "sonner";
 import "./globals.css";
+
+const inter = Inter({
+  subsets: ["latin"],
+  variable: "--font-inter",
+  display: "swap",
+});
+
+const jakarta = Plus_Jakarta_Sans({
+  subsets: ["latin"],
+  variable: "--font-jakarta",
+  display: "swap",
+});
 import IdleSessionGuard from "@/components/auth/idle-session-guard";
 import PwaRegistration from "@/components/pwa/pwa-registration";
 import ToastQueryListener from "@/components/ui/toast-query-listener";
@@ -73,7 +86,7 @@ export default function RootLayout({
           }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className={`${inter.variable} ${jakarta.variable} font-sans antialiased`}>
         <IdleSessionGuard />
         <PwaRegistration />
         <Suspense>

@@ -666,7 +666,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                   {paginatedTransactions.map((transaction) => {
                     const category = toCategory(transaction.categories);
                     return (
-                      <tr key={transaction.id} className="border-b transition-colors tx-row-hover"
+                      <tr key={transaction.id} className="group border-b transition-colors tx-row-hover"
                         style={{ borderColor: "var(--lk-border)" }}
                       >
                         <td className="p-4 align-middle font-medium" style={{ color: "var(--lk-text)" }}>
@@ -701,7 +701,16 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           </div>
                         </td>
                         <td className="p-4 align-middle text-sm" style={{ color: "var(--lk-text-muted)" }}>
-                          {transaction.note ? highlightText(transaction.note, highlightQuery) : "-"}
+                          {transaction.note ? (
+                            <span>
+                              {highlightText(transaction.note, highlightQuery)}
+                              {transaction.note.includes("(Rollover)") && (
+                                <span className="ml-2 inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-semibold" style={{ backgroundColor: "var(--lk-primary-dim)", color: "var(--lk-primary-light)" }}>Rollover</span>
+                              )}
+                            </span>
+                          ) : (
+                            <span className="italic opacity-40">Tanpa catatan</span>
+                          )}
                         </td>
                         <td className={`p-4 align-middle text-right font-semibold ${
                           transaction.type === "income" ? "text-emerald-600 dark:text-emerald-400" :
@@ -713,7 +722,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                         </td>
                         <td className="p-4 align-middle text-right">
-                          <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 transition-opacity [&:focus-within]:opacity-100 sm:opacity-100">
+                          <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 [&:focus-within]:opacity-100 transition-opacity duration-150">
                             <DuplicateTransactionButton id={transaction.id} />
                             <EditTransactionButton id={transaction.id} />
                             <DeleteTransactionButton id={transaction.id} action={deleteTransaction} />

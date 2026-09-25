@@ -1,11 +1,13 @@
 import Link from "next/link";
-import { 
-  Settings, 
-  Sparkles, 
-  Tags, 
-  Target, 
-  Wallet, 
-  ChevronRight
+import {
+  Settings,
+  Sparkles,
+  Tags,
+  Target,
+  Wallet,
+  ChevronRight,
+  ShieldCheck,
+  Calendar,
 } from "lucide-react";
 import AppShell from "@/components/layout/app-shell";
 import LogoutButton from "@/components/auth/logout-button";
@@ -16,33 +18,44 @@ import ThemeRow from "@/components/more/theme-row";
 export default async function MorePage() {
   const { user } = await requireUser();
   const email = user?.email || "pengguna@example.com";
-  const fullName = user?.user_metadata?.full_name || user?.user_metadata?.name || email.split("@")[0];
+  const fullName =
+    user?.user_metadata?.full_name ||
+    user?.user_metadata?.name ||
+    email.split("@")[0];
   const initial = fullName.charAt(0).toUpperCase();
+
+  const joinedDate = user?.created_at
+    ? new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(new Date(user.created_at))
+    : null;
 
   const dataManagementGroup = [
     {
       href: "/wallets",
       label: "Dompet & Rekening",
+      desc: "Kelola saldo & dompet kamu",
       icon: Wallet,
-      colorClass: "bg-amber-100 text-amber-600 dark:bg-amber-500/20 dark:text-amber-400",
+      iconBg: "linear-gradient(135deg, #f59e0b, #d97706)",
     },
     {
       href: "/categories",
       label: "Kategori Transaksi",
+      desc: "Atur label pengeluaran & pemasukan",
       icon: Tags,
-      colorClass: "bg-emerald-100 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400",
+      iconBg: "linear-gradient(135deg, #10b981, #059669)",
     },
     {
       href: "/budgets",
       label: "Anggaran (Budgets)",
+      desc: "Pantau & batasi pengeluaran bulanan",
       icon: Target,
-      colorClass: "bg-blue-100 text-blue-600 dark:bg-blue-500/20 dark:text-blue-400",
+      iconBg: "linear-gradient(135deg, #3b82f6, #2563eb)",
     },
     {
       href: "/settings/templates",
       label: "Quick Add Templates",
+      desc: "Template transaksi cepat favoritmu",
       icon: Sparkles,
-      colorClass: "bg-purple-100 text-purple-600 dark:bg-purple-500/20 dark:text-purple-400",
+      iconBg: "linear-gradient(135deg, #a855f7, #7c3aed)",
     },
   ];
 
@@ -50,8 +63,9 @@ export default async function MorePage() {
     {
       href: "/settings",
       label: "Pengaturan Lanjutan",
+      desc: "Preferensi tampilan & data",
       icon: Settings,
-      colorClass: "bg-slate-200 text-slate-700 dark:bg-slate-700 dark:text-slate-300",
+      iconBg: "linear-gradient(135deg, #64748b, #475569)",
     },
   ];
 
@@ -64,95 +78,339 @@ export default async function MorePage() {
       title="Akun Saya"
       description="Kelola profil dan pengaturan aplikasi."
     >
-      <div className="mx-auto max-w-lg space-y-7 pb-12">
-        
-        {/* Profile Header */}
-        <section className="flex items-start gap-4 px-2">
-          <div className="mt-1 flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 text-2xl font-bold text-white shadow-md">
-            {initial}
-          </div>
-          <div className="flex-1 min-w-0">
-            <h2 className="truncate text-xl font-bold text-slate-900 dark:text-white">
-              {fullName}
-            </h2>
-            <p className="truncate text-[13px] text-slate-500 dark:text-slate-400">
-              {email}
-            </p>
-            <div className="flex items-center gap-2 mt-1.5">
-              <div className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-400">
-                Akun Aktif
+      <div className="mx-auto max-w-lg space-y-4 pb-12">
+
+        {/* ── Profile Card (Modern iOS style) ── */}
+        <section
+          style={{
+            borderRadius: "1rem",
+            border: "1px solid var(--lk-border)",
+            background: "var(--lk-surface)",
+            padding: "1rem",
+          }}
+        >
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "0.75rem" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "0.875rem", minWidth: 0 }}>
+              {/* Avatar */}
+              <div
+                style={{
+                  width: "3.25rem",
+                  height: "3.25rem",
+                  borderRadius: "50%",
+                  background: "linear-gradient(135deg, #6366f1, #a855f7)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  fontSize: "1.35rem",
+                  fontWeight: 800,
+                  color: "#fff",
+                  boxShadow: "0 2px 8px rgba(99,102,241,0.25)",
+                  userSelect: "none",
+                  flexShrink: 0,
+                }}
+              >
+                {initial}
               </div>
-              <EditProfileModal currentName={fullName} email={user.email || ""} emailVerified={Boolean(user.email_confirmed_at)} joinedAt={user.created_at} />
+
+              {/* Name & Email */}
+              <div style={{ minWidth: 0 }}>
+                <h2
+                  style={{
+                    fontSize: "1.05rem",
+                    fontWeight: 700,
+                    color: "var(--lk-text)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    letterSpacing: "-0.01em",
+                  }}
+                >
+                  {fullName}
+                </h2>
+                <p
+                  style={{
+                    fontSize: "0.78rem",
+                    color: "var(--lk-text-muted)",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    marginTop: "0.05rem",
+                  }}
+                >
+                  {email}
+                </p>
+              </div>
             </div>
+
+            <EditProfileModal
+              currentName={fullName}
+              email={user.email || ""}
+              emailVerified={Boolean(user.email_confirmed_at)}
+              joinedAt={user.created_at}
+            />
+          </div>
+
+          {/* Badges */}
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "0.5rem",
+              marginTop: "0.85rem",
+              paddingTop: "0.75rem",
+              borderTop: "1px solid var(--lk-border)",
+              flexWrap: "wrap",
+            }}
+          >
+            <span
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "0.3rem",
+                borderRadius: "9999px",
+                background: "var(--lk-income-bg)",
+                color: "var(--lk-income)",
+                padding: "0.2rem 0.6rem",
+                fontSize: "0.68rem",
+                fontWeight: 700,
+              }}
+            >
+              <ShieldCheck size={11} />
+              Akun Aktif
+            </span>
+            {joinedDate && (
+              <span
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "0.3rem",
+                  fontSize: "0.7rem",
+                  color: "var(--lk-text-faint)",
+                  fontWeight: 500,
+                }}
+              >
+                <Calendar size={11} />
+                Bergabung {joinedDate}
+              </span>
+            )}
           </div>
         </section>
 
-        {/* Data & Management Group */}
+        {/* ── Data Keuangan Group ── */}
         <section>
-          <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+          <p
+            style={{
+              marginBottom: "0.4rem",
+              paddingLeft: "0.25rem",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--lk-text-faint)",
+            }}
+          >
             Data Keuangan
-          </h3>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
-            {dataManagementGroup.map((item) => {
+          </p>
+          <div
+            style={{
+              borderRadius: "1rem",
+              border: "1px solid var(--lk-border)",
+              background: "var(--lk-surface)",
+              overflow: "hidden",
+            }}
+          >
+            {dataManagementGroup.map((item, i) => {
               const Icon = item.icon;
+              const isLast = i === dataManagementGroup.length - 1;
               return (
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
-                  className="flex items-center gap-3 p-4 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:hover:bg-slate-800/50 dark:active:bg-slate-800"
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.875rem",
+                    padding: "0.8rem 1rem",
+                    borderBottom: isLast ? "none" : "1px solid var(--lk-border)",
+                    transition: "background-color 120ms ease",
+                    textDecoration: "none",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                  className="more-menu-row"
                 >
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.colorClass}`}>
-                    <Icon size={18} strokeWidth={2.5} />
+                  {/* Icon */}
+                  <div
+                    style={{
+                      width: "2.35rem",
+                      height: "2.35rem",
+                      borderRadius: "0.55rem",
+                      background: item.iconBg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                    }}
+                  >
+                    <Icon size={17} strokeWidth={2} color="#fff" />
                   </div>
-                  <span className="flex-1 text-[15px] font-medium text-slate-800 dark:text-slate-200">
-                    {item.label}
-                  </span>
-                  <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
+
+                  {/* Text */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        fontWeight: 600,
+                        color: "var(--lk-text)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.label}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--lk-text-muted)",
+                        marginTop: "0.05rem",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+
+                  <ChevronRight size={16} style={{ color: "var(--lk-text-faint)", flexShrink: 0 }} />
                 </Link>
               );
             })}
           </div>
         </section>
 
-        {/* Preferences Group */}
+        {/* ── Preferensi Group ── */}
         <section>
-          <h3 className="mb-2 px-4 text-[13px] font-semibold tracking-wider text-slate-500 uppercase">
+          <p
+            style={{
+              marginBottom: "0.4rem",
+              paddingLeft: "0.25rem",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--lk-text-faint)",
+            }}
+          >
             Preferensi
-          </h3>
-          <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm divide-y divide-slate-100 dark:divide-slate-800/60 dark:border-slate-800 dark:bg-slate-900">
+          </p>
+          <div
+            style={{
+              borderRadius: "1rem",
+              border: "1px solid var(--lk-border)",
+              background: "var(--lk-surface)",
+              overflow: "hidden",
+            }}
+          >
             <ThemeRow />
-            {preferencesGroup.map((item) => {
+            {preferencesGroup.map((item, i) => {
               const Icon = item.icon;
+              const isLast = i === preferencesGroup.length - 1;
               return (
-                <Link 
-                  key={item.href} 
-                  href={item.href} 
-                  className="flex items-center gap-3 p-4 transition-colors hover:bg-slate-50 active:bg-slate-100 dark:hover:bg-slate-800/50 dark:active:bg-slate-800"
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "0.875rem",
+                    padding: "0.8rem 1rem",
+                    borderTop: "1px solid var(--lk-border)",
+                    borderBottom: isLast ? "none" : "1px solid var(--lk-border)",
+                    transition: "background-color 120ms ease",
+                    textDecoration: "none",
+                    WebkitTapHighlightColor: "transparent",
+                  }}
+                  className="more-menu-row"
                 >
-                  <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${item.colorClass}`}>
-                    <Icon size={18} strokeWidth={2.5} />
+                  <div
+                    style={{
+                      width: "2.35rem",
+                      height: "2.35rem",
+                      borderRadius: "0.55rem",
+                      background: item.iconBg,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      flexShrink: 0,
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.12)",
+                    }}
+                  >
+                    <Icon size={17} strokeWidth={2} color="#fff" />
                   </div>
-                  <span className="flex-1 text-[15px] font-medium text-slate-800 dark:text-slate-200">
-                    {item.label}
-                  </span>
-                  <ChevronRight size={18} className="text-slate-300 dark:text-slate-600" />
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <p
+                      style={{
+                        fontSize: "0.875rem",
+                        fontWeight: 600,
+                        color: "var(--lk-text)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.label}
+                    </p>
+                    <p
+                      style={{
+                        fontSize: "0.72rem",
+                        color: "var(--lk-text-muted)",
+                        marginTop: "0.05rem",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {item.desc}
+                    </p>
+                  </div>
+                  <ChevronRight size={16} style={{ color: "var(--lk-text-faint)", flexShrink: 0 }} />
                 </Link>
               );
             })}
           </div>
         </section>
 
-        {/* Logout Section */}
-        <section className="px-2 pt-2">
-          <LogoutButton 
-            className="flex w-full items-center justify-center gap-2 rounded-xl bg-red-50 py-3.5 font-semibold text-red-600 transition-colors hover:bg-red-100 active:bg-red-200 dark:bg-red-500/10 dark:text-red-500 dark:hover:bg-red-500/20" 
-          />
+        {/* ── Logout Section ── */}
+        <section>
+          <div
+            style={{
+              borderRadius: "1rem",
+              border: "1px solid color-mix(in srgb, var(--lk-expense) 20%, var(--lk-border))",
+              background: "var(--lk-surface)",
+              overflow: "hidden",
+            }}
+          >
+            <LogoutButton
+              className="more-logout-row"
+            />
+          </div>
         </section>
-        
-        {/* Footer info */}
-        <div className="text-center pb-4 opacity-50">
-          <p className="text-[11px] font-medium text-slate-500">Finance Journal</p>
-        </div>
+
+        {/* ── Footer ── */}
+        <p
+          style={{
+            textAlign: "center",
+            fontSize: "0.7rem",
+            color: "var(--lk-text-faint)",
+            fontWeight: 500,
+            paddingTop: "0.25rem",
+            paddingBottom: "0.5rem",
+          }}
+        >
+          Finance Journal · v0.1.0
+        </p>
       </div>
     </AppShell>
   );

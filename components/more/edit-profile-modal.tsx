@@ -14,9 +14,10 @@ type EditProfileModalProps = {
   email: string;
   emailVerified: boolean;
   joinedAt: string;
+  className?: string;
 };
 
-export default function EditProfileModal({ currentName, email, emailVerified, joinedAt }: EditProfileModalProps) {
+export default function EditProfileModal({ currentName, email, emailVerified, joinedAt, className }: EditProfileModalProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [name, setName] = useState(currentName);
   const [nameError, setNameError] = useState<string>();
@@ -65,14 +66,19 @@ export default function EditProfileModal({ currentName, email, emailVerified, jo
   }, null);
 
   return <>
-    <button type="button" onClick={() => {
-      setName(currentName);
-      setNameError(undefined);
-      setTouched(false);
-      setErrorMsg("");
-      setIsOpen(true);
-    }} className="btn-secondary mt-2 gap-2">
-      <Edit2 size={14} aria-hidden="true" />Edit Profil
+    <button
+      type="button"
+      onClick={() => {
+        setName(currentName);
+        setNameError(undefined);
+        setTouched(false);
+        setErrorMsg("");
+        setIsOpen(true);
+      }}
+      className={className ?? "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full border border-[var(--lk-border-strong)] bg-[var(--lk-surface-raised)] text-xs font-semibold text-[var(--lk-text)] hover:bg-[var(--lk-surface-hover)] transition-colors shrink-0"}
+    >
+      <Edit2 size={13} aria-hidden="true" />
+      <span>Edit Profil</span>
     </button>
     {isOpen && <Dialog isOpen={isOpen} closeDisabled={pending} onClose={() => { if (!submitting.current) setIsOpen(false); }}
       title="Edit Profil" description="Atur nama yang tampil di aplikasi dan periksa informasi akun kamu.">

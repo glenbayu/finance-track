@@ -342,21 +342,13 @@ export default async function Home({ searchParams }: HomeProps) {
         </>
       }
       mobileActions={
-        <div className="flex flex-col gap-3">
-          <div className="flex w-full min-w-0 items-center gap-2">
-            <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
-              <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
-            </Suspense>
-            <LogoutButton
-              iconOnly
-              className="btn-secondary h-10 w-10 shrink-0 justify-center px-0 active:scale-95 transition-transform"
-            />
-          </div>
-          <QuickAddTransaction
-            templates={activeTemplates}
-            today={today}
-            createFromTemplateAction={createTransactionFromTemplate}
-            undoFromTemplateAction={undoQuickAddTransaction}
+        <div className="flex w-full min-w-0 items-center gap-2">
+          <Suspense fallback={<div className="h-10 w-full animate-pulse rounded-md bg-slate-200 dark:bg-slate-800" />}>
+            <MonthFilter selectedMonth={selectedMonth} compact className="flex-1" />
+          </Suspense>
+          <LogoutButton
+            iconOnly
+            className="btn-secondary h-10 w-10 shrink-0 justify-center px-0 active:scale-95 transition-transform"
           />
         </div>
       }
@@ -432,6 +424,16 @@ export default async function Home({ searchParams }: HomeProps) {
               />
             </InteractiveDotPanel>
           </section>
+
+          {/* Quick Add — after stats, before charts */}
+          <div className="lg:hidden">
+            <QuickAddTransaction
+              templates={activeTemplates}
+              today={today}
+              createFromTemplateAction={createTransactionFromTemplate}
+              undoFromTemplateAction={undoQuickAddTransaction}
+            />
+          </div>
 
           <section className="grid gap-6 [&>*]:min-w-0 [&>*]:w-full">
             <div className="min-w-0 w-full">

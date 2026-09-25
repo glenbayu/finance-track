@@ -114,7 +114,7 @@ export default function DesktopSidebar() {
         <Suspense fallback={<div className="h-10 animate-pulse bg-slate-200 dark:bg-slate-800 rounded-md mx-3" />}>
           <DesktopSidebarLinks section="bottom" />
         </Suspense>
-        <ThemeToggleButton className="app-shell-nav-link" showLabel />
+        <ThemeToggleButton className="app-shell-nav-link" showLabel variant="pill" />
         <LogoutButton className="app-shell-nav-link" />
 
         {/* User Profile Card */}

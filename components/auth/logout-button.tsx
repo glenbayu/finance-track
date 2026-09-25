@@ -31,15 +31,17 @@ export default function LogoutButton({
               <span className="sr-only">Keluar...</span>
             </span>
           ) : (
-            <>
+            <span className="inline-flex items-center justify-center gap-2">
               <LoaderCircle size={16} className="animate-spin" />
               <span>Keluar...</span>
-            </>
+            </span>
           )
         }
       >
-        <LogOut size={16} />
-        {iconOnly ? <span className="sr-only">Keluar</span> : <span>Keluar</span>}
+        <span className="inline-flex items-center justify-center gap-2 text-rose-500 dark:text-rose-400 font-semibold">
+          <LogOut size={16} strokeWidth={2} className="flex-shrink-0" />
+          {iconOnly ? <span className="sr-only">Keluar</span> : <span>Keluar</span>}
+        </span>
       </SubmitButton>
     </form>
   );

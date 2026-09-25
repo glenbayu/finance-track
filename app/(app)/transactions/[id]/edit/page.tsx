@@ -1,11 +1,9 @@
 import { notFound, redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import TransactionEditForm from "@/components/transactions/transaction-edit-form";
-import LogoutButton from "@/components/auth/logout-button";
 import AppShell from "@/components/layout/app-shell";
 import { isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
-import Link from "next/link";
 import { TransactionReturnLink } from "@/components/transactions/transaction-list-context";
 
 const NOTE_MAX_LENGTH = 140;
@@ -193,35 +191,8 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
       layoutStyle="default"
       backPath="/transactions"
       headerActions={
-        <>
-          <Link
-            href={`/transactions/new?duplicateId=${encodeURIComponent(id)}`}
-            className="btn-secondary"
-          >
-            Duplikat
-          </Link>
-          <TransactionReturnLink className="btn-secondary">
-            Kembali
-          </TransactionReturnLink>
-          <LogoutButton className="btn-secondary gap-2" />
-        </>
-      }
-      mobileActions={
-        <div className="flex w-full items-center gap-2">
-          <Link
-            href={`/transactions/new?duplicateId=${encodeURIComponent(id)}`}
-            className="btn-secondary h-10 flex-1"
-          >
-            Duplikat
-          </Link>
-          <TransactionReturnLink className="btn-secondary h-10 flex-1">
-            Kembali
-          </TransactionReturnLink>
-          <LogoutButton
-            iconOnly
-            className="btn-secondary h-10 w-10 shrink-0 justify-center px-0"
-          />
-        </div>
+        // Duplikat & Hapus sekarang ada di bagian bawah form; Batal ada di bar aksi utama.
+        <TransactionReturnLink className="btn-secondary">Kembali</TransactionReturnLink>
       }
     >
       <TransactionEditForm
@@ -234,4 +205,3 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
     </AppShell>
   );
 }
-

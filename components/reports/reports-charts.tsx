@@ -210,7 +210,6 @@ export default function ReportsCharts({
   const currencySymbol = getCurrencySymbol(effectiveCurrency);
   const maxForecastValue = forecastBars.reduce((max, item) => Math.max(max, item.value), 0);
 
-  if (isHiddenByDefault) return <p className="ui-alert lg:col-span-12">Grafik laporan disembunyikan saat privasi nominal aktif.</p>;
 
   return (
     <>

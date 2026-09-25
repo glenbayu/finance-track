@@ -33,6 +33,7 @@ type ExpenseTrendTooltipProps = {
   label?: string | number;
   payload?: ExpenseTrendTooltipEntry[];
   currency: ReturnType<typeof useDisplayCurrency>["effectiveCurrency"];
+  isHidden?: boolean;
 };
 
 function formatMonthLabel(month: string) {
@@ -50,6 +51,7 @@ function ExpenseTrendTooltip({
   payload,
   label,
   currency,
+  isHidden = false,
 }: ExpenseTrendTooltipProps) {
   if (!active || !payload?.length) return null;
 
@@ -68,7 +70,7 @@ function ExpenseTrendTooltip({
         {String(label ?? "")}
       </p>
       <p className="mt-0.5 text-sm font-medium font-mono text-teal-700 dark:text-teal-400">
-        {formatCurrency(amount, currency)}
+        {isHidden ? "••••••" : formatCurrency(amount, currency)}
       </p>
     </div>
   );
@@ -103,7 +105,6 @@ export default function MonthlyExpenseTrend({
   // Deep Teal for AreaChart
   const strokeColor = isDark ? "#2dd4bf" : "#0f766e";
 
-  if (isHiddenByDefault) return <p className="ui-alert">Tren pengeluaran disembunyikan saat privasi nominal aktif.</p>;
 
   return (
     <div className="flex flex-col h-full w-full">
@@ -142,13 +143,14 @@ export default function MonthlyExpenseTrend({
                 tickLine={false}
                 tick={{ fontSize: 11, fill: "var(--lk-text-muted)" }}
                 tickFormatter={(val) => {
+                  if (isHiddenByDefault) return "••";
                   if (val >= 1000000) return `${(val / 1000000).toFixed(1)} jt`;
                   if (val >= 1000) return `${(val / 1000).toFixed(0)} rb`;
                   return val;
                 }}
               />
               <Tooltip
-                content={<ExpenseTrendTooltip currency={effectiveCurrency} />}
+                content={<ExpenseTrendTooltip currency={effectiveCurrency} isHidden={isHiddenByDefault} />}
                 cursor={{ stroke: isDark ? "#334155" : "#e2e8f0", strokeWidth: 1, strokeDasharray: "4 4" }}
               />
               <Area

@@ -2,39 +2,41 @@
 
 import { useCallback, useMemo, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { LoaderCircle, RotateCcw, X } from "lucide-react";
-import FormSelect from "@/components/ui/form-select";
+import { ArrowUpDown, LoaderCircle, RotateCcw } from "lucide-react";
+import FilterSelect from "./filter-select";
+
+type TxType = "income" | "expense" | "transfer" | "adjustment";
+type TypeFilter = "all" | TxType;
+type SortMode = "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
 
 type CategoryOption = {
   id: string;
   name: string;
-  type: "income" | "expense" | "transfer" | "adjustment";
+  type: TxType;
 };
 
 type TransactionsFilterControlsProps = {
   categories: CategoryOption[];
-  selectedType: "all" | "income" | "expense" | "transfer" | "adjustment";
+  selectedType: TypeFilter;
   selectedCategoryId: string;
-  selectedSort: "date_desc" | "date_asc" | "amount_desc" | "amount_asc";
+  selectedSort: SortMode;
   className?: string;
 };
 
-const sortLabelMap: Record<
-  "date_desc" | "date_asc" | "amount_desc" | "amount_asc",
-  string
-> = {
-  date_desc: "Terbaru",
-  date_asc: "Terlama",
-  amount_desc: "Tertinggi",
-  amount_asc: "Terendah",
-};
+const typeSelectOptions: { value: TypeFilter; label: string }[] = [
+  { value: "all", label: "Semua tipe" },
+  { value: "income", label: "Pemasukan" },
+  { value: "expense", label: "Pengeluaran" },
+  { value: "transfer", label: "Transfer" },
+  { value: "adjustment", label: "Koreksi" },
+];
 
-const typeLabelMap: Record<"income" | "expense" | "transfer" | "adjustment", string> = {
-  income: "Income",
-  expense: "Expense",
-  transfer: "Transfer",
-  adjustment: "Koreksi",
-};
+const sortSelectOptions: { value: SortMode; label: string }[] = [
+  { value: "date_desc", label: "Terbaru" },
+  { value: "date_asc", label: "Terlama" },
+  { value: "amount_desc", label: "Tertinggi" },
+  { value: "amount_asc", label: "Terendah" },
+];
 
 export default function TransactionsFilterControls({
   categories,
@@ -48,57 +50,21 @@ export default function TransactionsFilterControls({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
 
-  const categoryOptions = useMemo(() => {
-    if (selectedType === "all") return categories;
-    return categories.filter((category) => category.type === selectedType);
-  }, [categories, selectedType]);
-
-  const selectedCategory = useMemo(
-    () => categories.find((category) => category.id === selectedCategoryId) ?? null,
-    [categories, selectedCategoryId],
-  );
-
   const hasActiveFilters =
     selectedType !== "all" || Boolean(selectedCategoryId) || selectedSort !== "date_desc";
 
-  const typeSelectOptions = useMemo(
-    () => [
-      { value: "all", label: "Tipe" },
-      { value: "income", label: "Income" },
-      { value: "expense", label: "Expense" },
-      { value: "transfer", label: "Transfer" },
-      { value: "adjustment", label: "Koreksi" },
-    ],
-    [],
-  );
-
   const categorySelectOptions = useMemo(
     () => [
-      { value: "", label: "Kategori" },
-      ...categoryOptions.map((category) => ({
-        value: category.id,
-        label: category.name,
-      })),
+      { value: "", label: "Semua kategori" },
+      ...categories
+        .filter((category) => selectedType === "all" || category.type === selectedType)
+        .map((category) => ({ value: category.id, label: category.name })),
     ],
-    [categoryOptions],
-  );
-
-  const sortSelectOptions = useMemo(
-    () => [
-      { value: "date_desc", label: "Urut" },
-      { value: "date_asc", label: "Terlama" },
-      { value: "amount_desc", label: "Tertinggi" },
-      { value: "amount_asc", label: "Terendah" },
-    ],
-    [],
+    [categories, selectedType],
   );
 
   const applyPatch = useCallback(
-    (patch: {
-      type?: string;
-      category?: string;
-      sort?: string;
-    }) => {
+    (patch: { type?: string; category?: string; sort?: string }) => {
       const params = new URLSearchParams(searchParams.toString());
 
       const nextType = patch.type ?? params.get("type") ?? "all";
@@ -125,94 +91,67 @@ export default function TransactionsFilterControls({
   );
 
   return (
-    <div className={`space-y-2 ${className}`}>
-      <div className={`grid grid-cols-3 gap-2 transition-opacity duration-150 ${isPending ? "opacity-50 pointer-events-none" : ""}`}>
-        <div className="relative min-w-0">
-          <FormSelect
-            name="type_filter"
-            value={selectedType}
-            onValueChange={(nextType) => {
-              const allowedCategories =
-                nextType === "all"
-                  ? categories
-                  : categories.filter((item) => item.type === nextType);
-              const keepCategory = allowedCategories.some((item) => item.id === selectedCategoryId);
-              applyPatch({ type: nextType, category: keepCategory ? selectedCategoryId : "" });
-            }}
-            options={typeSelectOptions}
-          />
-        </div>
+    <div className={`flex items-center gap-2 ${className}`}>
+      <div
+        className={`grid min-w-0 flex-1 grid-cols-3 gap-2 transition-opacity duration-150 ${
+          isPending ? "pointer-events-none opacity-50" : ""
+        }`}
+      >
+        <FilterSelect
+          label="Tipe"
+          value={selectedType}
+          options={typeSelectOptions}
+          size="md"
+          shape="soft"
+          active={selectedType !== "all"}
+          className="w-full"
+          onChange={(nextType) => {
+            // Pertahankan kategori kalau masih cocok dengan tipe yang baru
+            const keepCategory =
+              nextType === "all" ||
+              categories.some((c) => c.id === selectedCategoryId && c.type === nextType);
+            applyPatch({ type: nextType, category: keepCategory ? selectedCategoryId : "" });
+          }}
+        />
 
-        <div className="relative min-w-0">
-          <FormSelect
-            name="category_filter"
-            value={selectedCategoryId}
-            onValueChange={(nextCategory) => applyPatch({ category: nextCategory })}
-            options={categorySelectOptions}
-          />
-        </div>
+        <FilterSelect
+          label="Kategori"
+          value={selectedCategoryId}
+          options={categorySelectOptions}
+          searchable
+          size="md"
+          shape="soft"
+          active={Boolean(selectedCategoryId)}
+          className="w-full"
+          onChange={(nextCategory) => applyPatch({ category: nextCategory })}
+        />
 
-        <div className="relative min-w-0">
-          <FormSelect
-            name="sort_filter"
-            value={selectedSort}
-            onValueChange={(nextSort) => applyPatch({ sort: nextSort })}
-            options={sortSelectOptions}
-          />
-          {isPending ? (
-            <LoaderCircle
-              size={14}
-              className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 animate-spin text-slate-400"
-            />
-          ) : null}
-        </div>
+        <FilterSelect
+          label="Urutkan"
+          value={selectedSort}
+          options={sortSelectOptions}
+          icon={<ArrowUpDown size={13} />}
+          size="md"
+          shape="soft"
+          active={selectedSort !== "date_desc"}
+          className="w-full"
+          onChange={(nextSort) => applyPatch({ sort: nextSort })}
+        />
       </div>
 
+      {isPending ? (
+        <LoaderCircle size={16} className="shrink-0 animate-spin text-slate-400" aria-hidden="true" />
+      ) : null}
+
       {hasActiveFilters ? (
-        <div className="flex flex-wrap items-center gap-2 lg:hidden">
-          {selectedType !== "all" ? (
-            <button
-              type="button"
-              onClick={() => applyPatch({ type: "all", category: "" })}
-              className="chip-neutral inline-flex items-center gap-1"
-            >
-              <span>{typeLabelMap[selectedType]}</span>
-              <X size={12} />
-            </button>
-          ) : null}
-
-          {selectedCategory ? (
-            <button
-              type="button"
-              onClick={() => applyPatch({ category: "" })}
-              className="chip-neutral inline-flex max-w-[140px] items-center gap-1"
-              title={selectedCategory.name}
-            >
-              <span className="truncate">{selectedCategory.name}</span>
-              <X size={12} className="shrink-0" />
-            </button>
-          ) : null}
-
-          {selectedSort !== "date_desc" ? (
-            <button
-              type="button"
-              onClick={() => applyPatch({ sort: "date_desc" })}
-              className="chip-neutral inline-flex items-center gap-1"
-            >
-              <span>{sortLabelMap[selectedSort]}</span>
-              <X size={12} />
-            </button>
-          ) : null}
-
-          <button
-            type="button"
-            onClick={() => applyPatch({ type: "all", category: "", sort: "date_desc" })}
-            className="btn-secondary h-8 gap-1 px-3 text-xs"
-          >
-            <RotateCcw size={12} />
-            Reset
-          </button>
-        </div>
+        <button
+          type="button"
+          onClick={() => applyPatch({ type: "all", category: "", sort: "date_desc" })}
+          className="btn-secondary h-10 shrink-0 gap-1.5 px-3 text-xs"
+        >
+          <RotateCcw size={13} />
+          Reset
+        </button>
       ) : null}
     </div>
   );

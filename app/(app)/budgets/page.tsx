@@ -267,6 +267,7 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
         </section>
       ) : (
         <>
+          {hasAnyBudget && (
           <section className="grid gap-3 sm:gap-4 grid-cols-2 lg:grid-cols-4">
             <article className="p-4 rounded-2xl border shadow-xs flex flex-col justify-between"
               style={{ borderColor: "var(--lk-border)", backgroundColor: "var(--lk-surface)" }}>
@@ -297,6 +298,8 @@ export default async function BudgetsPage({ searchParams }: BudgetsPageProps) {
               </p>
             </article>
           </section>
+          )}
+
 
           {!hasAnyBudget && (
             <section className="mt-6 rounded-2xl p-6 border shadow-xs" style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}>

@@ -15,6 +15,7 @@ import {
 import { getCurrentDate, getCurrentMonth, getMonthRange, getPreviousMonth, getRecentMonths, isMonthValue } from "@/lib/utils/date";
 import { formatDate, formatMonthLabel } from "@/lib/utils/format";
 import { requireUser } from "@/lib/supabase/auth";
+import { isRolloverTransaction } from "@/lib/transactions/rollover";
 import { BarChart3, Info } from "lucide-react";
 
 type ReportsPageProps = {
@@ -148,7 +149,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       .lt("transaction_date", previousEnd),
     supabase
       .from("transactions")
-      .select("type, amount, transaction_date")
+      .select("type, amount, transaction_date, note")
       .eq("user_id", user.id)
       .gte("transaction_date", trendStart)
       .lt("transaction_date", trendEnd),
@@ -190,22 +191,24 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
       | null;
   }>;
 
+  // totalIncome & previousIncome include rollover — saldo bawaan merupakan
+  // pemasukan nyata. Expense tetap bersih (rollover dieksklusi) untuk insight akurat.
   const totalIncome = currentTransactions
     .filter((item) => item.type === "income")
     .reduce((sum, item) => sum + Number(item.amount), 0);
   const totalExpense = currentTransactions
-    .filter((item) => item.type === "expense")
+    .filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .reduce((sum, item) => sum + Number(item.amount), 0);
   const netCashflow = totalIncome - totalExpense;
-  const transactionCount = currentTransactions.length;
-  const expenseTransactionCount = currentTransactions.filter((item) => item.type === "expense").length;
+  const transactionCount = currentTransactions.filter((item) => !isRolloverTransaction(item.note)).length;
+  const expenseTransactionCount = currentTransactions.filter((item) => item.type === "expense" && !isRolloverTransaction(item.note)).length;
   const averageExpensePerTransaction = expenseTransactionCount > 0 ? totalExpense / expenseTransactionCount : 0;
 
   const previousIncome = previousTransactions
     .filter((item) => item.type === "income")
     .reduce((sum, item) => sum + Number(item.amount), 0);
   const previousExpense = previousTransactions
-    .filter((item) => item.type === "expense")
+    .filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .reduce((sum, item) => sum + Number(item.amount), 0);
   const previousNet = previousIncome - previousExpense;
 
@@ -215,7 +218,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
 
   const currentExpenseByCategory = new Map<string, number>();
   currentTransactions
-    .filter((item) => item.type === "expense")
+    .filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .forEach((item) => {
       const categoryName = getCategoryName(item.categories);
       currentExpenseByCategory.set(categoryName, (currentExpenseByCategory.get(categoryName) ?? 0) + Number(item.amount));
@@ -228,12 +231,12 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
   const biggestExpenseCategory = expenseBreakdown[0] ?? null;
 
   const largestExpenseTransaction = currentTransactions
-    .filter((item) => item.type === "expense")
+    .filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .sort((a, b) => Number(b.amount) - Number(a.amount))[0] ?? null;
 
   const expenseDayMap = new Map<string, { total: number; count: number }>();
   currentTransactions
-    .filter((item) => item.type === "expense")
+    .filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .forEach((item) => {
       const current = expenseDayMap.get(item.transaction_date) ?? { total: 0, count: 0 };
       current.total += Number(item.amount);
@@ -256,7 +259,9 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     });
   });
 
-  (trendResult.data ?? []).forEach((row) => {
+  (trendResult.data ?? [])
+    .filter((row: { note?: string | null }) => !isRolloverTransaction(row.note))
+    .forEach((row) => {
     if (!row.transaction_date) return;
     const monthKey = row.transaction_date.slice(0, 7);
     const current = monthlyTrendMap.get(monthKey);

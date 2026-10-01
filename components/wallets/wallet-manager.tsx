@@ -14,6 +14,7 @@ type WalletRow = {
   name: string;
   type: string;
   usageCount: number;
+  monthlyCount?: number;
   balance: number;
   is_rollover_enabled: boolean;
   admin_fee_amount: number;
@@ -171,7 +172,9 @@ export default function WalletManager({ wallets, isCurrentMonth = true, createAc
                   <div className="min-w-0">
                     <p className="truncate text-[15px] font-semibold" style={{ color: "var(--lk-text)" }}>{wallet.name}</p>
                     <p className="truncate text-xs mt-0.5" style={{ color: "var(--lk-text-muted)" }}>
-                      {wallet.usageCount > 0 ? `${wallet.usageCount} transaksi tercatat` : "Belum ada transaksi"}
+                      {(wallet.monthlyCount ?? 0) > 0
+                        ? `${wallet.monthlyCount} transaksi ${isCurrentMonth ? "bulan ini" : "di bulan ini"}`
+                        : `Belum ada transaksi ${isCurrentMonth ? "bulan ini" : "di bulan ini"}`}
                     </p>
                   </div>
                 </div>

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import { requireUser } from "@/lib/supabase/auth";
 import WalletManager from "@/components/wallets/wallet-manager";
+import { isRolloverTransaction } from "@/lib/transactions/rollover";
 
 async function revalidateWalletRelatedPaths() {
   revalidatePath("/wallets");
@@ -38,47 +39,65 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     throw new Error(`Gagal memuat dompet: ${error.message}`);
   }
 
-  // Get usage to prevent deleting used wallets
+  // Get usage to prevent deleting used wallets and to display monthly transaction counts
   const walletIds = wallets.map(w => w.id);
-  const usageMap = new Map<string, number>();
+  const allTimeUsageMap = new Map<string, number>();
+  const monthlyCountMap = new Map<string, number>();
   const balanceMap = new Map<string, number>();
   
   if (walletIds.length > 0) {
     const { data: txData, error: transactionsError } = await supabase
       .from("transactions")
-      .select("type, amount, wallet_id, destination_wallet_id")
-      .eq("user_id", user.id)
-      .gte("transaction_date", start)
-      .lt("transaction_date", end);
+      .select("type, amount, wallet_id, destination_wallet_id, note, transaction_date")
+      .eq("user_id", user.id);
 
     if (transactionsError) throw new Error("Saldo dompet belum dapat dimuat. Coba lagi setelah koneksi tersedia.");
 
     walletIds.forEach(id => {
-      usageMap.set(id, 0);
+      allTimeUsageMap.set(id, 0);
+      monthlyCountMap.set(id, 0);
       balanceMap.set(id, 0);
     });
     
     txData?.forEach(tx => {
       const amt = Number(tx.amount);
+      const isRollover = isRolloverTransaction(tx.note);
+      const isUpToMonth = tx.transaction_date < end;
+      const isInMonth = tx.transaction_date >= start && tx.transaction_date < end;
+
+      // All-time usage for delete guard
       if (tx.wallet_id) {
-        usageMap.set(tx.wallet_id, (usageMap.get(tx.wallet_id) || 0) + 1);
+        allTimeUsageMap.set(tx.wallet_id, (allTimeUsageMap.get(tx.wallet_id) || 0) + 1);
       }
       if (tx.destination_wallet_id) {
-        usageMap.set(tx.destination_wallet_id, (usageMap.get(tx.destination_wallet_id) || 0) + 1);
+        allTimeUsageMap.set(tx.destination_wallet_id, (allTimeUsageMap.get(tx.destination_wallet_id) || 0) + 1);
       }
 
-      if (tx.type === 'income' && tx.wallet_id) {
-        balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) + amt);
-      } else if (tx.type === 'expense' && tx.wallet_id) {
-        balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) - amt);
-      } else if (tx.type === 'adjustment' && tx.wallet_id) {
-        balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) + amt);
-      } else if (tx.type === 'transfer') {
+      // Monthly transaction count for display
+      if (isInMonth) {
         if (tx.wallet_id) {
-          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) - amt);
+          monthlyCountMap.set(tx.wallet_id, (monthlyCountMap.get(tx.wallet_id) || 0) + 1);
         }
         if (tx.destination_wallet_id) {
-          balanceMap.set(tx.destination_wallet_id, (balanceMap.get(tx.destination_wallet_id) || 0) + amt);
+          monthlyCountMap.set(tx.destination_wallet_id, (monthlyCountMap.get(tx.destination_wallet_id) || 0) + 1);
+        }
+      }
+
+      // Hitung saldo kumulatif riil tanpa rollover ganda
+      if (isUpToMonth && !isRollover) {
+        if (tx.type === 'income' && tx.wallet_id) {
+          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) + amt);
+        } else if (tx.type === 'expense' && tx.wallet_id) {
+          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) - amt);
+        } else if (tx.type === 'adjustment' && tx.wallet_id) {
+          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) + amt);
+        } else if (tx.type === 'transfer') {
+          if (tx.wallet_id) {
+            balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) - amt);
+          }
+          if (tx.destination_wallet_id) {
+            balanceMap.set(tx.destination_wallet_id, (balanceMap.get(tx.destination_wallet_id) || 0) + amt);
+          }
         }
       }
     });
@@ -86,7 +105,8 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
 
   const walletsWithUsage = wallets.map(w => ({
     ...w,
-    usageCount: usageMap.get(w.id) || 0,
+    usageCount: allTimeUsageMap.get(w.id) || 0,
+    monthlyCount: monthlyCountMap.get(w.id) || 0,
     balance: balanceMap.get(w.id) || 0
   }));
 

@@ -16,7 +16,6 @@ import {
 import { convertFromIDR, formatCurrency, getCurrencySymbol } from "@/lib/utils/currency";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import type { CategoryForecastResult } from "@/lib/reports/forecast";
-import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import CurrencyAmount from "@/components/ui/currency-amount";
 import styles from "./reports-charts.module.css";
@@ -181,7 +180,6 @@ export default function ReportsCharts({
   trendMonths,
 }: ReportsChartsProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
-  const { isHiddenByDefault } = useAmountPrivacy();
   const reducedMotion = useReducedMotion();
   const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   const [mounted, setMounted] = useState(false);

@@ -11,7 +11,6 @@ import { useMaskedAmounts } from "@/components/ui/masked-amount";
 import InteractiveDotPanel from "@/components/ui/interactive-dot-panel";
 import { useDisplayCurrency } from "@/hooks/use-display-currency";
 import { useEffect, useState, useMemo } from "react";
-import { useAmountPrivacy } from "@/hooks/use-amount-privacy";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 import { summarizeCategories } from "@/lib/ui/presentation";
 type ExpenseChartItem = {
@@ -30,7 +29,6 @@ const COLORS_DARK = ["#2dd4bf", "#14b8a6", "#0d9488", "#0f766e", "#475569", "#33
 const MAX_CATEGORIES = 6;
 
 export default function ExpenseChart({ data }: ExpenseChartProps) {
-  const { isHiddenByDefault } = useAmountPrivacy();
   const reducedMotion = useReducedMotion();
   const masked = useMaskedAmounts();
   const isHidden = masked?.isHidden ?? false;

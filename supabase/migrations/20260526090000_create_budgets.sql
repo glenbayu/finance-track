@@ -57,3 +57,6 @@ for delete
 to authenticated
 using (auth.uid() = user_id);
 
+-- Indexes
+create index if not exists idx_budgets_user_month on public.budgets(user_id, month);
+

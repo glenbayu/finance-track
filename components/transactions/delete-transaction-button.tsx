@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AlertTriangle, LoaderCircle, Trash2 } from "lucide-react";
 import ConfirmationModal from "@/components/ui/confirmation-modal";
 
@@ -11,32 +11,6 @@ type DeleteTransactionButtonProps = {
   label?: string;
 };
 
-function ConfirmDeleteButton({
-  formId,
-  isSubmitting,
-}: {
-  formId: string;
-  isSubmitting: boolean;
-}) {
-  return (
-    <button
-      type="submit"
-      form={formId}
-      className="inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:w-auto"
-      disabled={isSubmitting}
-    >
-      {isSubmitting ? (
-        <span className="inline-flex items-center gap-2">
-          <LoaderCircle size={16} className="animate-spin" />
-          Menghapus...
-        </span>
-      ) : (
-        "Hapus"
-      )}
-    </button>
-  );
-}
-
 export default function DeleteTransactionButton({
   id,
   action,
@@ -46,7 +20,6 @@ export default function DeleteTransactionButton({
   const [isOpen, setIsOpen] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const cancelButtonRef = useRef<HTMLButtonElement>(null);
-  const formId = useId();
 
   const closeModal = () => {
     setIsOpen(false);
@@ -58,17 +31,18 @@ export default function DeleteTransactionButton({
     cancelButtonRef.current?.focus();
   }, [isOpen]);
 
-  return (
-    <form
-      id={formId}
-      action={action}
-      className="contents"
-      onSubmit={() => {
-        Promise.resolve().then(() => setIsSubmitting(true));
-      }}
-    >
-      <input type="hidden" name="id" value={id} />
+  const handleDelete = async (formData: FormData) => {
+    setIsSubmitting(true);
+    try {
+      await action(formData);
+      closeModal();
+    } catch {
+      setIsSubmitting(false);
+    }
+  };
 
+  return (
+    <>
       <button
         type="button"
         aria-label="Hapus transaksi"
@@ -102,12 +76,25 @@ export default function DeleteTransactionButton({
           >
             Batal
           </button>
-          <ConfirmDeleteButton
-            formId={formId}
-            isSubmitting={isSubmitting}
-          />
+          <form action={handleDelete} className="inline-block sm:w-auto w-full">
+            <input type="hidden" name="id" value={id} />
+            <button
+              type="submit"
+              className="inline-flex w-full items-center justify-center rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:cursor-not-allowed disabled:bg-red-300 sm:w-auto"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="inline-flex items-center gap-2">
+                  <LoaderCircle size={16} className="animate-spin" />
+                  Menghapus...
+                </span>
+              ) : (
+                "Hapus"
+              )}
+            </button>
+          </form>
         </div>
       </ConfirmationModal>
-    </form>
+    </>
   );
 }

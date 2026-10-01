@@ -75,7 +75,7 @@ export default function SwipeableRow({
     if (el) el.style.transition = "none";
   };
 
-  const onMove = (clientX: number, clientY: number, e?: React.UIEvent) => {
+  const onMove = (clientX: number, clientY: number) => {
     if (!isDragging.current) return;
 
     const diffX = clientX - startX.current;
@@ -160,9 +160,9 @@ export default function SwipeableRow({
           onStart(e.clientX, e.clientY);
         }}
         onPointerMove={(e) => {
-          onMove(e.clientX, e.clientY, e);
+          onMove(e.clientX, e.clientY);
         }}
-        onPointerUp={(e) => {
+        onPointerUp={() => {
           onEnd();
         }}
         onPointerCancel={() => {

@@ -18,7 +18,7 @@ import { formatDate as formatDateLabel, formatMonthLabel } from "@/lib/utils/for
 import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/transactions/quick-add";
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowUpRight, Wallet, Settings, LayoutDashboard, BookOpen } from "lucide-react";
-import { forceRecalculateRollovers } from "@/lib/transactions/rollover";
+import { forceRecalculateRollovers, isRolloverTransaction } from "@/lib/transactions/rollover";
 import SwipeableRow from "@/components/ui/swipeable-row";
 import EditTransactionButton from "@/components/transactions/edit-transaction-button";
 import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
@@ -138,7 +138,7 @@ export default async function Home({ searchParams }: HomeProps) {
 
   const { data: historyTransactions, error: historyError } = await supabase
     .from("transactions")
-    .select("id, type, amount, transaction_date")
+    .select("id, type, amount, transaction_date, note")
     .eq("user_id", user.id)
     .gte("transaction_date", historyStartDate)
     .lt("transaction_date", end);
@@ -165,7 +165,7 @@ export default async function Home({ searchParams }: HomeProps) {
   >();
 
   allTransactions
-    ?.filter((item) => item.type === "expense")
+    ?.filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .forEach((item) => {
       const category = Array.isArray(item.categories)
         ? item.categories[0]
@@ -198,11 +198,14 @@ export default async function Home({ searchParams }: HomeProps) {
     }))
     .sort((a, b) => b.value - a.value);
 
+  // totalIncome includes rollover (saldo bawaan bulan lalu) — saldo bawaan memang
+  // merupakan pemasukan nyata yang diterima bulan ini.
+  // totalExpense tetap mengeksklusi rollover agar chart & insight pengeluaran murni.
   const totalIncome = allTransactions
     ?.filter((item) => item.type === "income")
     .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
   const totalExpense = allTransactions
-    ?.filter((item) => item.type === "expense")
+    ?.filter((item) => item.type === "expense" && !isRolloverTransaction(item.note))
     .reduce((sum, item) => sum + Number(item.amount), 0) ?? 0;
   const balance = totalIncome - totalExpense;
 
@@ -255,28 +258,32 @@ export default async function Home({ searchParams }: HomeProps) {
     { month: string; income: number; expense: number; balance: number }
   >();
 
-  historyTransactions?.forEach((item) => {
-    if (!item.transaction_date) return;
+  historyTransactions
+    ?.forEach((item) => {
+      if (!item.transaction_date) return;
 
-    const monthKey = item.transaction_date.slice(0, 7);
+      // Rollover expense tidak dihitung di history (agar insight pengeluaran murni)
+      if (item.type === "expense" && isRolloverTransaction(item.note)) return;
 
-    const current = monthlyMap.get(monthKey) ?? {
-      month: monthKey,
-      income: 0,
-      expense: 0,
-      balance: 0,
-    };
+      const monthKey = item.transaction_date.slice(0, 7);
 
-    if (item.type === "income") {
-      current.income += Number(item.amount);
-    } else if (item.type === "expense") {
-      current.expense += Number(item.amount);
-    }
+      const current = monthlyMap.get(monthKey) ?? {
+        month: monthKey,
+        income: 0,
+        expense: 0,
+        balance: 0,
+      };
 
-    current.balance = current.income - current.expense;
+      if (item.type === "income") {
+        current.income += Number(item.amount);
+      } else if (item.type === "expense") {
+        current.expense += Number(item.amount);
+      }
 
-    monthlyMap.set(monthKey, current);
-  });
+      current.balance = current.income - current.expense;
+
+      monthlyMap.set(monthKey, current);
+    });
 
   const monthlyHistoryData = Array.from(monthlyMap.values())
     .sort((a, b) => b.month.localeCompare(a.month))

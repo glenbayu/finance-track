@@ -414,7 +414,7 @@ button,
   .app-hero__title {
     color: var(--lk-text);
     font-size: clamp(1.05rem, 1.45vw, 1.55rem);
-    font-weight: 850;
+    font-weight: 800;
     line-height: 1.12;
     letter-spacing: -0.035em;
     font-family: var(--font-display, inherit);

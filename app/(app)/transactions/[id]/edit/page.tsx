@@ -67,6 +67,17 @@ async function updateTransaction(formData: FormData) {
     validCategoryId = null;
   }
 
+  const walletIdsToValidate = type === "transfer" ? [walletId, destinationWalletId] : [walletId];
+  const { data: ownedWallets, error: walletError } = await supabase
+    .from("wallets")
+    .select("id")
+    .eq("user_id", user.id)
+    .in("id", walletIdsToValidate);
+
+  if (walletError || (ownedWallets?.length ?? 0) !== walletIdsToValidate.length) {
+    throw new Error("Dompet tidak valid atau bukan milik user ini.");
+  }
+
   const { error } = await supabase
     .from("transactions")
     .update({

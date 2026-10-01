@@ -51,10 +51,6 @@ export default function ThemeRow() {
   const isDark = theme === "dark";
   const isLight = theme !== "dark";
 
-  const setTheme = (nextTheme: Theme) => {
-    applyTheme(nextTheme);
-  };
-
   const knobStyle = (active: boolean): React.CSSProperties => ({
     // Ukuran dikunci dari semua sisi supaya aturan global
     // (mis. button { min-height: 44px }) tidak bisa bikin tombol melar.

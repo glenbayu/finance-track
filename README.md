@@ -1,76 +1,144 @@
-# Finance Tracker - Personal Wealth & Allocation Manager
-![Next.js](https://img.shields.io/badge/Next.js-14-black?style=for-the-badge&logo=next.js)
-![React](https://img.shields.io/badge/React-18-blue?style=for-the-badge&logo=react)
-![Supabase](https://img.shields.io/badge/Supabase-Database-3ECF8E?style=for-the-badge&logo=supabase)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css)
-![TypeScript](https://img.shields.io/badge/TypeScript-007ACC?style=for-the-badge&logo=typescript)
+<div align="center">
 
-## About The Project
+# 💰 Finance Journal
 
-Finance Tracker adalah sebuah aplikasi manajemen keuangan pribadi berkonsep *Wealth & Allocation Manager*. Ini bukan sekadar pencatat uang keluar-masuk biasa. Sistem ini dirancang untuk memisahkan dan memantau saldo pengguna berdasarkan kategori dompet aktual (Kas, E-Wallet, dan Piutang), sehingga Anda dapat melihat sebaran aset finansial secara mutlak (All-Time Balance) namun tetap dapat mengontrol arus kas masuk-keluar bulanan secara akurat tanpa terganggu oleh mutasi saldo.
+### *Personal Wealth, Smart Allocation & Cashflow Manager*
 
-## Key Features (Fitur Unggulan)
+Aplikasi manajemen keuangan pribadi modern berkonsep **Wealth & Allocation Management**. Dirancang bukan sekadar mencatat uang masuk dan keluar, tetapi membantu Anda memantau saldo riil berdasarkan sebaran dompet fisik, bank, dan piutang, serta mengontrol arus kas bulanan dengan sistem **Auto-Rollover** yang akurat.
 
-* **Multi-Wallet Management:** Pemisahan dan pemantauan saldo riil secara langsung ke dalam 3 kategori utama: *Cash on Hand*, *Bank & E-Wallet*, dan *Saldo Tertahan / Piutang*.
-* **Smart Transfer & Allocation:** Memindahkan uang antar-dompet kini semudah *one-click transfer*. Mutasi tidak akan menggelembungkan laporan Pemasukan & Pengeluaran bulanan Anda, sehingga laporan arus kas (cash flow) tetap suci dan akurat 100%.
-* **Receivable Tracking & Quick Settlement:** Punya uang yang nyangkut di teman atau tertahan sebagai deposit? Masukkan sebagai Saldo Tertahan, dan lakukan koreksi / pelunasan saldo kapan pun Anda butuh tanpa merusak statistik grafik pengeluaran Anda!
-* **Dynamic Monthly Cashflow:** Dasbor cerdas yang memisahkan antara total kekayaan bersih (Net Worth/Total Semua Saldo) dengan analitik arus kas dinamis khusus untuk bulan yang sedang berjalan.
-* **Clean & Responsive UI/UX:** Antarmuka bergaya *glassmorphism* modern dengan palet warna *cream-green minimalis* untuk *Light Mode*, dan *OLED Glassmorphism* premium dengan palet warna finansial dinamis untuk *Dark Mode*. Super responsif, terasa seperti aplikasi native yang mulus, baik saat diakses via Desktop maupun layar sempit *Mobile*.
+---
 
-## Tech Stack
+[![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
+[![React](https://img.shields.io/badge/React-19-0ea5e9?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
 
-| Teknologi | Peran / Deskripsi |
-| --- | --- |
-| **Next.js** | Framework React utama untuk rendering (Server Components & SSR) dan rute API. |
-| **React** | Library UI utama. |
-| **Tailwind CSS** | Styling utility-first untuk pembuatan UI responsif yang super cepat. |
-| **Supabase** | Backend-as-a-Service (PostgreSQL Database & Authentication). |
-| **TypeScript** | Static typing untuk meminimalisasi *bugs* pada JavaScript. |
-| **Lucide React** | Koleksi ikon elegan dan modern. |
+</div>
 
-## Getting Started / Installation
+---
 
-Ikuti langkah-langkah mudah di bawah ini untuk menjalankan *Finance Tracker* secara lokal di perangkat Anda:
+## 🌟 Fitur Unggulan (Key Features)
+
+### 1. 💼 Multi-Wallet & Smart Allocation
+- **3 Kategori Dompet Utama:** Pantau saldo Anda secara terpisah di **Cash on Hand** (Uang Tunai), **Bank & E-Wallet** (BCA, Mandiri, GoPay, OVO), dan **Saldo Tertahan** (Piutang / Titipan).
+- **One-Click Transfer (Pindah Saldo):** Transfer antar-dompet tidak tercatat sebagai pengeluaran/pemasukan, sehingga grafik *cash flow* bulanan tetap suci dan akurat.
+- **Koreksi Saldo Cepat:** Sesuaikan saldo fisik kapan pun tanpa merusak riwayat transaksi pengeluaran.
+
+### 2. 🔄 Automatic Monthly Rollover
+- **Sisa Saldo Otomatis Pindah:** Berapa pun sisa saldo di akhir bulan, sistem otomatis memindahkannya ke tanggal 1 bulan berikutnya sebagai transaksi *"Pemasukan: Sisa uang bulan kemarin (Rollover)"*.
+- **Auto Admin Fee:** Opsi pemotongan biaya admin bank secara otomatis di setiap akhir bulan untuk rekening yang ditentukan.
+
+### 3. 📊 Dasbor Analitik & Visualisasi Arus Kas
+- **Status Finansial Real-time:** Pantau status bulan berjalan apakah sedang *Surplus* atau *Defisit*.
+- **Grafik Interaktif (Recharts):** Visualisasi *Pie Chart* pengeluaran per kategori dan tren pengeluaran bulanan (*Monthly Trend*).
+- **Riwayat Bulanan:** Komparasi pemasukan, pengeluaran, dan net cashflow beberapa bulan terakhir.
+
+### 4. 🎯 Anggaran & Batas Pengeluaran (Budgets)
+- Tetapkan limit anggaran bulanan untuk setiap kategori pengeluaran (misal: *Makan & Minum*, *Transportasi*, *Belanja*).
+- Indikator progres dinamis dengan kode warna visual: **Aman (Hijau)**, **Peringatan (Kuning)**, dan **Overbudget (Merah)**.
+
+### 5. ⚡ Quick Add & Template Cepat
+- Buat template pengeluaran harian (misal: *Kopi Pagi Rp 15.000*, *Bensin Rp 30.000*).
+- Catat transaksi harian berulang hanya dalam 1 klik dari dashboard utama, lengkap dengan opsi *Undo*.
+
+### 6. 📱 UI Modern, Mobile-First & Privacy Friendly
+- **Glassmorphism & Dual Theme:** Tampilan clean minimalis untuk *Light Mode*, dan *OLED Deep Glassmorphism* yang mewah untuk *Dark Mode*.
+- **Mobile Swipeable Rows:** Geser baris transaksi ke kiri pada smartphone untuk mengakses tombol aksi *Duplikat* dan *Hapus*.
+- **Masked Currency (Privacy Mode):** Tombol intip/sembunyikan nominal saldo untuk kenyamanan saat membuka aplikasi di ruang publik.
+
+---
+
+## 🛠️ Tech Stack & Arsitektur
+
+| Komponen | Teknologi | Keterangan |
+| :--- | :--- | :--- |
+| **Framework** | [Next.js 16 (Turbopack)](https://nextjs.org/) | App Router, React Server Components (RSC), Server Actions |
+| **UI Library** | [React 19](https://react.dev/) | Concurrent Features, Modern Hooks |
+| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Theme Token Variables, Modern Glassmorphism Utilities |
+| **Backend & DB** | [Supabase](https://supabase.com/) | PostgreSQL, Row Level Security (RLS), Supabase SSR Auth |
+| **Charts** | [Recharts](https://recharts.org/) | Visualisasi tren dan distribusi kategori pengeluaran |
+| **Icons** | [Lucide React](https://lucide.dev/) | Set ikon modern dan konsisten |
+| **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict Type Safety |
+
+---
+
+## 🚀 Panduan Instalasi (Getting Started)
+
+Ikuti langkah-langkah di bawah untuk menjalankan **Finance Journal** di komputer lokal Anda:
 
 ### 1. Clone Repository
 ```bash
-git clone https://github.com/username/finance-track.git
+git clone https://github.com/glenbayu/finance-track.git
 cd finance-track
 ```
 
 ### 2. Install Dependencies
 ```bash
 npm install
-# atau
-yarn install
 ```
 
-### 3. Setup Environment Variables
-Buat file bernama `.env.local` di *root directory* project Anda, lalu masukkan kredensial dari project Supabase Anda:
+### 3. Konfigurasi Environment Variables
+Buat file bernama `.env.local` (atau salin dari template `.env`):
 ```env
 NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
 ```
 
-### 4. Setup Database
-Jalankan file *migrations* yang berada di dalam folder `supabase/migrations/` ke SQL Editor di *Dashboard* Supabase Anda untuk membangun struktur tabel, relasi, dan fungsi-fungsi yang diperlukan.
+### 4. Setup Database Supabase
+Jalankan file migrasi SQL di folder `supabase/migrations/` secara berurutan pada menu **SQL Editor** di Dashboard Supabase Anda:
+1. `20260501000000_create_categories.sql` (Tabel kategori pengeluaran & pemasukan beserta archive & timestamp)
+2. `20260501010000_create_wallets.sql` (Tabel dompet fisik & rekening bank dengan default auto-rollover)
+3. `20260501020000_create_transactions.sql` (Tabel transaksi lengkap dengan foreign key wallet, transfer, koreksi & timestamps)
+4. `20260526090000_create_budgets.sql` (Tabel batas anggaran bulanan per kategori)
+5. `20260528100000_create_quick_add_templates.sql` (Tabel template cepat transaksi 1-klik)
+6. `20260901000000_user_onboarding_trigger.sql` (Trigger auto-setup dompet cash & 10 kategori awal saat user registrasi)
 
 ### 5. Jalankan Development Server
 ```bash
 npm run dev
-# atau
-yarn dev
 ```
-Buka [http://localhost:3000](http://localhost:3000) di browser Anda untuk melihat hasilnya.
+Buka browser di **[http://localhost:3000](http://localhost:3000)**.
 
-## 📂 Folder Structure
+---
+
+## 📂 Struktur Direktori
 
 ```text
 finance-track/
-├── app/               # Next.js App Router (Pages, Layouts, API Routes)
-├── components/        # Reusable React components (UI, Transactions, Wallets, dll)
-├── lib/               # Utility functions (formatters, Supabase client auth)
-├── public/            # Static assets (images, icons)
-├── supabase/          # Script Database Migrations (SQL)
-└── package.json       # Dependencies list & Project Config
+├── app/                        # Next.js App Router
+│   ├── (app)/                  # Rute berotentikasi (Protected Pages)
+│   │   ├── page.tsx            # Dashboard Utama (Ringkasan)
+│   │   ├── transactions/       # Daftar & Form Transaksi
+│   │   ├── wallets/            # Manajemen Dompet & Saldo
+│   │   ├── budgets/            # Manajemen Batas Anggaran
+│   │   ├── categories/         # Manajemen Kategori
+│   │   ├── reports/            # Laporan Finansial Bulanan
+│   │   └── settings/           # Pengaturan & Profil
+│   ├── login/                  # Halaman Masuk
+│   └── signup/                 # Halaman Daftar Akun Baru
+├── components/                 # Komponen Modular Reusable
+│   ├── dashboard/              # Komponen widget & grafik dashboard
+│   ├── layout/                 # AppShell, DesktopSidebar, MobileDock
+│   ├── transactions/           # Komponen tabel, form, dan tombol aksi
+│   ├── ui/                     # Primitif UI (Dialog, Modal, MaskedCurrency, dll)
+│   └── wallets/                # Komponen manajemen & koreksi saldo dompet
+├── lib/                        # Utilitas & Business Logic
+│   ├── supabase/               # Client & Server Supabase helpers
+│   ├── transactions/           # Logika Rollover, Quick Add, Filter
+│   └── utils/                  # Currency formatter, Date parser
+└── supabase/                   # Database Migrations (SQL Scripts)
 ```
+
+---
+
+## 🔒 Keamanan Data & Privasi
+- **Row Level Security (RLS):** Seluruh tabel di PostgreSQL dilindungi dengan RLS, memastikan setiap pengguna hanya memiliki akses ke data keuangannya sendiri.
+- **Server Actions & CSRF Protected:** Mutasi data divalidasi langsung di sisi server dengan sesi terotentikasi.
+- **Zero Third-Party Tracking:** Privasi keuangan pengguna terjaga penuh tanpa script analitik pihak ketiga.
+
+---
+
+<div align="center">
+  <sub>Dibangun dengan dedikasi untuk kebebasan dan ketenangan finansial pribadi. 🌿</sub>
+</div>

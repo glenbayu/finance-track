@@ -104,6 +104,7 @@ export default function FilterSelect({
 
   const close = useCallback(() => {
     setOpen(false);
+    setEntered(false);
     triggerRef.current?.focus();
   }, []);
 
@@ -113,10 +114,7 @@ export default function FilterSelect({
   };
 
   useEffect(() => {
-    if (!open) {
-      setEntered(false);
-      return;
-    }
+    if (!open) return;
 
     const raf = requestAnimationFrame(() => setEntered(true));
     // Di desktop fokus langsung ke kotak cari; di mobile fokus ke list supaya keyboard tidak langsung muncul
@@ -137,6 +135,7 @@ export default function FilterSelect({
 
     return () => {
       cancelAnimationFrame(raf);
+      setEntered(false);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("resize", measure);
       window.removeEventListener("scroll", measure, true);

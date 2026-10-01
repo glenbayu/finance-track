@@ -36,16 +36,8 @@ export default function FormSelect({
   const ariaLabel = label ?? fieldLabels[name] ?? placeholder ?? name.replaceAll("_", " ");
 
   const isControlled = value !== undefined;
-  const [internalValue, setInternalValue] = useState(
-    isControlled ? value : (defaultValue ?? "")
-  );
-
-  // Sync controlled value
-  useEffect(() => {
-    if (isControlled) setInternalValue(value!);
-  }, [isControlled, value]);
-
-  const currentValue = isControlled ? value! : internalValue;
+  const [internalValue, setInternalValue] = useState(defaultValue ?? "");
+  const currentValue = isControlled ? value : internalValue;
 
   const selectedLabel =
     options.find((o) => o.value === currentValue)?.label ??
@@ -60,6 +52,16 @@ export default function FormSelect({
   const [panelAbove, setPanelAbove] = useState(false);
 
   const close = useCallback(() => setOpen(false), []);
+
+  const toggleOpen = () => {
+    if (disabled) return;
+    if (!open && triggerRef.current) {
+      const rect = triggerRef.current.getBoundingClientRect();
+      const spaceBelow = window.innerHeight - rect.bottom;
+      setPanelAbove(spaceBelow < 220 && rect.top > 220);
+    }
+    setOpen((prev) => !prev);
+  };
 
   // Close on outside click / escape
   useEffect(() => {
@@ -78,14 +80,6 @@ export default function FormSelect({
       document.removeEventListener("mousedown", handleClick);
     };
   }, [open, close]);
-
-  // Position panel above/below based on available space
-  useEffect(() => {
-    if (!open || !triggerRef.current) return;
-    const rect = triggerRef.current.getBoundingClientRect();
-    const spaceBelow = window.innerHeight - rect.bottom;
-    setPanelAbove(spaceBelow < 220 && rect.top > 220);
-  }, [open]);
 
   const handleSelect = (optValue: string) => {
     if (!isControlled) setInternalValue(optValue);
@@ -202,7 +196,7 @@ export default function FormSelect({
         aria-label={ariaLabel}
         aria-controls={`${inputId}-listbox`}
         disabled={disabled}
-        onClick={() => setOpen((prev) => !prev)}
+        onClick={toggleOpen}
         className="form-select-trigger input-base"
         style={{
           display: "flex",

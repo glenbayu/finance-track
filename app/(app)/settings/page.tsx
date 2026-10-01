@@ -1,9 +1,10 @@
+import Link from "next/link";
 import AppShell from "@/components/layout/app-shell";
 import PwaInstallCard from "@/components/pwa/pwa-install-card";
 import AppearanceCard from "@/components/settings/appearance-card";
 import PreferencesCard from "@/components/settings/preferences-card";
 import RecalculateRolloverCard from "@/components/settings/recalculate-rollover-card";
-import { Settings } from "lucide-react";
+import { Settings, Sparkles, ChevronRight } from "lucide-react";
 import { requireUser } from "@/lib/supabase/auth";
 import EditProfileModal from "@/components/more/edit-profile-modal";
 
@@ -50,6 +51,28 @@ export default async function SettingsPage() {
               Mata uang
             </h3>
             <PreferencesCard flat />
+          </div>
+
+          <div className="p-5 sm:p-6" style={{ borderBottom: "1px solid var(--lk-border)" }}>
+            <h3 className="mb-4 text-[13px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
+              Template Transaksi
+            </h3>
+            <Link
+              href="/settings/templates"
+              className="flex items-center justify-between rounded-xl p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
+              style={{ border: "1px solid var(--lk-border)" }}
+            >
+              <div className="flex items-center gap-3">
+                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
+                  <Sparkles size={20} />
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Quick Add Templates</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">Kelola pintasan transaksi cepat favoritmu</p>
+                </div>
+              </div>
+              <ChevronRight size={18} className="text-slate-400" />
+            </Link>
           </div>
 
           <div className="p-5 sm:p-6">

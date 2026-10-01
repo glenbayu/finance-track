@@ -1,6 +1,20 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 import { getCurrentMonth, pad2 } from "@/lib/utils/date";
 
+export const ROLLOVER_NOTES = [
+  "Sisa uang bulan kemarin (Rollover)",
+  "Defisit uang bulan kemarin (Rollover)",
+] as const;
+
+export function isRolloverTransaction(note: string | null | undefined): boolean {
+  if (!note) return false;
+  return (
+    note.includes("(Rollover)") ||
+    note === "Sisa uang bulan kemarin (Rollover)" ||
+    note === "Defisit uang bulan kemarin (Rollover)"
+  );
+}
+
 function getLastDayOfMonth(monthStr: string) {
   const [year, month] = monthStr.split("-").map(Number);
   const date = new Date(Date.UTC(year, month, 0));
@@ -150,6 +164,17 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
     const existingRollover = rollovers.find(
       (tx) => tx.wallet_id === wallet.id
     );
+
+    // Jika rollover tidak aktif pada wallet ini, hapus rollover yang ada lalu lewati
+    if (!wallet.is_rollover_enabled) {
+      if (existingRollover) {
+        await supabase
+          .from("transactions")
+          .delete()
+          .eq("id", existingRollover.id);
+      }
+      continue;
+    }
 
     const expectedType = balance > 0 ? "income" : "expense";
     const expectedAmount = Math.abs(balance);

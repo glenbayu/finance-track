@@ -143,6 +143,27 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
     );
   }
 
+  if (!wallets || wallets.length === 0) {
+    return (
+      <AppShell
+        activeNav="add"
+        maxWidth="3xl"
+        title="Catat Transaksi"
+        description="Pilih jenis transaksi untuk mulai mencatat keuanganmu."
+      >
+        <div className="rounded-xl border p-6 text-center" style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}>
+          <h2 className="text-base font-bold" style={{ color: "var(--lk-text)" }}>Belum Ada Dompet Aktif</h2>
+          <p className="mt-2 text-sm" style={{ color: "var(--lk-text-muted)" }}>
+            Kamu perlu membuat minimal satu dompet (seperti Kas Tunai atau Rekening Bank) sebelum mencatat transaksi.
+          </p>
+          <Link href="/wallets" className="btn-primary mt-5 inline-flex">
+            + Buat Dompet Sekarang
+          </Link>
+        </div>
+      </AppShell>
+    );
+  }
+
   const today = getCurrentDate();
   const recentCategoryMap = new Map<
     string,

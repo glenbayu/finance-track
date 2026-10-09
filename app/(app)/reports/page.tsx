@@ -553,7 +553,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         </div>
       </section>
 
-      <section className="mt-6 grid gap-5 lg:grid-cols-12">
+      <section className="mt-6 grid gap-5 lg:grid-cols-12 w-full min-w-0 max-w-full [&>*]:min-w-0 [&>*]:max-w-full">
         <ReportsCharts
           trendData={trendData}
           forecastCategoryData={categoryForecast}
@@ -561,7 +561,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
         />
       </section>
 
-      <section className="mt-6 grid gap-4 xl:grid-cols-12">
+      <section className="mt-6 grid gap-4 xl:grid-cols-12 w-full min-w-0 max-w-full [&>*]:min-w-0 [&>*]:max-w-full">
         <article className="rounded-lg p-5 shadow-sm xl:col-span-5" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border-strong)" }}>
           <h3 className="text-lg font-semibold" style={{ color: "var(--lk-text)" }}>Estimasi Pengeluaran</h3>
           {spendingForecast.forecastAmount === null ? (

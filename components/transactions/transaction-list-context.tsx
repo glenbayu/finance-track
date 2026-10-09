@@ -33,7 +33,19 @@ export function TransactionListMemory() {
   return null;
 }
 
-export function TransactionReturnLink({ children, className }: { children: ReactNode; className?: string }) {
+export function TransactionReturnLink({
+  children,
+  className,
+  style,
+}: {
+  children: ReactNode;
+  className?: string;
+  style?: React.CSSProperties;
+}) {
   const href = useSyncExternalStore(subscribe, readTransactionListUrl, () => "/transactions");
-  return <Link href={href} className={className}>{children}</Link>;
+  return (
+    <Link href={href} className={className} style={style}>
+      {children}
+    </Link>
+  );
 }

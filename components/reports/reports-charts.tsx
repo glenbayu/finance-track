@@ -181,7 +181,6 @@ export default function ReportsCharts({
 }: ReportsChartsProps) {
   const { effectiveCurrency, rateFromIDR } = useDisplayCurrency();
   const reducedMotion = useReducedMotion();
-  const isAndroid = typeof navigator !== "undefined" && /android|iphone|ipad|ipod/i.test(navigator.userAgent);
   const [mounted, setMounted] = useState(false);
   const [localTrendMonths, setLocalTrendMonths] = useState(trendMonths);
   const [visibleLines, setVisibleLines] = useState({ income: true, expense: true });
@@ -211,7 +210,7 @@ export default function ReportsCharts({
 
   return (
     <>
-      <details className="section-card lg:col-span-12">
+      <details className="section-card w-full min-w-0 max-w-full overflow-hidden lg:col-span-12">
         <summary className="cursor-pointer py-2 font-medium">Lihat tabel data laporan</summary>
         <div className="overflow-x-auto"><table className="chart-data"><caption className="sr-only">Pemasukan, pengeluaran, dan arus kas bulanan</caption><thead><tr><th scope="col">Bulan</th><th scope="col">Pemasukan</th><th scope="col">Pengeluaran</th><th scope="col">Arus kas</th></tr></thead><tbody>{visibleTrendData.map((item) => <tr key={item.month}><th scope="row">{item.month}</th><td><CurrencyAmount amountIDR={item.income} /></td><td><CurrencyAmount amountIDR={item.expense} /></td><td><CurrencyAmount amountIDR={item.cashflow} /></td></tr>)}</tbody></table></div>
       </details>
@@ -258,7 +257,7 @@ export default function ReportsCharts({
           <div className="relative mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
               <LineChart
-                key={localTrendMonths}
+                key={`${localTrendMonths}-${visibleLines.income ? "1" : "0"}-${visibleLines.expense ? "1" : "0"}`}
                 data={convertedTrendData}
                 accessibilityLayer
                 margin={{
@@ -291,6 +290,7 @@ export default function ReportsCharts({
                 />
                 {visibleLines.income ? (
                   <Line
+                    key="line-income"
                     type="monotone"
                     dataKey="income"
                     name="Pemasukan"
@@ -298,14 +298,15 @@ export default function ReportsCharts({
                     strokeWidth={2.6}
                     dot={false}
                     activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
-                    animationDuration={850}
-                    animationBegin={60}
+                    animationDuration={650}
+                    animationBegin={0}
                     animationEasing="ease-out"
-                    isAnimationActive={!isAndroid && !reducedMotion}
+                    isAnimationActive={!reducedMotion}
                   />
                 ) : null}
                 {visibleLines.expense ? (
                   <Line
+                    key="line-expense"
                     type="monotone"
                     dataKey="expense"
                     name="Pengeluaran"
@@ -313,10 +314,10 @@ export default function ReportsCharts({
                     strokeWidth={2.6}
                     dot={false}
                     activeDot={{ r: 6, strokeWidth: 2, stroke: "var(--surface)" }}
-                    animationDuration={850}
-                    animationBegin={60}
+                    animationDuration={650}
+                    animationBegin={0}
                     animationEasing="ease-out"
-                    isAnimationActive={!isAndroid && !reducedMotion}
+                    isAnimationActive={!reducedMotion}
                   />
                 ) : null}
               </LineChart>
@@ -340,7 +341,16 @@ export default function ReportsCharts({
         ) : (
           <div className="mt-4 h-[240px] w-full min-w-0 overflow-hidden">
             <ResponsiveContainer width="100%" height="100%" minHeight={200}>
-              <BarChart data={convertedTrendData} accessibilityLayer>
+              <BarChart
+                data={convertedTrendData}
+                accessibilityLayer
+                margin={{
+                  top: 10,
+                  right: 10,
+                  left: 15,
+                  bottom: 5,
+                }}
+              >
                 <CartesianGrid stroke="var(--stroke)" strokeDasharray="3 3" vertical={false} />
                 <XAxis
                   dataKey="month"
@@ -349,6 +359,7 @@ export default function ReportsCharts({
                   axisLine={false}
                   fontSize={12}
                   tick={{ fill: "var(--foreground)" }}
+                  minTickGap={12}
                 />
                 <YAxis
                   tickFormatter={compactCurrency}
@@ -366,7 +377,7 @@ export default function ReportsCharts({
                     color: "var(--foreground)",
                   }}
                 />
-                <Bar dataKey="cashflow" radius={[8, 8, 0, 0]} isAnimationActive={!isAndroid && !reducedMotion}>
+                <Bar dataKey="cashflow" radius={[8, 8, 0, 0]} isAnimationActive={!reducedMotion} animationDuration={650}>
                   {convertedTrendData.map((item) => (
                     <Cell key={item.month} fill={item.cashflow >= 0 ? "#10b981" : "#ef4444"} />
                   ))}
@@ -393,12 +404,12 @@ export default function ReportsCharts({
               {forecastBars.map((item) => {
                 const ratio = maxForecastValue > 0 ? Math.max(0, Math.min(100, (item.value / maxForecastValue) * 100)) : 0;
                 return (
-                  <div key={item.name} className="soft-inset min-w-0 overflow-hidden">
-                    <div className="flex min-w-0 items-center justify-between gap-2">
+                  <div key={item.name} className="soft-inset w-full min-w-0 overflow-hidden">
+                    <div className="flex w-full min-w-0 items-center justify-between gap-2">
                       <p className="min-w-0 flex-1 truncate text-sm font-medium text-slate-900 dark:text-slate-100">
                         {item.name}
                       </p>
-                      <p className="shrink-0 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                      <p className="shrink-0 text-xs font-semibold tabular-nums whitespace-nowrap text-slate-700 dark:text-slate-200">
                         {compactValue(item.value, currencySymbol)}
                       </p>
                     </div>
@@ -436,7 +447,7 @@ export default function ReportsCharts({
                         color: "var(--foreground)",
                       }}
                     />
-                    <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="#0ea5a5" isAnimationActive={!isAndroid && !reducedMotion} />
+                    <Bar dataKey="value" radius={[0, 8, 8, 0]} fill="#0ea5a5" isAnimationActive={!reducedMotion} animationDuration={650} />
                   </BarChart>
                 </ResponsiveContainer>
               )}

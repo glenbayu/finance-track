@@ -1,4 +1,4 @@
-import { BookOpen } from "lucide-react";
+import BrandLogo from "@/components/ui/brand-logo";
 import LogoutButton from "@/components/auth/logout-button";
 import DesktopSidebarLinks from "@/components/layout/desktop-sidebar-links";
 import ThemeToggleButton from "@/components/ui/theme-toggle-button";
@@ -77,20 +77,7 @@ export default function DesktopSidebar() {
       {/* Logo */}
       <div style={{ padding: "1.25rem 1rem 0.875rem", borderBottom: "1px solid rgba(0,0,0,0.05)" }}>
         <div className="flex items-center gap-2.5">
-          <div
-            style={{
-              width: "1.875rem",
-              height: "1.875rem",
-              borderRadius: "0.5rem",
-              backgroundColor: "var(--lk-primary)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <BookOpen size={13} color="white" />
-          </div>
+          <BrandLogo size={32} className="rounded-xl shadow-md shadow-emerald-950/20 shrink-0" />
           <div>
             <p style={{ fontSize: "10px", fontWeight: 700, letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--lk-text-muted)", lineHeight: 1 }}>
               Finance

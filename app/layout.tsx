@@ -38,7 +38,9 @@ export const metadata: Metadata = {
       { url: "/favicon.svg", type: "image/svg+xml" },
     ],
     shortcut: ["/favicon.svg"],
-    apple: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    apple: [
+      { url: "/apple-touch-icon.png", sizes: "180x180", type: "image/png" },
+    ],
   },
 };
 
@@ -47,8 +49,8 @@ export const viewport: Viewport = {
   initialScale: 1,
   viewportFit: "cover",
   themeColor: [
-    { media: "(prefers-color-scheme: light)", color: "#f7f8f6" },
-    { media: "(prefers-color-scheme: dark)", color: "#131313" },
+    { media: "(prefers-color-scheme: light)", color: "#f7faf8" },
+    { media: "(prefers-color-scheme: dark)", color: "#0a0f0d" },
   ],
 };
 
@@ -80,6 +82,9 @@ export default function RootLayout({
                   if (/android/i.test(ua)) {
                     document.documentElement.classList.add("is-android");
                   }
+
+                  // Enable iOS WebKit active touch feedback (:active pseudo-class)
+                  document.addEventListener("touchstart", function () {}, { passive: true });
                 } catch (e) {}
               })();
             `,
@@ -93,7 +98,7 @@ export default function RootLayout({
           <ToastQueryListener />
         </Suspense>
         {children}
-        <Toaster position="bottom-center" offset={24} mobileOffset={{ bottom: 96, left: 16, right: 16 }} toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
+        <Toaster position="bottom-center" offset={24} mobileOffset={{ bottom: 114, left: 16, right: 16 }} toastOptions={{ style: { background: 'var(--lk-surface)', color: 'var(--lk-text)', border: '1px solid var(--lk-border)' } }} />
       </body>
     </html>
   );

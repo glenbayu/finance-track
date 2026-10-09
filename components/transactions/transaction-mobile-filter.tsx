@@ -326,25 +326,31 @@ export default function TransactionMobileFilter({
       </div>
 
       {/* Summary Card */}
-      <div className={`relative flex items-center rounded-xl bg-slate-50/80 dark:bg-slate-800/40 divide-x divide-slate-200/60 dark:divide-slate-700/60 p-0 overflow-hidden transition-opacity duration-200 ${isPending ? "opacity-60" : ""}`}>
+      <div
+        className={`relative flex items-center rounded-xl divide-x p-0 overflow-hidden transition-opacity duration-200 ${isPending ? "opacity-60" : ""}`}
+        style={{
+          backgroundColor: "var(--lk-surface-raised)",
+          borderColor: "var(--lk-border)",
+        }}
+      >
         {/* Loading shimmer overlay */}
         {isPending && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center rounded-xl bg-white/40 dark:bg-black/30 backdrop-blur-[1px]">
+          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/40 dark:bg-black/30 backdrop-blur-[1px]">
             <svg className="animate-spin h-4 w-4 text-slate-400" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
           </div>
         )}
-        <div className="flex-1 text-center py-4 px-2 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Pemasukan</p>
-          <p className="mt-1 text-base font-bold text-[var(--lk-income)] tracking-tight truncate">
+        <div className="flex-1 text-center py-3 px-2 min-w-0" style={{ borderColor: "var(--lk-border)" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">Pemasukan</p>
+          <p className="mt-1 text-sm sm:text-base font-bold text-emerald-600 dark:text-emerald-400 tracking-tight truncate tabular-nums">
             +<CurrencyAmount amountIDR={totalIncome} absolute />
           </p>
         </div>
-        <div className="flex-1 text-center py-4 px-2 min-w-0">
-          <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400 truncate text-[0.65rem]">Pengeluaran</p>
-          <p className="mt-1 text-base font-bold text-[var(--lk-expense)] tracking-tight truncate">
+        <div className="flex-1 text-center py-3 px-2 min-w-0" style={{ borderColor: "var(--lk-border)" }}>
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500 truncate">Pengeluaran</p>
+          <p className="mt-1 text-sm sm:text-base font-bold text-rose-600 dark:text-rose-400 tracking-tight truncate tabular-nums">
             -<CurrencyAmount amountIDR={totalExpense} absolute />
           </p>
         </div>
@@ -357,7 +363,7 @@ export default function TransactionMobileFilter({
           ref={chipsRef}
           role="group"
           aria-label="Jenis transaksi"
-          className="no-scrollbar relative -mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-0.5"
+          className="no-scrollbar relative -mx-4 flex items-center gap-2 overflow-x-auto px-4 pb-0.5 scroll-smooth"
         >
           {typeChips.map((chip) => {
             const isActive = chip.value === selectedType;
@@ -368,13 +374,13 @@ export default function TransactionMobileFilter({
                 type="button"
                 aria-pressed={isActive}
                 onClick={() => handleTypeChange(chip.value)}
-                className="inline-flex shrink-0 items-center rounded-full border px-3.5 text-[13px] font-semibold"
+                className="inline-flex shrink-0 items-center rounded-full border px-3.5 text-xs font-semibold transition-all active:scale-95"
                 style={{
-                  height: "2.25rem",
-                  minHeight: "2.25rem",
-                  borderColor: isActive ? "var(--lk-text)" : "var(--lk-border)",
-                  background: isActive ? "var(--lk-text)" : "var(--lk-surface-raised)",
-                  color: isActive ? "var(--lk-bg)" : "var(--lk-text-muted)",
+                  height: "2.125rem",
+                  minHeight: "2.125rem",
+                  borderColor: isActive ? "var(--lk-primary)" : "var(--lk-border)",
+                  background: isActive ? "var(--lk-primary)" : "var(--lk-surface-raised)",
+                  color: isActive ? "#ffffff" : "var(--lk-text-muted)",
                   WebkitTapHighlightColor: "transparent",
                 }}
               >

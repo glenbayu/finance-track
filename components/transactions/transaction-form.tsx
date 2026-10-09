@@ -2,10 +2,11 @@
 
 import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
-import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Info, Plus } from "lucide-react";
+import { ArrowDownLeft, ArrowUpRight, ArrowLeftRight, Info, Plus, RotateCcw } from "lucide-react";
 import FilterSelect from "@/components/transactions/filter-select";
 import DateInput from "@/components/ui/date-input";
 import SubmitButton from "@/components/ui/submit-button";
+import { getCategoryVisuals } from "@/lib/utils/icons";
 
 type Category = {
   id: string;
@@ -54,38 +55,51 @@ const TYPE_CONFIG = {
   expense: {
     label: "Pengeluaran",
     Icon: ArrowDownLeft,
-    capsule: "bg-rose-700",
+    badge: "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40",
+    capsule: "bg-rose-600 dark:bg-rose-600 text-white shadow-sm",
     amountColor: "text-rose-600 dark:text-rose-400",
-    placeholderColor: "placeholder:text-rose-300/40 dark:placeholder:text-rose-700/20",
-    submitClass: "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500",
+    placeholderColor: "placeholder:text-rose-300/40 dark:placeholder:text-rose-800/30",
+    prefix: "-",
+    submitClass: "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-rose-600/20",
     chipSelected:
-      "border-rose-300 bg-rose-50 text-rose-700 dark:border-rose-800 dark:bg-rose-950/40 dark:text-rose-300",
+      "border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-700 dark:bg-rose-950/50 dark:text-rose-300",
   },
   income: {
     label: "Pemasukan",
     Icon: ArrowUpRight,
-    capsule: "bg-emerald-700",
+    badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40",
+    capsule: "bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm",
     amountColor: "text-emerald-600 dark:text-emerald-400",
-    placeholderColor: "placeholder:text-emerald-300/40 dark:placeholder:text-emerald-700/20",
-    submitClass: "bg-emerald-700 hover:bg-emerald-800 focus-visible:ring-emerald-500",
+    placeholderColor: "placeholder:text-emerald-300/40 dark:placeholder:text-emerald-800/30",
+    prefix: "+",
+    submitClass: "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-emerald-600/20",
     chipSelected:
-      "border-emerald-300 bg-emerald-50 text-emerald-700 dark:border-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300",
+      "border-emerald-400 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
   },
   transfer: {
     label: "Transfer",
     Icon: ArrowLeftRight,
-    capsule: "bg-blue-500",
+    badge: "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40",
+    capsule: "bg-blue-600 dark:bg-blue-600 text-white shadow-sm",
     amountColor: "text-blue-600 dark:text-blue-400",
-    placeholderColor: "placeholder:text-blue-300/40 dark:placeholder:text-blue-700/20",
-    submitClass: "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500",
+    placeholderColor: "placeholder:text-blue-300/40 dark:placeholder:text-blue-800/30",
+    prefix: "⇄",
+    submitClass: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-blue-500/20",
     chipSelected:
-      "border-blue-300 bg-blue-50 text-blue-700 dark:border-blue-800 dark:bg-blue-950/40 dark:text-blue-300",
+      "border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-300",
   },
 } as const;
 
 const TYPE_ORDER = ["expense", "income", "transfer"] as const;
 
-/* Label + isi field. Didefinisikan di luar komponen utama supaya tidak di-remount tiap render. */
+const QUICK_AMOUNTS = [
+  { label: "+10rb", value: 10000 },
+  { label: "+20rb", value: 20000 },
+  { label: "+50rb", value: 50000 },
+  { label: "+100rb", value: 100000 },
+  { label: "+500rb", value: 500000 },
+];
+
 function Field({
   label,
   htmlFor,
@@ -139,9 +153,11 @@ export default function TransactionForm({
   const [amountDisplay, setAmountDisplay] = useState(
     initialValues?.amountIDR ? formatRupiahInput(String(initialValues.amountIDR)) : "",
   );
+  const [transactionDate, setTransactionDate] = useState(defaultDate);
   const [noteText, setNoteText] = useState(initialValues?.note ?? "");
   const [showNote, setShowNote] = useState(!!initialValues?.note);
   const noteRef = useRef<HTMLTextAreaElement | null>(null);
+  const amountInputRef = useRef<HTMLInputElement | null>(null);
 
   const cfg = TYPE_CONFIG[type];
   const isTransfer = type === "transfer";
@@ -180,7 +196,7 @@ export default function TransactionForm({
       .slice(0, 6);
   }, [filteredCategories, recentCategories, type]);
 
-  /* ─── Validasi ringan di sisi client (server tetap memvalidasi ulang) ─── */
+  /* ─── Validasi di sisi client ─── */
   const amountDigits = amountDisplay.replace(/\D/g, "");
   const hasAmount = Number(amountDigits) > 0;
 
@@ -191,22 +207,30 @@ export default function TransactionForm({
   else if (isTransfer && !effectiveDestination) missingHint = "Pilih dompet tujuan dulu";
 
   const canSubmit = !missingHint;
-  // Alasan kenapa tombol belum aktif ditampilkan langsung di tombolnya
   const submitLabel = missingHint ?? "Simpan transaksi";
 
-  const dateField = (
-    <Field label="Tanggal">
-      <DateInput
-        name="transaction_date"
-        defaultValue={defaultDate}
-        className="input-base w-full"
-        required
-      />
-    </Field>
-  );
+  const setDateOffset = (daysAgo: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    setTransactionDate(`${yyyy}-${mm}-${dd}`);
+  };
+
+  const handleAddAmount = (addVal: number) => {
+    const current = Number(amountDisplay.replace(/\D/g, "")) || 0;
+    const next = current + addVal;
+    setAmountDisplay(formatRupiahInput(String(next)));
+  };
+
+  const handleClearAmount = () => {
+    setAmountDisplay("");
+    amountInputRef.current?.focus();
+  };
 
   return (
-    <form action={action} className="transaction-entry space-y-4 pb-24 lg:pb-0">
+    <form action={action} className="transaction-entry space-y-4 pb-16 lg:pb-4">
       {infoMessage && (
         <div className="flex items-start gap-2.5 rounded-xl border border-teal-200/60 bg-teal-50/60 px-4 py-3 text-sm text-teal-700 dark:border-teal-900/30 dark:bg-teal-950/20 dark:text-teal-300">
           <Info size={15} className="mt-0.5 shrink-0" />
@@ -214,20 +238,34 @@ export default function TransactionForm({
         </div>
       )}
 
-      <div className="section-card space-y-5 p-4 sm:p-5">
-        <input type="hidden" name="type" value={type} />
-        <input type="hidden" name="wallet_id" value={walletId} />
-        {isTransfer && (
-          <input type="hidden" name="destination_wallet_id" value={effectiveDestination} />
-        )}
-        {needsCategory && <input type="hidden" name="category_id" value={categoryId} />}
-        <input type="hidden" name="amount" value={amountDigits} />
+      {/* Hidden inputs for form submit */}
+      <input type="hidden" name="type" value={type} />
+      <input type="hidden" name="wallet_id" value={walletId} />
+      {isTransfer && (
+        <input type="hidden" name="destination_wallet_id" value={effectiveDestination} />
+      )}
+      {needsCategory && <input type="hidden" name="category_id" value={categoryId} />}
+      <input type="hidden" name="amount" value={amountDigits} />
 
-        {/* ── 1. Jenis transaksi ── */}
-        <div className="relative rounded-2xl bg-slate-100/80 p-1 ring-1 ring-black/5 dark:bg-slate-800/70 dark:ring-white/5">
+      {/* ── CARD 1: HERO AMOUNT & TYPE SWITCHER ── */}
+      <div
+        className="rounded-2xl border p-4 sm:p-6 shadow-sm transition-all"
+        style={{
+          backgroundColor: "var(--lk-surface)",
+          borderColor: "var(--lk-border)",
+        }}
+      >
+        {/* Segmented Type Switcher */}
+        <div
+          className="relative rounded-2xl p-1 border transition-colors mb-5"
+          style={{
+            backgroundColor: "var(--lk-surface-raised)",
+            borderColor: "var(--lk-border)",
+          }}
+        >
           <div
             aria-hidden="true"
-            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(33.333%-2px)] rounded-xl shadow-sm ${cfg.capsule} transition-transform duration-300 ease-out`}
+            className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(33.333%-2px)] rounded-xl ${cfg.capsule} transition-transform duration-200 ease-out`}
             style={{
               transform:
                 type === "expense"
@@ -241,22 +279,23 @@ export default function TransactionForm({
             {TYPE_ORDER.map((t) => {
               const c = TYPE_CONFIG[t];
               const Icon = c.Icon;
+              const isSelected = type === t;
               return (
                 <button
                   key={t}
                   type="button"
-                  aria-pressed={type === t}
+                  aria-pressed={isSelected}
                   onClick={() => {
                     setType(t);
                     setCategoryId("");
                   }}
-                  className={`relative z-10 flex items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors duration-200 sm:gap-1.5 sm:text-sm ${
-                    type === t
-                      ? "text-white"
+                  className={`relative z-10 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-colors duration-150 ${
+                    isSelected
+                      ? "text-white font-bold"
                       : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
                   }`}
                 >
-                  <Icon size={14} className="hidden shrink-0 sm:block sm:size-4" />
+                  <Icon size={15} className="shrink-0" />
                   <span className="truncate">{c.label}</span>
                 </button>
               );
@@ -264,21 +303,31 @@ export default function TransactionForm({
           </div>
         </div>
 
-        {/* ── 2. Nominal ── */}
-        <div className="flex flex-col items-center justify-center py-1">
-          <label
-            htmlFor="new-amount"
-            className="mb-1 text-xs font-semibold"
-            style={{ color: "var(--lk-text-muted)" }}
-          >
-            Nominal
-          </label>
-          <div className="amount-wrap flex max-w-full items-baseline justify-center gap-1.5 px-4">
-            <span className={`text-xl font-extrabold transition-colors duration-200 ${cfg.amountColor}`}>
-              Rp
+        {/* Amount Input Box */}
+        <div
+          className="rounded-2xl border p-4 sm:p-5 transition-all text-center"
+          style={{
+            backgroundColor: "var(--lk-surface-raised)",
+            borderColor: "var(--lk-border)",
+          }}
+          onClick={() => amountInputRef.current?.focus()}
+        >
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+              Nominal Transaksi
+            </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}>
+              {cfg.label}
+            </span>
+          </div>
+
+          <div className="flex items-center justify-center gap-1.5 py-2 cursor-text overflow-hidden">
+            <span className={`text-2xl sm:text-3xl font-extrabold ${cfg.amountColor} select-none shrink-0`}>
+              {cfg.prefix} Rp
             </span>
             <input
               id="new-amount"
+              ref={amountInputRef}
               type="text"
               inputMode="numeric"
               placeholder="0"
@@ -287,99 +336,240 @@ export default function TransactionForm({
                 const raw = e.target.value.replace(/\D/g, "");
                 setAmountDisplay(formatRupiahInput(raw));
               }}
-              // Lebar mengikuti jumlah digit supaya angka besar tidak terpotong
-              style={{ width: `${Math.max(amountDisplay.length, 1) + 0.5}ch`, maxWidth: "70vw" }}
-              className={`amount-input min-w-0 border-none bg-transparent p-0 text-left text-4xl font-extrabold tabular-nums outline-none focus:border-none focus:outline-none focus:ring-0 transition-colors duration-200 ${cfg.amountColor} ${cfg.placeholderColor}`}
+              style={{
+                width: `${Math.max(amountDisplay.length, 1) + 0.3}ch`,
+                maxWidth: "65vw",
+              }}
+              className={`min-w-0 border-none bg-transparent p-0 text-left text-4xl sm:text-5xl font-black tabular-nums outline-none focus:outline-none focus:ring-0 transition-colors duration-200 ${cfg.amountColor} ${cfg.placeholderColor}`}
               required
             />
           </div>
-        </div>
 
-        {/* ── 3. Detail ── */}
-        <div className="space-y-4">
-          {isTransfer ? (
-            <>
-              {dateField}
-              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
-                <Field label="Dari dompet" htmlFor="new-wallet">
+          {/* Quick Amount Stepper Chips */}
+          <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
+            <div className="flex items-center gap-1.5 min-w-0">
+              {QUICK_AMOUNTS.map((preset) => (
+                <button
+                  key={preset.label}
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleAddAmount(preset.value);
+                  }}
+                  className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
+                  style={{ minHeight: "32px" }}
+                >
+                  {preset.label}
+                </button>
+              ))}
+            </div>
+            {hasAmount && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  handleClearAmount();
+                }}
+                className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 px-2 py-1 rounded-md transition-colors"
+                style={{ minHeight: "32px" }}
+              >
+                <RotateCcw size={12} />
+                <span>Reset</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* ── CARD 2: DETAIL TRANSAKSI ── */}
+      <div
+        className="rounded-2xl border p-4 sm:p-6 shadow-sm space-y-4"
+        style={{
+          backgroundColor: "var(--lk-surface)",
+          borderColor: "var(--lk-border)",
+        }}
+      >
+        <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--lk-text-faint)" }}>
+          Detail Transaksi
+        </h3>
+
+        {/* Transfer vs Non-Transfer Wallet & Date */}
+        {isTransfer ? (
+          <div className="space-y-4">
+            <div
+              className="rounded-xl border p-3.5 space-y-3"
+              style={{
+                backgroundColor: "var(--lk-surface-raised)",
+                borderColor: "var(--lk-border)",
+              }}
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                  <ArrowLeftRight size={13} />
+                  <span>Arah Pemindahan Saldo</span>
+                </span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                <Field label="Dari Dompet (Sumber)" htmlFor="new-wallet">
                   <FilterSelect
                     id="new-wallet"
                     variant="field"
                     label="Dari dompet"
                     value={walletId}
                     options={walletOptions}
-                    placeholder="Pilih dompet"
+                    placeholder="Pilih dompet asal"
                     onChange={setWalletId}
                   />
                 </Field>
-                <Field label="Ke dompet" htmlFor="new-destination">
+                <Field label="Ke Dompet (Tujuan)" htmlFor="new-destination">
                   <FilterSelect
                     id="new-destination"
                     variant="field"
                     label="Ke dompet"
                     value={effectiveDestination}
                     options={destinationOptions}
-                    placeholder="Pilih dompet"
+                    placeholder="Pilih dompet tujuan"
                     onChange={setDestinationWalletId}
                   />
                 </Field>
               </div>
-            </>
-          ) : (
-            <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
-              {dateField}
-              <Field label="Dompet" htmlFor="new-wallet">
-                <FilterSelect
-                  id="new-wallet"
-                  variant="field"
-                  label="Dompet"
-                  value={walletId}
-                  options={walletOptions}
-                  placeholder="Pilih dompet"
-                  onChange={setWalletId}
-                />
-              </Field>
             </div>
-          )}
 
-          {needsCategory && (
+            {/* Tanggal untuk transfer */}
             <div>
-              <Field label="Kategori" htmlFor="new-category">
-                <FilterSelect
-                  id="new-category"
-                  variant="field"
-                  label="Kategori"
-                  value={categoryId}
-                  options={categoryOptions}
-                  placeholder="Pilih kategori"
-                  searchable
-                  onChange={setCategoryId}
-                />
-              </Field>
-              {recentCategoryChips.length > 0 && (
-                <div className="category-chips mt-2 flex flex-wrap gap-1.5">
-                  {recentCategoryChips.map((c) => (
-                    <button
-                      key={c.id}
-                      type="button"
-                      onClick={() => setCategoryId(c.id)}
-                      className={`rounded-full border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                        categoryId === c.id
-                          ? cfg.chipSelected
-                          : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-900/30 dark:text-slate-300"
-                      }`}
-                    >
-                      {c.name}
-                    </button>
-                  ))}
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="new-date" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+                  Tanggal Transaksi
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setDateOffset(0)}
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                  >
+                    Hari ini
+                  </button>
+                  <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                  <button
+                    type="button"
+                    onClick={() => setDateOffset(1)}
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Kemarin
+                  </button>
                 </div>
-              )}
+              </div>
+              <DateInput
+                name="transaction_date"
+                value={transactionDate}
+                onChange={(e) => setTransactionDate(e.target.value)}
+                className="input-base w-full"
+                required
+              />
             </div>
-          )}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+            <div>
+              <div className="mb-1.5 flex items-center justify-between">
+                <label htmlFor="new-date" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+                  Tanggal Transaksi
+                </label>
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    onClick={() => setDateOffset(0)}
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                  >
+                    Hari ini
+                  </button>
+                  <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                  <button
+                    type="button"
+                    onClick={() => setDateOffset(1)}
+                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                  >
+                    Kemarin
+                  </button>
+                </div>
+              </div>
+              <DateInput
+                name="transaction_date"
+                value={transactionDate}
+                onChange={(e) => setTransactionDate(e.target.value)}
+                className="input-base w-full"
+                required
+              />
+            </div>
 
+            <Field label="Dompet Sumber" htmlFor="new-wallet">
+              <FilterSelect
+                id="new-wallet"
+                variant="field"
+                label="Dompet"
+                value={walletId}
+                options={walletOptions}
+                placeholder="Pilih dompet"
+                onChange={setWalletId}
+              />
+            </Field>
+          </div>
+        )}
+
+        {/* Kategori Section (Non-Transfer) */}
+        {needsCategory && (
+          <div className="pt-1 space-y-2.5">
+            <Field label="Kategori" htmlFor="new-category">
+              <FilterSelect
+                id="new-category"
+                variant="field"
+                label="Kategori"
+                value={categoryId}
+                options={categoryOptions}
+                placeholder="Pilih kategori"
+                searchable
+                onChange={setCategoryId}
+              />
+            </Field>
+
+            {/* Quick Category Chips with Icons */}
+            {recentCategoryChips.length > 0 && (
+              <div className="pt-1">
+                <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--lk-text-faint)" }}>
+                  Sering dipakai:
+                </p>
+                <div className="flex flex-wrap gap-1.5">
+                  {recentCategoryChips.map((c) => {
+                    const visuals = getCategoryVisuals(c.name, type);
+                    const isSelected = categoryId === c.id;
+                    return (
+                      <button
+                        key={c.id}
+                        type="button"
+                        onClick={() => setCategoryId(c.id)}
+                        className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 border ${
+                          isSelected
+                            ? `${cfg.chipSelected} shadow-xs font-bold ring-2 ring-current/20`
+                            : "border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/80"
+                        }`}
+                        style={{ minHeight: "34px" }}
+                      >
+                        <span className="scale-90 shrink-0">{visuals.icon}</span>
+                        <span>{c.name}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Catatan / Keterangan */}
+        <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60">
           {showNote ? (
             <Field
-              label="Catatan (opsional)"
+              label="Catatan (Opsional)"
               htmlFor="new-note"
               hint={
                 <span
@@ -396,49 +586,62 @@ export default function TransactionForm({
                 ref={noteRef}
                 name="note"
                 rows={2}
-                placeholder="Contoh: makan siang, tiket bioskop"
+                placeholder="Contoh: makan siang nasi padang, bensin, tiket bioskop..."
                 maxLength={NOTE_MAX_LENGTH}
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
-                className="input-base textarea-base w-full resize-none text-base"
+                className="input-base textarea-base w-full resize-none text-sm sm:text-base leading-relaxed"
               />
             </Field>
           ) : (
-            <>
+            <div className="flex items-center justify-between">
               <input type="hidden" name="note" value="" />
               <button
                 type="button"
                 onClick={() => {
                   setShowNote(true);
-                  // Fokus hanya saat user sendiri yang membuka catatan
                   requestAnimationFrame(() => noteRef.current?.focus());
                 }}
-                className="inline-flex items-center gap-1.5 text-sm font-semibold"
+                className="inline-flex items-center gap-2 text-xs sm:text-sm font-semibold transition-colors"
                 style={{ color: "var(--lk-primary)" }}
               >
-                <Plus size={14} />
-                Tambah catatan
+                <div
+                  className="flex h-6 w-6 items-center justify-center rounded-lg"
+                  style={{ backgroundColor: "var(--lk-primary-dim)" }}
+                >
+                  <Plus size={14} />
+                </div>
+                <span>Tambah Catatan Keterangan</span>
               </button>
-            </>
+            </div>
           )}
         </div>
+      </div>
 
-        {/* ── 4. Simpan: menempel di atas bottom nav saat scroll di mobile ── */}
-        <div
-          className="sticky bottom-24 z-20 -mx-4 border-t px-4 pb-3 pt-3 backdrop-blur sm:-mx-5 sm:px-5 lg:static lg:mx-0 lg:border-t-0 lg:px-0 lg:pb-0"
-          style={{
-            borderColor: "var(--lk-border)",
-            background: "color-mix(in srgb, var(--lk-surface) 92%, transparent)",
-          }}
+      {/* ── SUBMIT ACTION BUTTON ── */}
+      <div className="pt-1">
+        <SubmitButton
+          className={`w-full rounded-2xl py-3.5 px-4 text-sm sm:text-base font-bold shadow-md transition-all duration-200 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.99] disabled:pointer-events-none disabled:bg-[color:var(--lk-surface-raised)] disabled:text-[color:var(--lk-text-faint)] disabled:shadow-none ${cfg.submitClass}`}
+          disabled={!canSubmit}
+          pendingText="Menyimpan transaksi..."
         >
-          <SubmitButton
-            className={`w-full rounded-xl py-3 text-base font-bold text-white shadow-md transition-all duration-200 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:bg-[color:var(--lk-surface-raised)] disabled:text-[color:var(--lk-text-faint)] disabled:shadow-none ${cfg.submitClass}`}
-            disabled={!canSubmit}
-            pendingText="Menyimpan..."
-          >
-            {submitLabel}
-          </SubmitButton>
-        </div>
+          {canSubmit ? (
+            <span className="flex items-center justify-center gap-2">
+              <span>
+                {type === "expense"
+                  ? "Catat Pengeluaran"
+                  : type === "income"
+                  ? "Catat Pemasukan"
+                  : "Kirim Transfer"}
+              </span>
+              <span className="font-mono text-xs sm:text-sm opacity-90 font-medium">
+                ({cfg.prefix}Rp {amountDisplay})
+              </span>
+            </span>
+          ) : (
+            submitLabel
+          )}
+        </SubmitButton>
       </div>
     </form>
   );

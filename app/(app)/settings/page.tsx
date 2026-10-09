@@ -4,15 +4,12 @@ import PwaInstallCard from "@/components/pwa/pwa-install-card";
 import AppearanceCard from "@/components/settings/appearance-card";
 import PreferencesCard from "@/components/settings/preferences-card";
 import RecalculateRolloverCard from "@/components/settings/recalculate-rollover-card";
-import { Settings, Sparkles, ChevronRight } from "lucide-react";
+import { Settings, ChevronLeft } from "lucide-react";
 import { requireUser } from "@/lib/supabase/auth";
-import EditProfileModal from "@/components/more/edit-profile-modal";
 
 export default async function SettingsPage() {
-  const { user } = await requireUser();
-  const email = user.email || "pengguna@example.com";
-  const fullName = user.user_metadata?.full_name || user.user_metadata?.name || email.split("@")[0];
-  const initial = fullName.charAt(0).toUpperCase();
+  await requireUser();
+
   return (
     <AppShell
       className="bg-[var(--lk-bg)]"
@@ -20,72 +17,104 @@ export default async function SettingsPage() {
       maxWidth="4xl"
       eyebrow="Preferensi Aplikasi"
       heroIcon={<Settings size={19} strokeWidth={2.2} />}
-      title="Profil & Pengaturan"
-      description="Kelola profil, preferensi tampilan, dan data keuangan kamu."
+      title="Pengaturan Lanjutan"
+      description="Preferensi privasi saldo, mata uang, dan sinkronisasi data."
     >
-      <div>
-        <section className="mb-6 hidden rounded-2xl border p-5 lg:block" style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}>
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-teal-600 text-xl font-bold text-white">{initial}</div>
-            <div className="min-w-0 flex-1">
-              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "var(--lk-text-muted)" }}>Profil akun</p>
-              <h2 className="truncate text-lg font-bold" style={{ color: "var(--lk-text)" }}>{fullName}</h2>
-              <p className="truncate text-sm" style={{ color: "var(--lk-text-muted)" }}>{email}</p>
-            </div>
-            <EditProfileModal currentName={fullName} email={user.email || ""} emailVerified={Boolean(user.email_confirmed_at)} joinedAt={user.created_at} />
+      <div className="mx-auto max-w-lg space-y-5 pb-12">
+        {/* Navigation back to Akun Saya */}
+        <div>
+          <Link
+            href="/more"
+            className="inline-flex items-center gap-1.5 text-xs font-semibold text-[var(--lk-text-muted)] hover:text-[var(--lk-text)] transition-colors py-1 px-2.5 rounded-lg hover:bg-[var(--lk-surface-raised)]"
+          >
+            <ChevronLeft size={16} />
+            <span>Kembali ke Akun Saya</span>
+          </Link>
+        </div>
+
+        {/* Section 1: Privasi Saldo */}
+        <section>
+          <p
+            style={{
+              marginBottom: "0.4rem",
+              paddingLeft: "0.25rem",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--lk-text-faint)",
+            }}
+          >
+            Privasi
+          </p>
+          <div
+            style={{
+              borderRadius: "1rem",
+              border: "1px solid var(--lk-border)",
+              background: "var(--lk-surface)",
+              overflow: "hidden",
+            }}
+          >
+            <AppearanceCard flat />
           </div>
         </section>
 
-        {/* Kanvas Tunggal Besar */}
-        <div className="overflow-hidden rounded-2xl shadow-xs" style={{ backgroundColor: "var(--lk-surface)", border: "1px solid var(--lk-border)" }}>
-          
-          <div className="p-5 sm:p-6" style={{ borderBottom: "1px solid var(--lk-border)" }}>
-            <h3 className="mb-4 text-[13px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
-              Tampilan
-            </h3>
-            <AppearanceCard flat />
-          </div>
-
-          <div className="p-5 sm:p-6" style={{ borderBottom: "1px solid var(--lk-border)" }}>
-            <h3 className="mb-4 text-[13px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
-              Mata uang
-            </h3>
+        {/* Section 2: Mata Uang */}
+        <section>
+          <p
+            style={{
+              marginBottom: "0.4rem",
+              paddingLeft: "0.25rem",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--lk-text-faint)",
+            }}
+          >
+            Mata Uang & Konversi
+          </p>
+          <div
+            style={{
+              borderRadius: "1rem",
+              border: "1px solid var(--lk-border)",
+              background: "var(--lk-surface)",
+              overflow: "hidden",
+            }}
+          >
             <PreferencesCard flat />
           </div>
+        </section>
 
-          <div className="p-5 sm:p-6" style={{ borderBottom: "1px solid var(--lk-border)" }}>
-            <h3 className="mb-4 text-[13px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
-              Template Transaksi
-            </h3>
-            <Link
-              href="/settings/templates"
-              className="flex items-center justify-between rounded-xl p-4 transition-colors hover:bg-slate-50 dark:hover:bg-slate-800/60"
-              style={{ border: "1px solid var(--lk-border)" }}
-            >
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-purple-500/10 text-purple-600 dark:text-purple-400">
-                  <Sparkles size={20} />
-                </div>
-                <div>
-                  <p className="text-sm font-semibold text-slate-900 dark:text-slate-100">Quick Add Templates</p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">Kelola pintasan transaksi cepat favoritmu</p>
-                </div>
-              </div>
-              <ChevronRight size={18} className="text-slate-400" />
-            </Link>
-          </div>
-
-          <div className="p-5 sm:p-6">
-            <h3 className="mb-4 text-[13px] font-bold tracking-wider uppercase text-slate-500 dark:text-slate-400">
-              Data & Sinkronisasi
-            </h3>
+        {/* Section 3: Data & Sinkronisasi */}
+        <section>
+          <p
+            style={{
+              marginBottom: "0.4rem",
+              paddingLeft: "0.25rem",
+              fontSize: "0.68rem",
+              fontWeight: 700,
+              letterSpacing: "0.08em",
+              textTransform: "uppercase",
+              color: "var(--lk-text-faint)",
+            }}
+          >
+            Data & Sinkronisasi
+          </p>
+          <div
+            style={{
+              borderRadius: "1rem",
+              border: "1px solid var(--lk-border)",
+              background: "var(--lk-surface)",
+              overflow: "hidden",
+            }}
+          >
             <RecalculateRolloverCard flat />
           </div>
+        </section>
 
-        </div>
-
-        {/* PWA Card (Hanya untuk mobile, disembunyikan di desktop) */}
-        <div className="mt-6 px-1 lg:hidden">
+        {/* Section 4: PWA Card */}
+        <div className="pt-1">
           <PwaInstallCard />
         </div>
       </div>

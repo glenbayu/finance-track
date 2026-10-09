@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { validateEmail } from "@/lib/auth/email-validator";
 import SubmitButton from "@/components/ui/submit-button";
+import BrandLogo from "@/components/ui/brand-logo";
 
 type SignupPageProps = {
   searchParams?: Promise<{
@@ -51,17 +52,14 @@ export default async function SignupPage({ searchParams }: SignupPageProps) {
 
   return (
     <main
-      className="flex min-h-screen items-center justify-center p-4"
+      className="flex min-h-screen min-h-svh min-h-dvh items-center justify-center p-4"
       style={{ backgroundColor: "var(--lk-bg)" }}
     >
       <div className="w-full max-w-[380px]">
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div
-            className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-lg"
-            style={{ backgroundColor: "var(--lk-primary)" }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" x2="19" y1="8" y2="14"/><line x1="22" x2="16" y1="11" y2="11"/></svg>
+          <div className="mx-auto mb-4 flex justify-center">
+            <BrandLogo size={52} className="rounded-2xl shadow-lg shadow-emerald-950/40" />
           </div>
           <h1 className="text-xl font-bold" style={{ color: "var(--lk-text)" }}>Daftar Akun Baru</h1>
           <p className="mt-1 text-sm" style={{ color: "var(--lk-text-muted)" }}>

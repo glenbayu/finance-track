@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import {
@@ -9,12 +9,14 @@ import {
   ArrowLeftRight,
   Copy,
   Settings2,
+  RotateCcw,
 } from "lucide-react";
 import { TransactionReturnLink } from "@/components/transactions/transaction-list-context";
 import FilterSelect from "@/components/transactions/filter-select";
 import DateInput from "@/components/ui/date-input";
 import SubmitButton from "@/components/ui/submit-button";
 import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
+import { getCategoryVisuals } from "@/lib/utils/icons";
 
 type Category = {
   id: string;
@@ -55,7 +57,65 @@ function formatRupiahInput(value: string) {
   return (value.startsWith("-") ? "-" : "") + new Intl.NumberFormat("id-ID").format(Number(numeric));
 }
 
-/* Label + isi field. Didefinisikan di luar komponen utama supaya tidak di-remount tiap render. */
+const TYPE_CONFIG = {
+  expense: {
+    label: "Pengeluaran",
+    Icon: ArrowDownLeft,
+    badge: "bg-rose-50 text-rose-700 dark:bg-rose-950/50 dark:text-rose-300 border border-rose-200/60 dark:border-rose-800/40",
+    capsule: "bg-rose-600 dark:bg-rose-600 text-white shadow-sm",
+    amountColor: "text-rose-600 dark:text-rose-400",
+    placeholderColor: "placeholder:text-rose-300/40 dark:placeholder:text-rose-800/30",
+    prefix: "-",
+    submitClass: "bg-rose-600 hover:bg-rose-700 active:bg-rose-800 text-white shadow-rose-600/20",
+    chipSelected:
+      "border-rose-400 bg-rose-50 text-rose-700 dark:border-rose-700 dark:bg-rose-950/50 dark:text-rose-300",
+  },
+  income: {
+    label: "Pemasukan",
+    Icon: ArrowUpRight,
+    badge: "bg-emerald-50 text-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300 border border-emerald-200/60 dark:border-emerald-800/40",
+    capsule: "bg-emerald-600 dark:bg-emerald-600 text-white shadow-sm",
+    amountColor: "text-emerald-600 dark:text-emerald-400",
+    placeholderColor: "placeholder:text-emerald-300/40 dark:placeholder:text-emerald-800/30",
+    prefix: "+",
+    submitClass: "bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white shadow-emerald-600/20",
+    chipSelected:
+      "border-emerald-400 bg-emerald-50 text-emerald-700 dark:border-emerald-700 dark:bg-emerald-950/50 dark:text-emerald-300",
+  },
+  transfer: {
+    label: "Transfer",
+    Icon: ArrowLeftRight,
+    badge: "bg-blue-50 text-blue-700 dark:bg-blue-950/50 dark:text-blue-300 border border-blue-200/60 dark:border-blue-800/40",
+    capsule: "bg-blue-600 dark:bg-blue-600 text-white shadow-sm",
+    amountColor: "text-blue-600 dark:text-blue-400",
+    placeholderColor: "placeholder:text-blue-300/40 dark:placeholder:text-blue-800/30",
+    prefix: "⇄",
+    submitClass: "bg-blue-600 hover:bg-blue-700 active:bg-blue-800 text-white shadow-blue-500/20",
+    chipSelected:
+      "border-blue-400 bg-blue-50 text-blue-700 dark:border-blue-700 dark:bg-blue-950/50 dark:text-blue-300",
+  },
+  adjustment: {
+    label: "Penyesuaian",
+    Icon: Settings2,
+    badge: "bg-amber-50 text-amber-700 dark:bg-amber-950/50 dark:text-amber-300 border border-amber-200/60 dark:border-amber-800/40",
+    capsule: "bg-amber-600 dark:bg-amber-600 text-white shadow-sm",
+    amountColor: "text-amber-600 dark:text-amber-400",
+    placeholderColor: "placeholder:text-amber-300/40 dark:placeholder:text-amber-800/30",
+    prefix: "±",
+    submitClass: "bg-amber-600 hover:bg-amber-700 active:bg-amber-800 text-white shadow-amber-600/20",
+    chipSelected:
+      "border-amber-400 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-950/50 dark:text-amber-300",
+  },
+} as const;
+
+const QUICK_AMOUNTS = [
+  { label: "+10rb", value: 10000 },
+  { label: "+20rb", value: 20000 },
+  { label: "+50rb", value: 50000 },
+  { label: "+100rb", value: 100000 },
+  { label: "+500rb", value: 500000 },
+];
+
 function Field({
   label,
   htmlFor,
@@ -102,14 +162,18 @@ export default function TransactionEditForm({
     transaction.destination_wallet_id ?? "",
   );
   const [amountDisplay, setAmountDisplay] = useState(
-    formatRupiahInput(transaction.amount.toString()),
+    formatRupiahInput(Math.abs(transaction.amount).toString()),
   );
+  const [transactionDate, setTransactionDate] = useState(transaction.transaction_date);
   const [noteText, setNoteText] = useState(transaction.note ?? "");
+  const amountInputRef = useRef<HTMLInputElement | null>(null);
 
   const isTransfer = type === "transfer";
   const isAdjustment = type === "adjustment";
   const needsCategory = !isTransfer && !isAdjustment;
   const isNegativeAdjustment = isAdjustment && transaction.amount < 0;
+
+  const cfg = TYPE_CONFIG[type];
 
   const filteredCategories = useMemo(
     () => categories.filter((c) => c.type === type),
@@ -126,7 +190,6 @@ export default function TransactionEditForm({
     [wallets],
   );
 
-  // Dompet tujuan tidak boleh sama dengan dompet asal
   const destinationOptions = useMemo(
     () => wallets.filter((w) => w.id !== walletId).map((w) => ({ value: w.id, label: w.name })),
     [wallets, walletId],
@@ -137,7 +200,7 @@ export default function TransactionEditForm({
       ? destinationWalletId
       : (destinationOptions[0]?.value ?? "");
 
-  /* ─── Validasi ringan di sisi client (server tetap memvalidasi ulang) ─── */
+  /* ─── Validasi ringan di sisi client ─── */
   const amountDigits = amountDisplay.replace(isAdjustment ? /[^\d-]/g : /\D/g, "");
   const amountValue = Number(amountDigits);
   const hasAmount = Number.isFinite(amountValue) && amountValue > 0;
@@ -150,68 +213,60 @@ export default function TransactionEditForm({
     else if (isTransfer && !effectiveDestination) missingHint = "Pilih dompet tujuan dulu";
   }
   const canSubmit = !isNegativeAdjustment && !missingHint;
-  // Alasan kenapa tombol belum aktif ditampilkan langsung di tombolnya (tanpa baris tambahan)
-  const submitLabel = missingHint ?? "Simpan perubahan";
+  const submitLabel = missingHint ?? "Simpan Perubahan";
 
-  /* ─── Accent helpers ─── */
-  const accentText =
-    type === "expense"
-      ? "text-rose-600 dark:text-rose-400"
-      : type === "income"
-        ? "text-emerald-600 dark:text-emerald-400"
-        : "text-blue-600 dark:text-blue-400";
+  const setDateOffset = (daysAgo: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    setTransactionDate(`${yyyy}-${mm}-${dd}`);
+  };
 
-  const accentPlaceholder =
-    type === "expense"
-      ? "placeholder:text-rose-300/40 dark:placeholder:text-rose-700/20"
-      : type === "income"
-        ? "placeholder:text-emerald-300/40 dark:placeholder:text-emerald-700/20"
-        : "placeholder:text-blue-300/40 dark:placeholder:text-blue-700/20";
+  const handleAddAmount = (addVal: number) => {
+    const current = Number(amountDisplay.replace(/\D/g, "")) || 0;
+    const next = current + addVal;
+    setAmountDisplay(formatRupiahInput(String(next)));
+  };
 
-  const submitCls =
-    type === "expense"
-      ? "bg-rose-600 hover:bg-rose-700 focus-visible:ring-rose-500"
-      : type === "income"
-        ? "bg-emerald-700 hover:bg-emerald-800 focus-visible:ring-emerald-500"
-        : "bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500";
-
-  const capsuleColor =
-    type === "expense"
-      ? "bg-rose-700"
-      : type === "income"
-        ? "bg-emerald-700"
-        : "bg-blue-500";
-
-  const dateField = (
-    <Field label="Tanggal">
-      <DateInput
-        name="transaction_date"
-        defaultValue={transaction.transaction_date}
-        className="input-base w-full"
-        required
-      />
-    </Field>
-  );
+  const handleClearAmount = () => {
+    setAmountDisplay("");
+    amountInputRef.current?.focus();
+  };
 
   return (
-    <div className="mt-4 space-y-3 pb-24 lg:pb-0">
-      <div className="section-card p-4 sm:p-5">
-        <form action={action} className="transaction-entry space-y-5">
-          <input type="hidden" name="id" value={transaction.id} />
-          <input type="hidden" name="type" value={type} />
-          <input type="hidden" name="wallet_id" value={walletId} />
-          {isTransfer && (
-            <input type="hidden" name="destination_wallet_id" value={effectiveDestination} />
-          )}
-          {needsCategory && <input type="hidden" name="category_id" value={categoryId} />}
-          <input type="hidden" name="amount" value={amountDigits} />
+    <div className="mt-4 space-y-4 pb-20 lg:pb-0">
+      <form action={action} className="transaction-entry space-y-4">
+        <input type="hidden" name="id" value={transaction.id} />
+        <input type="hidden" name="type" value={type} />
+        <input type="hidden" name="wallet_id" value={walletId} />
+        {isTransfer && (
+          <input type="hidden" name="destination_wallet_id" value={effectiveDestination} />
+        )}
+        {needsCategory && <input type="hidden" name="category_id" value={categoryId} />}
+        <input type="hidden" name="amount" value={amountDigits} />
 
-          {/* ── 1. Jenis transaksi ── */}
+        {/* ── CARD 1: HERO AMOUNT & TYPE SWITCHER ── */}
+        <div
+          className="rounded-2xl border p-4 sm:p-6 shadow-sm transition-all"
+          style={{
+            backgroundColor: "var(--lk-surface)",
+            borderColor: "var(--lk-border)",
+          }}
+        >
+          {/* Segmented Type Switcher */}
           {!isAdjustment ? (
-            <div className="relative rounded-2xl bg-slate-100/80 p-1 ring-1 ring-black/5 dark:bg-slate-800/70 dark:ring-white/5">
+            <div
+              className="relative rounded-2xl p-1 border transition-colors mb-5"
+              style={{
+                backgroundColor: "var(--lk-surface-raised)",
+                borderColor: "var(--lk-border)",
+              }}
+            >
               <div
                 aria-hidden="true"
-                className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(33.333%-2px)] rounded-xl shadow-sm ${capsuleColor} transition-transform duration-300 ease-out`}
+                className={`pointer-events-none absolute inset-y-1 left-1 w-[calc(33.333%-2px)] rounded-xl ${cfg.capsule} transition-transform duration-200 ease-out`}
                 style={{
                   transform:
                     type === "expense"
@@ -228,54 +283,67 @@ export default function TransactionEditForm({
                     { id: "income", label: "Pemasukan", Icon: ArrowUpRight },
                     { id: "transfer", label: "Transfer", Icon: ArrowLeftRight },
                   ] as const
-                ).map(({ id, label, Icon }) => (
-                  <button
-                    key={id}
-                    type="button"
-                    aria-pressed={type === id}
-                    onClick={() => {
-                      const hasMatchingCat = categories.some(
-                        (item) => item.type === id && item.id === categoryId,
-                      );
-                      setType(id);
-                      if (!hasMatchingCat) setCategoryId("");
-                    }}
-                    className={`relative z-10 flex items-center justify-center gap-1 rounded-xl py-2 text-[11px] font-semibold transition-colors duration-200 sm:gap-1.5 sm:text-sm ${
-                      type === id
-                        ? "text-white"
-                        : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
-                    }`}
-                  >
-                    <Icon size={14} className="hidden shrink-0 sm:block sm:size-4" />
-                    <span className="truncate">{label}</span>
-                  </button>
-                ))}
+                ).map(({ id, label, Icon }) => {
+                  const isSelected = type === id;
+                  return (
+                    <button
+                      key={id}
+                      type="button"
+                      aria-pressed={isSelected}
+                      onClick={() => {
+                        const hasMatchingCat = categories.some(
+                          (item) => item.type === id && item.id === categoryId,
+                        );
+                        setType(id);
+                        if (!hasMatchingCat) setCategoryId("");
+                      }}
+                      className={`relative z-10 flex items-center justify-center gap-1.5 rounded-xl py-2.5 text-xs sm:text-sm font-semibold transition-colors duration-150 ${
+                        isSelected
+                          ? "text-white font-bold"
+                          : "text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200"
+                      }`}
+                    >
+                      <Icon size={15} className="shrink-0" />
+                      <span className="truncate">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
           ) : (
-            <div className="flex items-center gap-3 rounded-2xl bg-slate-100/80 px-4 py-3 ring-1 ring-black/5 dark:bg-slate-800/60 dark:ring-white/5">
-              <Settings2 size={18} className="text-slate-500" />
-              <span className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-                Penyesuaian saldo · tipe tetap
+            <div className="flex items-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 px-4 py-3 mb-5">
+              <Settings2 size={18} className="text-amber-600 dark:text-amber-400" />
+              <span className="text-sm font-semibold text-amber-700 dark:text-amber-300">
+                Penyesuaian saldo · tipe transaksi tidak dapat diubah
               </span>
             </div>
           )}
 
-          {/* ── 2. Nominal ── */}
-          <div className="flex flex-col items-center justify-center py-1">
-            <label
-              htmlFor="edit-amount"
-              className="mb-1 text-xs font-semibold"
-              style={{ color: "var(--lk-text-muted)" }}
-            >
-              Nominal
-            </label>
-            <div className="flex max-w-full items-baseline justify-center gap-1.5 px-4">
-              <span className={`text-xl font-extrabold ${accentText} transition-colors duration-300`}>
-                Rp
+          {/* Amount Box */}
+          <div
+            className="rounded-2xl border p-4 sm:p-5 transition-all text-center"
+            style={{
+              backgroundColor: "var(--lk-surface-raised)",
+              borderColor: "var(--lk-border)",
+            }}
+            onClick={() => !isNegativeAdjustment && amountInputRef.current?.focus()}
+          >
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                Nominal Transaksi
+              </span>
+              <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${cfg.badge}`}>
+                {cfg.label}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-center gap-1.5 py-2 cursor-text overflow-hidden">
+              <span className={`text-2xl sm:text-3xl font-extrabold ${cfg.amountColor} select-none shrink-0`}>
+                {cfg.prefix} Rp
               </span>
               <input
                 id="edit-amount"
+                ref={amountInputRef}
                 type="text"
                 inputMode="numeric"
                 readOnly={isNegativeAdjustment}
@@ -285,69 +353,198 @@ export default function TransactionEditForm({
                   const raw = e.target.value.replace(/\D/g, "");
                   setAmountDisplay(formatRupiahInput(raw));
                 }}
-                // Lebar mengikuti jumlah digit supaya angka besar tidak terpotong
-                style={{ width: `${Math.max(amountDisplay.length, 1) + 0.5}ch`, maxWidth: "70vw" }}
-                className={`min-w-0 border-none bg-transparent p-0 text-left text-4xl font-extrabold tabular-nums outline-none focus:ring-0 ${accentText} ${accentPlaceholder} transition-colors duration-300`}
+                style={{
+                  width: `${Math.max(amountDisplay.length, 1) + 0.3}ch`,
+                  maxWidth: "65vw",
+                }}
+                className={`min-w-0 border-none bg-transparent p-0 text-left text-4xl sm:text-5xl font-black tabular-nums outline-none focus:outline-none focus:ring-0 transition-colors duration-200 ${cfg.amountColor} ${cfg.placeholderColor}`}
                 required
               />
             </div>
+
+            {/* Quick Amount Steppers (if not negative adjustment) */}
+            {!isNegativeAdjustment && (
+              <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
+                <div className="flex items-center gap-1.5 min-w-0">
+                  {QUICK_AMOUNTS.map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleAddAmount(preset.value);
+                      }}
+                      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
+                      style={{ minHeight: "32px" }}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+                {hasAmount && (
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClearAmount();
+                    }}
+                    className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 px-2 py-1 rounded-md transition-colors"
+                    style={{ minHeight: "32px" }}
+                  >
+                    <RotateCcw size={12} />
+                    <span>Reset</span>
+                  </button>
+                )}
+              </div>
+            )}
           </div>
 
           {isNegativeAdjustment && (
-            <p className="ui-alert">
-              Transaksi koreksi negatif belum dapat disimpan melalui formulir ini. Tanda minus
-              dipertahankan. Gunakan Koreksi Saldo di halaman Dompet untuk penyesuaian baru.
+            <p className="ui-alert mt-4">
+              Transaksi koreksi negatif belum dapat diubah nominalnya melalui formulir ini.
             </p>
           )}
+        </div>
 
-          {/* ── 3. Detail ── */}
-          <div className="space-y-4">
-            {isTransfer ? (
-              <>
-                {dateField}
-                <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
-                  <Field label="Dari dompet" htmlFor="edit-wallet">
+        {/* ── CARD 2: DETAIL TRANSAKSI ── */}
+        <div
+          className="rounded-2xl border p-4 sm:p-6 shadow-sm space-y-4"
+          style={{
+            backgroundColor: "var(--lk-surface)",
+            borderColor: "var(--lk-border)",
+          }}
+        >
+          <h3 className="text-xs font-bold uppercase tracking-wider" style={{ color: "var(--lk-text-faint)" }}>
+            Detail Transaksi
+          </h3>
+
+          {/* Transfer vs Regular Flow */}
+          {isTransfer ? (
+            <div className="space-y-4">
+              <div
+                className="rounded-xl border p-3.5 space-y-3"
+                style={{
+                  backgroundColor: "var(--lk-surface-raised)",
+                  borderColor: "var(--lk-border)",
+                }}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 flex items-center gap-1.5">
+                    <ArrowLeftRight size={13} />
+                    <span>Arah Pemindahan Saldo</span>
+                  </span>
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                  <Field label="Dari Dompet (Sumber)" htmlFor="edit-wallet">
                     <FilterSelect
                       id="edit-wallet"
                       variant="field"
                       label="Dari dompet"
                       value={walletId}
                       options={walletOptions}
-                      placeholder="Pilih dompet"
+                      placeholder="Pilih dompet asal"
                       onChange={setWalletId}
                     />
                   </Field>
-                  <Field label="Ke dompet" htmlFor="edit-destination">
+                  <Field label="Ke Dompet (Tujuan)" htmlFor="edit-destination">
                     <FilterSelect
                       id="edit-destination"
                       variant="field"
                       label="Ke dompet"
                       value={effectiveDestination}
                       options={destinationOptions}
-                      placeholder="Pilih dompet"
+                      placeholder="Pilih dompet tujuan"
                       onChange={setDestinationWalletId}
                     />
                   </Field>
                 </div>
-              </>
-            ) : (
-              <div className="grid grid-cols-1 gap-3 min-[380px]:grid-cols-2">
-                {dateField}
-                <Field label="Dompet" htmlFor="edit-wallet">
-                  <FilterSelect
-                    id="edit-wallet"
-                    variant="field"
-                    label="Dompet"
-                    value={walletId}
-                    options={walletOptions}
-                    placeholder="Pilih dompet"
-                    onChange={setWalletId}
-                  />
-                </Field>
               </div>
-            )}
 
-            {needsCategory && (
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label htmlFor="edit-date" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+                    Tanggal Transaksi
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setDateOffset(0)}
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                    >
+                      Hari ini
+                    </button>
+                    <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                    <button
+                      type="button"
+                      onClick={() => setDateOffset(1)}
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Kemarin
+                    </button>
+                  </div>
+                </div>
+                <DateInput
+                  id="edit-date"
+                  name="transaction_date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  className="input-base w-full"
+                  required
+                />
+              </div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+              <div>
+                <div className="mb-1.5 flex items-center justify-between">
+                  <label htmlFor="edit-date" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
+                    Tanggal Transaksi
+                  </label>
+                  <div className="flex items-center gap-1">
+                    <button
+                      type="button"
+                      onClick={() => setDateOffset(0)}
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                    >
+                      Hari ini
+                    </button>
+                    <span className="text-slate-300 dark:text-slate-700 text-xs">·</span>
+                    <button
+                      type="button"
+                      onClick={() => setDateOffset(1)}
+                      className="text-[11px] font-semibold px-2 py-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    >
+                      Kemarin
+                    </button>
+                  </div>
+                </div>
+                <DateInput
+                  id="edit-date"
+                  name="transaction_date"
+                  value={transactionDate}
+                  onChange={(e) => setTransactionDate(e.target.value)}
+                  className="input-base w-full"
+                  required
+                />
+              </div>
+
+              <Field label="Dompet" htmlFor="edit-wallet">
+                <FilterSelect
+                  id="edit-wallet"
+                  variant="field"
+                  label="Dompet"
+                  value={walletId}
+                  options={walletOptions}
+                  placeholder="Pilih dompet"
+                  onChange={setWalletId}
+                />
+              </Field>
+            </div>
+          )}
+
+          {/* Kategori */}
+          {needsCategory && (
+            <div className="pt-1 space-y-2.5">
               <Field label="Kategori" htmlFor="edit-category">
                 <FilterSelect
                   id="edit-category"
@@ -360,10 +557,44 @@ export default function TransactionEditForm({
                   onChange={setCategoryId}
                 />
               </Field>
-            )}
 
+              {/* Quick Category Chips */}
+              {filteredCategories.length > 0 && (
+                <div className="pt-1">
+                  <p className="text-[11px] font-semibold mb-1.5" style={{ color: "var(--lk-text-faint)" }}>
+                    Pilihan cepat:
+                  </p>
+                  <div className="flex flex-wrap gap-1.5">
+                    {filteredCategories.slice(0, 6).map((c) => {
+                      const visuals = getCategoryVisuals(c.name, c.type);
+                      const isSelected = categoryId === c.id;
+                      return (
+                        <button
+                          key={c.id}
+                          type="button"
+                          onClick={() => setCategoryId(c.id)}
+                          className={`inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold transition-all active:scale-95 border ${
+                            isSelected
+                              ? `${cfg.chipSelected} shadow-xs font-bold ring-2 ring-current/20`
+                              : "border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 text-slate-700 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700/80"
+                          }`}
+                          style={{ minHeight: "34px" }}
+                        >
+                          <span className="scale-90 shrink-0">{visuals.icon}</span>
+                          <span>{c.name}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Catatan */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800/60">
             <Field
-              label="Catatan (opsional)"
+              label="Catatan (Opsional)"
               htmlFor="edit-note"
               hint={
                 <span
@@ -378,43 +609,52 @@ export default function TransactionEditForm({
               <textarea
                 id="edit-note"
                 name="note"
-                rows={3}
-                placeholder="Contoh: makan siang, bayar tagihan"
+                rows={2}
+                placeholder="Contoh: makan siang, bayar tagihan..."
                 maxLength={NOTE_MAX_LENGTH}
                 value={noteText}
                 onChange={(e) => setNoteText(e.target.value)}
-                className="input-base textarea-base resize-none text-base"
+                className="input-base textarea-base w-full resize-none text-sm sm:text-base leading-relaxed"
               />
             </Field>
           </div>
+        </div>
 
-          {/* ── 4. Aksi utama: satu baris, menempel di atas bottom nav saat scroll di mobile ── */}
-          <div
-            className="sticky bottom-24 z-20 -mx-4 flex items-center gap-2 border-t px-4 pb-3 pt-3 backdrop-blur sm:-mx-5 sm:px-5 lg:static lg:mx-0 lg:border-t-0 lg:px-0 lg:pb-0"
+        {/* ── CARD 3: ACTION BUTTONS ── */}
+        <div className="flex items-center gap-2 pt-1">
+          <TransactionReturnLink className="inline-flex shrink-0 items-center justify-center rounded-2xl border px-4 py-3.5 text-sm sm:text-base font-semibold transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
             style={{
               borderColor: "var(--lk-border)",
-              background: "color-mix(in srgb, var(--lk-surface) 92%, transparent)",
+              color: "var(--lk-text-muted)",
+              backgroundColor: "var(--lk-surface)",
             }}
           >
-            <TransactionReturnLink className="inline-flex shrink-0 items-center justify-center rounded-xl px-4 py-3 text-base font-semibold text-slate-500 transition-colors hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200">
-              Batal
-            </TransactionReturnLink>
-            <SubmitButton
-              className={`flex-1 rounded-xl py-3 text-base font-bold text-white shadow-md transition-all duration-200 hover:shadow-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:bg-[color:var(--lk-surface-raised)] disabled:text-[color:var(--lk-text-faint)] disabled:shadow-none ${submitCls}`}
-              disabled={!canSubmit}
-              pendingText="Menyimpan..."
-            >
-              {submitLabel}
-            </SubmitButton>
-          </div>
-        </form>
-      </div>
+            Batal
+          </TransactionReturnLink>
+          <SubmitButton
+            className={`flex-1 rounded-2xl py-3.5 px-4 text-sm sm:text-base font-bold shadow-md transition-all duration-200 hover:shadow-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 active:scale-[0.99] disabled:pointer-events-none disabled:bg-[color:var(--lk-surface-raised)] disabled:text-[color:var(--lk-text-faint)] disabled:shadow-none ${cfg.submitClass}`}
+            disabled={!canSubmit}
+            pendingText="Menyimpan perubahan..."
+          >
+            {canSubmit ? (
+              <span className="flex items-center justify-center gap-2">
+                <span>Simpan Perubahan</span>
+                <span className="font-mono text-xs sm:text-sm opacity-90 font-medium">
+                  ({cfg.prefix}Rp {amountDisplay})
+                </span>
+              </span>
+            ) : (
+              submitLabel
+            )}
+          </SubmitButton>
+        </div>
+      </form>
 
-      {/* ── 5. Aksi lain: dua tombol sama besar, dipisah dari aksi utama ── */}
-      <div className="grid grid-cols-2 gap-2">
+      {/* ── CARD 4: DUPLICATE & DELETE BUTTONS ── */}
+      <div className="grid grid-cols-2 gap-2 pt-1">
         <Link
           href={`/transactions/new?duplicateId=${encodeURIComponent(transaction.id)}`}
-          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-colors"
+          className="inline-flex h-11 items-center justify-center gap-2 rounded-xl border text-sm font-semibold transition-colors shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800/60"
           style={{
             borderColor: "var(--lk-border)",
             background: "var(--lk-surface)",

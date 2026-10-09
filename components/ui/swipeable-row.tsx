@@ -26,11 +26,35 @@ export default function SwipeableRow({
   const translationRef = useRef(0);
   const rowRef = useRef<HTMLDivElement | null>(null);
   const contentRef = useRef<HTMLDivElement | null>(null);
+  const actionsRef = useRef<HTMLDivElement | null>(null);
   const rafId = useRef(0);
+  const hideActionsTimeout = useRef<NodeJS.Timeout | null>(null);
 
   const applyTransform = useCallback((px: number, animate: boolean) => {
     const el = contentRef.current;
     if (!el) return;
+
+    if (actionsRef.current) {
+      if (px < 0) {
+        if (hideActionsTimeout.current) {
+          clearTimeout(hideActionsTimeout.current);
+          hideActionsTimeout.current = null;
+        }
+        actionsRef.current.style.visibility = "visible";
+      } else if (px === 0) {
+        if (animate) {
+          if (hideActionsTimeout.current) clearTimeout(hideActionsTimeout.current);
+          hideActionsTimeout.current = setTimeout(() => {
+            if (!swipedRef.current && actionsRef.current) {
+              actionsRef.current.style.visibility = "hidden";
+            }
+          }, 300);
+        } else {
+          actionsRef.current.style.visibility = "hidden";
+        }
+      }
+    }
+
     if (animate && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       el.style.transition = "transform 280ms cubic-bezier(0.16, 1, 0.3, 1)";
     } else {
@@ -45,6 +69,13 @@ export default function SwipeableRow({
     swipedRef.current = false;
     setIsSwiped(false);
   }, [applyTransform]);
+
+  useEffect(() => {
+    return () => {
+      if (hideActionsTimeout.current) clearTimeout(hideActionsTimeout.current);
+      if (rafId.current) cancelAnimationFrame(rafId.current);
+    };
+  }, []);
 
   // Close swipe when tapping outside the row
   useEffect(() => {
@@ -108,6 +139,14 @@ export default function SwipeableRow({
       target = -actionWidth + excess * 0.25;
     }
 
+    if (actionsRef.current && target < 0) {
+      if (hideActionsTimeout.current) {
+        clearTimeout(hideActionsTimeout.current);
+        hideActionsTimeout.current = null;
+      }
+      actionsRef.current.style.visibility = "visible";
+    }
+
     if (rafId.current) cancelAnimationFrame(rafId.current);
     rafId.current = requestAnimationFrame(() => {
       const el = contentRef.current;
@@ -143,10 +182,14 @@ export default function SwipeableRow({
       style={{ touchAction: "pan-y" }}
       onKeyDown={(event) => { if (event.key === "Escape") reset(); }}
     >
-      {/* Background layer: action buttons panel */}
+      {/* Background layer: action buttons panel (hidden when idle to prevent subpixel bleed) */}
       <div
+        ref={actionsRef}
         className="absolute inset-y-0 right-0 flex items-stretch justify-end"
-        style={{ width: `${actionWidth}px` }}
+        style={{
+          width: `${actionWidth}px`,
+          visibility: isSwiped ? "visible" : "hidden",
+        }}
         inert={!isSwiped}
         aria-hidden={!isSwiped}
       >
@@ -160,12 +203,21 @@ export default function SwipeableRow({
           onStart(e.clientX, e.clientY);
         }}
         onPointerMove={(e) => {
+          if (hasMoved.current && !e.currentTarget.hasPointerCapture(e.pointerId)) {
+            try { e.currentTarget.setPointerCapture(e.pointerId); } catch {}
+          }
           onMove(e.clientX, e.clientY);
         }}
-        onPointerUp={() => {
+        onPointerUp={(e) => {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+          }
           onEnd();
         }}
-        onPointerCancel={() => {
+        onPointerCancel={(e) => {
+          if (e.currentTarget.hasPointerCapture(e.pointerId)) {
+            try { e.currentTarget.releasePointerCapture(e.pointerId); } catch {}
+          }
           onEnd();
         }}
         onClickCapture={(e) => {
@@ -180,7 +232,7 @@ export default function SwipeableRow({
             reset();
           }
         }}
-        className="relative z-10 w-full bg-[var(--lk-surface)]"
+        className="relative z-10 w-full min-w-full bg-[var(--lk-surface)]"
         style={{
           transform: "translate3d(0, 0, 0)",
           willChange: "transform",

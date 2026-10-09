@@ -14,6 +14,7 @@ import LogoutButton from "@/components/auth/logout-button";
 import { requireUser } from "@/lib/supabase/auth";
 import EditProfileModal from "@/components/more/edit-profile-modal";
 import ThemeRow from "@/components/more/theme-row";
+import BrandLogo from "@/components/ui/brand-logo";
 
 export default async function MorePage() {
   const { user } = await requireUser();
@@ -399,18 +400,19 @@ export default async function MorePage() {
         </section>
 
         {/* ── Footer ── */}
-        <p
-          style={{
-            textAlign: "center",
-            fontSize: "0.7rem",
-            color: "var(--lk-text-faint)",
-            fontWeight: 500,
-            paddingTop: "0.25rem",
-            paddingBottom: "0.5rem",
-          }}
-        >
-          Finance Journal · v0.1.0
-        </p>
+        <div className="flex flex-col items-center justify-center pt-2 pb-2">
+          <BrandLogo size={24} className="rounded-lg mb-1.5 opacity-80 shadow-sm" />
+          <p
+            style={{
+              textAlign: "center",
+              fontSize: "0.7rem",
+              color: "var(--lk-text-faint)",
+              fontWeight: 500,
+            }}
+          >
+            Finance Journal · v0.1.0
+          </p>
+        </div>
       </div>
     </AppShell>
   );

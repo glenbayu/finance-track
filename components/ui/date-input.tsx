@@ -1,34 +1,48 @@
 "use client";
 
-import { useEffect, useState } from "react";
-
 type DateInputProps = {
+  id?: string;
   name: string;
-  defaultValue: string;
+  defaultValue?: string;
+  value?: string;
+  onChange?: (event: React.ChangeEvent<HTMLInputElement>) => void;
   required?: boolean;
   className?: string;
   ariaLabel?: string;
 };
 
 export default function DateInput({
+  id,
   name,
-  defaultValue,
+  defaultValue = "",
+  value,
+  onChange,
   required,
   className = "",
   ariaLabel = "Pilih tanggal",
 }: DateInputProps) {
-  const [displayDate, setDisplayDate] = useState(defaultValue);
-
-  useEffect(() => {
-    setDisplayDate(defaultValue);
-  }, [defaultValue]);
+  if (value !== undefined) {
+    return (
+      <input
+        id={id}
+        type="date"
+        name={name}
+        value={value}
+        onChange={onChange}
+        className={className}
+        required={required}
+        aria-label={ariaLabel}
+      />
+    );
+  }
 
   return (
     <input
+      id={id}
       type="date"
       name={name}
-      value={displayDate}
-      onChange={(event) => setDisplayDate(event.currentTarget.value)}
+      defaultValue={defaultValue}
+      onChange={onChange}
       className={className}
       required={required}
       aria-label={ariaLabel}

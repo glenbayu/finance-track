@@ -2,10 +2,15 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, -apple-system, sans-serif;
-  --font-display: var(--font-jakarta), var(--font-inter), ui-sans-serif, sans-serif;
+  --font-sans: var(--font-jakarta), var(--font-inter), system-ui, -apple-system, sans-serif;
+  --font-display: var(--font-jakarta), system-ui, sans-serif;
 }
 
+
+html,
+body {
+  overflow-x: clip;
+}
 
 html {
   -webkit-text-size-adjust: 100%;
@@ -13,8 +18,17 @@ html {
 }
 
 /* ══════════════════════════════════════════════
-   iOS SAFARI PERFORMANCE OPTIMIZATIONS
+   iOS SAFARI PERFORMANCE & MOBILE OPTIMIZATIONS
    ══════════════════════════════════════════════ */
+
+/* Prevent iOS Safari from auto-zooming on focus when font-size < 16px */
+@media screen and (max-width: 768px) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
 
 @supports (-webkit-touch-callout: none) {
   .backdrop-blur-md {
@@ -33,33 +47,33 @@ html {
 }
 
 /* ══════════════════════════════════════════════
-   LENSA KEUANGAN — Dark Design System
-   "The Quiet Advisor" — Professional, Calm, Trustworthy
+   FINANCE JOURNAL — Soft Minimalist Design System
+   "Warmth & Serenity" — Scandinavian, Dieter Rams, Apple Polish
    ══════════════════════════════════════════════ */
 :root {
-  /* Strict Monochrome Base */
-  --lk-bg:              #f8fafc;
+  /* Soft Sage-Tinted Light Base */
+  --lk-bg:              #f7faf8;
   --lk-surface:         #ffffff;
-  --lk-surface-raised:  #f1f5f9;
-  --lk-surface-hover:   #e2e8f0;
-  --lk-border:          #e2e8f0;
-  --lk-border-strong:   #cbd5e1;
+  --lk-surface-raised:  #f0f5f2;
+  --lk-surface-hover:   #e4ede7;
+  --lk-border:          #dfe8e2;
+  --lk-border-strong:   #cbdbd0;
   
-  /* Primary Accent: Deep Teal */
-  --lk-primary:         #0f766e;
-  --lk-primary-hover:   #0d9488;
-  --lk-primary-light:   #115e59;
-  --lk-primary-dim:     rgba(15, 118, 110, 0.12);
+  /* Primary Accent: Refined Emerald Sage (Matching Brand Icon Concept 01) */
+  --lk-primary:         #0f7652;
+  --lk-primary-hover:   #0d6646;
+  --lk-primary-light:   #10b981;
+  --lk-primary-dim:     rgba(15, 118, 82, 0.10);
   
-  /* Monochrome Text */
-  --lk-text:            #0f172a;
-  --lk-text-muted:      #64748b;
-  --lk-text-faint:      #94a3b8;
+  /* Warm Organic Slate Text */
+  --lk-text:            #0e1713;
+  --lk-text-muted:      #576b61;
+  --lk-text-faint:      #8ca196;
   
   /* Semantic Financial Colors */
-  --lk-income:          #059669; /* Emerald green */
+  --lk-income:          #059669; /* Lush emerald green */
   --lk-income-bg:       rgba(5, 150, 105, 0.08);
-  --lk-expense:         #dc2626; /* Red */
+  --lk-expense:         #dc2626; /* Calming soft crimson */
   --lk-expense-bg:      rgba(220, 38, 38, 0.07);
   --lk-amber:           #d97706;
   --lk-amber-bg:        rgba(217, 119, 6, 0.07);
@@ -86,52 +100,61 @@ html {
 }
 
 .dark {
-  /* Rich Blue-Tinted Dark Base — premium, not pitch black */
-  --lk-bg:              #0a0e17;
-  --lk-surface:         #111827;
-  --lk-surface-raised:  #1a2132;
-  --lk-surface-hover:   #1e2a3e;
-  --lk-border:          #1f2d42;
-  --lk-border-strong:   #2d3f5a;
+  /* Warm Deep Forest Black — Harmonious with Concept 01 App Icon Squircle */
+  --lk-bg:              #0a0f0d;
+  --lk-surface:         #111815;
+  --lk-surface-raised:  #18231e;
+  --lk-surface-hover:   #1f2d27;
+  --lk-border:          #1f2f27;
+  --lk-border-strong:   #2e4438;
   
-  /* Primary Accent: Vibrant Teal */
-  --lk-primary:         #14b8a6;
-  --lk-primary-hover:   #2dd4bf;
-  --lk-primary-light:   #99f6e4;
-  --lk-primary-dim:     rgba(20, 184, 166, 0.18);
+  /* Primary Accent: Radiant Emerald (Concept 01 Signature) */
+  --lk-primary:         #10b981;
+  --lk-primary-hover:   #34d399;
+  --lk-primary-light:   #86efac;
+  --lk-primary-dim:     rgba(16, 185, 129, 0.16);
   
-  /* High-contrast Text */
-  --lk-text:            #f0f6ff;
-  --lk-text-muted:      #8fa3c0;
-  --lk-text-faint:      #4e6480;
+  /* High-contrast Crisp Text */
+  --lk-text:            #f1f7f4;
+  --lk-text-muted:      #8ea599;
+  --lk-text-faint:      #4e6659;
   
-  /* Semantic Financial Colors — visible & meaningful */
-  --lk-income:          #4ade80;
-  --lk-income-bg:       rgba(74, 222, 128, 0.1);
+  /* Semantic Financial Colors — Visible & Meaningful */
+  --lk-income:          #34d399;
+  --lk-income-bg:       rgba(52, 211, 153, 0.12);
   --lk-expense:         #f87171;
-  --lk-expense-bg:      rgba(248, 113, 113, 0.1);
+  --lk-expense-bg:      rgba(248, 113, 113, 0.12);
   --lk-amber:           #fbbf24;
-  --lk-amber-bg:        rgba(251, 191, 36, 0.1);
+  --lk-amber-bg:        rgba(251, 191, 36, 0.12);
   color-scheme: dark;
 }
 
 @theme inline {
   --color-background: var(--lk-bg);
   --color-foreground: var(--lk-text);
-  --font-sans: var(--font-inter), var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+  --font-sans: var(--font-jakarta), var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-jakarta), system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
 }
 
-/* ── Body — Lensa Keuangan flat dark canvas ── */
+/* ── Body — Finance Journal Soft Minimalist Canvas ── */
 body {
   min-height: 100vh;
   min-height: 100svh;
   min-height: 100dvh;
   background-color: var(--lk-bg);
   color: var(--lk-text);
-  font-family: var(--font-sans), system-ui, sans-serif;
+  font-family: var(--font-sans);
   line-height: 1.55;
-  font-feature-settings: "ss01" 1, "cv03" 1;
+  letter-spacing: -0.012em;
+  font-feature-settings: "cv03" 1, "cv04" 1, "tnum" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-display);
+  letter-spacing: -0.025em;
 }
 
 /* Theme tokens are defined on :root and overridden by .dark. */
@@ -566,6 +589,12 @@ button,
     padding: 1.25rem;
   }
 
+  @media (max-width: 640px) {
+    .section-card {
+      padding: 1rem;
+    }
+  }
+
   /* Legacy .stat-card — maps to lk-panel-raised */
   .stat-card {
     background-color: var(--lk-surface-raised);
@@ -596,6 +625,12 @@ button,
     border: 1px solid var(--lk-border);
     border-radius: 0.375rem;
     padding: 1rem;
+  }
+
+  @media (max-width: 640px) {
+    .soft-inset {
+      padding: 0.75rem;
+    }
   }
 
 
@@ -759,6 +794,7 @@ button,
   }
 
   .select-base {
+    -webkit-appearance: none;
     appearance: none;
     background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 20 20' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M5.75 7.75L10 12L14.25 7.75' stroke='%238a938c' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     background-repeat: no-repeat;

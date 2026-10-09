@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import SubmitButton from "@/components/ui/submit-button";
 import PasswordInput from "@/components/auth/password-input";
+import BrandLogo from "@/components/ui/brand-logo";
 
 type LoginPageProps = {
   searchParams?: Promise<{
@@ -48,7 +49,7 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
 
   return (
     <main
-      className="flex min-h-screen items-center justify-center p-4"
+      className="flex min-h-screen min-h-svh min-h-dvh items-center justify-center p-4"
       style={{
         background: "radial-gradient(ellipse 80% 60% at 50% -10%, rgba(15,118,110,0.18) 0%, transparent 60%), var(--lk-bg)",
         position: "relative",
@@ -71,14 +72,8 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
       <div className="w-full max-w-[420px]" style={{ position: "relative", zIndex: 1 }}>
         {/* Logo */}
         <div className="mb-8 text-center">
-          <div
-            className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl shadow-lg"
-            style={{
-              background: "linear-gradient(135deg, var(--lk-primary) 0%, var(--lk-primary-hover) 100%)",
-              boxShadow: "0 8px 32px rgba(15,118,110,0.35)",
-            }}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
+          <div className="mx-auto mb-4 flex justify-center">
+            <BrandLogo size={58} className="rounded-2xl shadow-xl shadow-emerald-950/40" />
           </div>
           <h1 className="text-2xl font-bold" style={{ color: "var(--lk-text)", fontFamily: "var(--font-display, inherit)" }}>Finance Journal</h1>
           <p className="mt-1.5 text-sm" style={{ color: "var(--lk-text-muted)" }}>

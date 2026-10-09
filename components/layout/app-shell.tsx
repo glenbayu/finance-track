@@ -89,7 +89,7 @@ export default function AppShell({
           className="fixed inset-0 z-40 bg-black/50 backdrop-blur-xs animate-fade-in lg:hidden cursor-default"
           aria-hidden="true"
         />
-        <div className={`min-w-0 w-full lg:animate-fade-in-up ${className} ${containerClassName} max-lg:fixed max-lg:bottom-0 max-lg:left-0 max-lg:right-0 max-lg:z-50 max-lg:rounded-t-[20px] max-lg:p-6 max-lg:pb-12 max-lg:max-h-[85dvh] max-lg:overflow-y-auto max-lg:animate-slide-up-drawer max-lg:border-t max-lg:shadow-[0_-4px_24px_rgba(0,0,0,0.1)] dark:max-lg:shadow-none`}
+        <div className={`min-w-0 w-full lg:animate-fade-in-up ${className} ${containerClassName} max-lg:fixed max-lg:bottom-0 max-lg:left-0 max-lg:right-0 max-lg:z-50 max-lg:rounded-t-[20px] max-lg:p-6 max-lg:pb-[calc(3rem+env(safe-area-inset-bottom,0px))] max-lg:max-h-[85dvh] max-lg:overflow-y-auto max-lg:animate-slide-up-drawer max-lg:border-t max-lg:shadow-[0_-4px_24px_rgba(0,0,0,0.1)] dark:max-lg:shadow-none`}
           style={{ backgroundColor: "var(--lk-surface)", borderColor: "var(--lk-border)" }}
         >
           <div className="mx-auto mb-4 h-1 w-12 rounded-full lg:hidden" style={{ backgroundColor: "var(--lk-border-strong)" }} />
@@ -123,7 +123,7 @@ export default function AppShell({
         <div className={`min-w-0 ${contentClassName}`}>
 
           {/* Floating Sticky Header Wrapper */}
-          <div className="sticky top-0 z-30 px-3 pt-3 pb-0 sm:px-4 sm:pt-4 lg:px-5 lg:pt-4">
+          <div className="lg:sticky lg:top-0 lg:z-30 px-3 pt-[max(0.75rem,env(safe-area-inset-top))] pb-0 sm:px-4 sm:pt-[max(1rem,env(safe-area-inset-top))] lg:px-5 lg:pt-4">
             <div className={containerWidthClass}>
               <header className={`app-hero app-hero--${headerLayout}`}
                 style={{ position: "relative", top: "auto", zIndex: "auto", margin: 0 }}
@@ -167,7 +167,7 @@ export default function AppShell({
           )}
 
           {/* Page Content */}
-          <div className="p-3 pt-2.5 sm:p-5 sm:pt-3.5 lg:px-5 lg:pt-3.5 lg:pb-12 pb-24 sm:pb-24">
+          <div className="p-3 pt-2.5 sm:p-5 sm:pt-3.5 lg:px-5 lg:pt-3.5 lg:pb-12 pb-[calc(7.25rem+env(safe-area-inset-bottom,0px))] sm:pb-[calc(7.25rem+env(safe-area-inset-bottom,0px))] overflow-x-clip min-w-0 max-w-full">
             <div className={containerWidthClass}>
               {children}
             </div>

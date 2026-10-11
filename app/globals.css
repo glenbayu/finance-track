@@ -23,10 +23,20 @@ html {
 
 /* Prevent iOS Safari from auto-zooming on focus when font-size < 16px */
 @media screen and (max-width: 768px) {
-  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]),
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="color"]):not(.amount-hero-input),
   select,
   textarea {
     font-size: 16px !important;
+  }
+}
+
+.amount-hero-input {
+  font-size: 1.5rem !important;
+  line-height: 1.25 !important;
+}
+@media (min-width: 640px) {
+  .amount-hero-input {
+    font-size: 1.75rem !important;
   }
 }
 

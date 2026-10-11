@@ -113,7 +113,7 @@ function Field({
 }) {
   return (
     <div className="min-w-0">
-      <div className="mb-1.5 flex items-center justify-between gap-2">
+      <div className="mb-1.5 flex min-h-[24px] items-center justify-between gap-2">
         <label
           htmlFor={htmlFor}
           className="text-xs font-semibold"
@@ -217,6 +217,14 @@ export default function TransactionForm({
     const dd = String(d.getDate()).padStart(2, "0");
     setTransactionDate(`${yyyy}-${mm}-${dd}`);
   };
+
+  const getDateStr = (daysAgo: number) => {
+    const d = new Date();
+    d.setDate(d.getDate() - daysAgo);
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  };
+  const isToday = transactionDate === getDateStr(0);
+  const isYesterday = transactionDate === getDateStr(1);
 
   const handleAddAmount = (addVal: number) => {
     const current = Number(amountDisplay.replace(/\D/g, "")) || 0;
@@ -322,7 +330,7 @@ export default function TransactionForm({
           </div>
 
           <div className="flex items-center justify-center gap-1.5 py-2 cursor-text overflow-hidden">
-            <span className={`text-2xl sm:text-3xl font-extrabold ${cfg.amountColor} select-none shrink-0`}>
+            <span className={`text-base sm:text-xl font-bold ${cfg.amountColor} select-none shrink-0 self-center`}>
               {cfg.prefix} Rp
             </span>
             <input
@@ -340,14 +348,14 @@ export default function TransactionForm({
                 width: `${Math.max(amountDisplay.length, 1) + 0.3}ch`,
                 maxWidth: "65vw",
               }}
-              className={`min-w-0 border-none bg-transparent p-0 text-left text-4xl sm:text-5xl font-black tabular-nums outline-none focus:outline-none focus:ring-0 transition-colors duration-200 ${cfg.amountColor} ${cfg.placeholderColor}`}
+              className={`amount-hero-input min-w-0 border-none bg-transparent p-0 text-left font-extrabold tabular-nums outline-none focus:outline-none focus:ring-0 transition-colors duration-200 ${cfg.amountColor} ${cfg.placeholderColor}`}
               required
             />
           </div>
 
-          {/* Quick Amount Stepper Chips */}
-          <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5 overflow-x-auto no-scrollbar">
-            <div className="flex items-center gap-1.5 min-w-0">
+          {/* Quick Amount Stepper Chips + Frozen Reset button */}
+          <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5">
+            <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
               {QUICK_AMOUNTS.map((preset) => (
                 <button
                   key={preset.label}
@@ -363,19 +371,22 @@ export default function TransactionForm({
                 </button>
               ))}
             </div>
+
             {hasAmount && (
-              <button
-                type="button"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleClearAmount();
-                }}
-                className="shrink-0 inline-flex items-center gap-1 text-xs font-semibold text-rose-500 hover:text-rose-600 dark:text-rose-400 px-2 py-1 rounded-md transition-colors"
-                style={{ minHeight: "32px" }}
-              >
-                <RotateCcw size={12} />
-                <span>Reset</span>
-              </button>
+              <div className="flex items-center gap-1.5 shrink-0 pl-1.5 border-l border-slate-200 dark:border-slate-800">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleClearAmount();
+                  }}
+                  className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 active:scale-95 transition-all"
+                  style={{ minHeight: "32px" }}
+                  title="Reset nominal"
+                >
+                  <RotateCcw size={12} />
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -436,16 +447,19 @@ export default function TransactionForm({
             </div>
 
             {/* Tanggal untuk transfer */}
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label htmlFor="new-date" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
-                  Tanggal Transaksi
-                </label>
+            <Field
+              label="Tanggal Transaksi"
+              htmlFor="transfer-date"
+              hint={
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setDateOffset(0)}
-                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                    className={`text-[11px] px-1 py-0.5 transition-colors ${
+                      isToday
+                        ? "font-bold text-teal-600 dark:text-teal-400"
+                        : "font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    }`}
                   >
                     Hari ini
                   </button>
@@ -453,33 +467,42 @@ export default function TransactionForm({
                   <button
                     type="button"
                     onClick={() => setDateOffset(1)}
-                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className={`text-[11px] px-1 py-0.5 transition-colors ${
+                      isYesterday
+                        ? "font-bold text-teal-600 dark:text-teal-400"
+                        : "font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    }`}
                   >
                     Kemarin
                   </button>
                 </div>
-              </div>
+              }
+            >
               <DateInput
+                id="transfer-date"
                 name="transaction_date"
                 value={transactionDate}
                 onChange={(e) => setTransactionDate(e.target.value)}
-                className="input-base w-full"
+                className="input-base w-full h-11"
                 required
               />
-            </div>
+            </Field>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
-            <div>
-              <div className="mb-1.5 flex items-center justify-between">
-                <label htmlFor="new-date" className="text-xs font-semibold" style={{ color: "var(--lk-text-muted)" }}>
-                  Tanggal Transaksi
-                </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 items-start">
+            <Field
+              label="Tanggal Transaksi"
+              htmlFor="new-date"
+              hint={
                 <div className="flex items-center gap-1">
                   <button
                     type="button"
                     onClick={() => setDateOffset(0)}
-                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition-colors"
+                    className={`text-[11px] px-1 py-0.5 transition-colors ${
+                      isToday
+                        ? "font-bold text-teal-600 dark:text-teal-400"
+                        : "font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    }`}
                   >
                     Hari ini
                   </button>
@@ -487,20 +510,26 @@ export default function TransactionForm({
                   <button
                     type="button"
                     onClick={() => setDateOffset(1)}
-                    className="text-[11px] font-semibold px-2 py-0.5 rounded text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors"
+                    className={`text-[11px] px-1 py-0.5 transition-colors ${
+                      isYesterday
+                        ? "font-bold text-teal-600 dark:text-teal-400"
+                        : "font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
+                    }`}
                   >
                     Kemarin
                   </button>
                 </div>
-              </div>
+              }
+            >
               <DateInput
+                id="new-date"
                 name="transaction_date"
                 value={transactionDate}
                 onChange={(e) => setTransactionDate(e.target.value)}
-                className="input-base w-full"
+                className="input-base w-full h-11"
                 required
               />
-            </div>
+            </Field>
 
             <Field label="Dompet Sumber" htmlFor="new-wallet">
               <FilterSelect
@@ -511,6 +540,7 @@ export default function TransactionForm({
                 options={walletOptions}
                 placeholder="Pilih dompet"
                 onChange={setWalletId}
+                className="h-11"
               />
             </Field>
           </div>

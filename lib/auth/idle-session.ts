@@ -1,5 +1,5 @@
 export const IDLE_COOKIE = "ft_last_activity";
-export const MAX_IDLE_MS = 10 * 60 * 1000;
+export const MAX_IDLE_MS = 15 * 60 * 1000;
 export const MAX_IDLE_SECONDS = Math.floor(MAX_IDLE_MS / 1000);
 
 export function createIdleCookieOptions(isSecure: boolean) {
@@ -10,5 +10,4 @@ export function createIdleCookieOptions(isSecure: boolean) {
     path: "/",
     maxAge: 60 * 60 * 24 * 14,
   };
-}
-
+}

@@ -1,5 +1,10 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import {
+  IDLE_COOKIE,
+  createIdleCookieOptions,
+  MAX_IDLE_MS,
+} from "@/lib/auth/idle-session";
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
@@ -43,14 +48,59 @@ export async function middleware(request: NextRequest) {
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    redirectResponse.cookies.delete(IDLE_COOKIE);
+    return redirectResponse;
   }
 
   // Redirect authenticated users from login/signup to dashboard
   if (user && isAuthRoute) {
     const url = request.nextUrl.clone();
     url.pathname = "/";
-    return NextResponse.redirect(url);
+    const redirectResponse = NextResponse.redirect(url);
+    supabaseResponse.cookies.getAll().forEach((cookie) => {
+      redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+    });
+    redirectResponse.cookies.set(
+      IDLE_COOKIE,
+      String(Date.now()),
+      createIdleCookieOptions(process.env.NODE_ENV === "production"),
+    );
+    return redirectResponse;
+  }
+
+  // Handle idle expiration directly in middleware so skeleton never flashes before redirect
+  if (user && !isPublicRoute) {
+    const now = Date.now();
+    const rawLastActivity = request.cookies.get(IDLE_COOKIE)?.value;
+    const lastActivity = rawLastActivity ? Number(rawLastActivity) : null;
+
+    if (
+      typeof lastActivity === "number" &&
+      Number.isFinite(lastActivity) &&
+      now - lastActivity > MAX_IDLE_MS
+    ) {
+      await supabase.auth.signOut();
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("error", "Session Expired");
+      const redirectResponse = NextResponse.redirect(url);
+      supabaseResponse.cookies.getAll().forEach((cookie) => {
+        redirectResponse.cookies.set(cookie.name, cookie.value, cookie);
+      });
+      redirectResponse.cookies.delete(IDLE_COOKIE);
+      return redirectResponse;
+    }
+
+    // Pastikan cookie aktivitas selalu aktif dan ter-refresh
+    supabaseResponse.cookies.set(
+      IDLE_COOKIE,
+      String(now),
+      createIdleCookieOptions(process.env.NODE_ENV === "production"),
+    );
   }
 
   return supabaseResponse;

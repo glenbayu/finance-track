@@ -1,6 +1,8 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { LoaderCircle, LogOut } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
+import { IDLE_COOKIE } from "@/lib/auth/idle-session";
 import SubmitButton from "@/components/ui/submit-button";
 
 type LogoutButtonProps = {
@@ -13,6 +15,8 @@ async function logout() {
 
   const supabase = await createClient();
   await supabase.auth.signOut();
+  const cookieStore = await cookies();
+  cookieStore.delete(IDLE_COOKIE);
   redirect("/login");
 }
 

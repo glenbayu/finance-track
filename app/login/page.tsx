@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { IDLE_COOKIE, createIdleCookieOptions } from "@/lib/auth/idle-session";
 import SubmitButton from "@/components/ui/submit-button";
 import PasswordInput from "@/components/auth/password-input";
 import BrandLogo from "@/components/ui/brand-logo";
@@ -39,6 +41,14 @@ async function login(formData: FormData) {
   if (error) {
     redirect(`/login?error=${encodeURIComponent("Email atau password tidak valid.")}&next=${encodeURIComponent(nextPath)}`);
   }
+
+  // Refresh cookie aktivitas agar timestamp hari sebelumnya tidak terbawa dan langsung trigger logout
+  const cookieStore = await cookies();
+  cookieStore.set(
+    IDLE_COOKIE,
+    String(Date.now()),
+    createIdleCookieOptions(process.env.NODE_ENV === "production"),
+  );
 
   redirect(nextPath);
 }

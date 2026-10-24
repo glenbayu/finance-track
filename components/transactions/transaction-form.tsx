@@ -113,10 +113,10 @@ function Field({
 }) {
   return (
     <div className="min-w-0">
-      <div className="mb-1.5 flex min-h-[24px] items-center justify-between gap-2">
+      <div className="mb-1.5 flex h-7 items-center justify-between gap-2">
         <label
           htmlFor={htmlFor}
-          className="text-xs font-semibold"
+          className="text-xs font-semibold leading-none"
           style={{ color: "var(--lk-text-muted)" }}
         >
           {label}
@@ -498,7 +498,7 @@ export default function TransactionForm({
                   <button
                     type="button"
                     onClick={() => setDateOffset(0)}
-                    className={`text-[11px] px-1 py-0.5 transition-colors ${
+                    className={`text-[11px] leading-none px-1 py-0.5 transition-colors ${
                       isToday
                         ? "font-bold text-teal-600 dark:text-teal-400"
                         : "font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"
@@ -510,7 +510,7 @@ export default function TransactionForm({
                   <button
                     type="button"
                     onClick={() => setDateOffset(1)}
-                    className={`text-[11px] px-1 py-0.5 transition-colors ${
+                    className={`text-[11px] leading-none px-1 py-0.5 transition-colors ${
                       isYesterday
                         ? "font-bold text-teal-600 dark:text-teal-400"
                         : "font-medium text-slate-400 hover:text-slate-600 dark:text-slate-500 dark:hover:text-slate-300"

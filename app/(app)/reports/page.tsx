@@ -34,15 +34,15 @@ type TransactionRow = {
   created_at: string | null;
   category_id: string | null;
   categories:
-    | {
-        id?: string;
-        name?: string;
-      }
-    | {
-        id?: string;
-        name?: string;
-      }[]
-    | null;
+  | {
+    id?: string;
+    name?: string;
+  }
+  | {
+    id?: string;
+    name?: string;
+  }[]
+  | null;
 };
 
 function getCategoryName(category: TransactionRow["categories"]) {
@@ -182,13 +182,13 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     amount: number;
     transaction_date: string;
     categories:
-      | {
-          name?: string;
-        }
-      | {
-          name?: string;
-        }[]
-      | null;
+    | {
+      name?: string;
+    }
+    | {
+      name?: string;
+    }[]
+    | null;
   }>;
 
   // totalIncome & previousIncome include rollover — saldo bawaan merupakan
@@ -259,10 +259,10 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
     });
   });
 
-  (trendResult.data ?? [])
-    .filter((row: { note?: string | null }) => !isRolloverTransaction(row.note))
-    .forEach((row) => {
+  (trendResult.data ?? []).forEach((row) => {
     if (!row.transaction_date) return;
+    if (row.type === "expense" && isRolloverTransaction(row.note)) return;
+
     const monthKey = row.transaction_date.slice(0, 7);
     const current = monthlyTrendMap.get(monthKey);
     if (!current) return;
@@ -520,7 +520,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               {incomeChange.pct === null ? "Persentase belum tersedia" : `${incomeChange.delta >= 0 ? "Naik" : "Turun"} ${Math.abs(incomeChange.pct).toFixed(1)}%`}
             </p>
           </article>
-          
+
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{ borderBottom: "1px solid var(--lk-border)", borderRight: "1px solid var(--lk-border)" }}>
             <p className="text-[13px] font-medium mb-1" style={{ color: "var(--lk-text-muted)" }}>Pengeluaran vs bulan lalu</p>
             <p className="text-lg font-semibold" style={{ color: expenseChange.delta <= 0 ? "var(--lk-income)" : "var(--lk-expense)" }}>
@@ -530,7 +530,7 @@ export default async function ReportsPage({ searchParams }: ReportsPageProps) {
               {expenseChange.pct === null ? "Persentase belum tersedia" : `${expenseChange.delta >= 0 ? "Naik" : "Turun"} ${Math.abs(expenseChange.pct).toFixed(1)}%`}
             </p>
           </article>
-          
+
           <article className="p-4 flex flex-col justify-between hover-bg-surface-hover transition-colors" style={{
             borderBottom: "1px solid var(--lk-border)",
             borderRight: "1px solid var(--lk-border)",

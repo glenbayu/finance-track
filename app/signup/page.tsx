@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
+import { IDLE_COOKIE, createIdleCookieOptions } from "@/lib/auth/idle-session";
 import { validateEmail } from "@/lib/auth/email-validator";
 import SubmitButton from "@/components/ui/submit-button";
 import BrandLogo from "@/components/ui/brand-logo";
@@ -41,6 +43,12 @@ async function signup(formData: FormData) {
   }
 
   if (data.session) {
+    const cookieStore = await cookies();
+    cookieStore.set(
+      IDLE_COOKIE,
+      String(Date.now()),
+      createIdleCookieOptions(process.env.NODE_ENV === "production"),
+    );
     redirect("/");
   }
 

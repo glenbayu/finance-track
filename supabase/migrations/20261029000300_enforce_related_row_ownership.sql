@@ -209,7 +209,7 @@ returns trigger
 language plpgsql
 security invoker
 set search_path = public, pg_temp
-as $
+as $$
 begin
   if new.type is distinct from old.type then
     if exists (
@@ -236,7 +236,7 @@ begin
 
   return new;
 end;
-$;
+$$;
 
 drop trigger if exists categories_prevent_referenced_type_change on public.categories;
 create trigger categories_prevent_referenced_type_change

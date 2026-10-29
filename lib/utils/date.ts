@@ -41,10 +41,13 @@ export function getCurrentMonth() {
   return `${year}-${pad2(month)}`;
 }
 
-export function getCurrentDate() {
-  const now = new Date();
-  const { year, month, day } = getDatePartsInTimeZone(now);
+export function formatDateInTimeZone(date: Date, timeZone = APP_TIME_ZONE) {
+  const { year, month, day } = getDatePartsInTimeZone(date, timeZone);
   return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+export function getCurrentDate() {
+  return formatDateInTimeZone(new Date());
 }
 
 export function getMonthRange(month: string) {

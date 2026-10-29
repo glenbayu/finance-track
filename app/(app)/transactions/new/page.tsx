@@ -16,7 +16,11 @@ async function createTransaction(formData: FormData) {
 
   const { supabase, user } = await requireUser();
 
-  const type = formData.get("type") as "income" | "expense" | "transfer";
+  const rawType = formData.get("type");
+  if (rawType !== "income" && rawType !== "expense" && rawType !== "transfer") {
+    throw new Error("Tipe transaksi tidak valid.");
+  }
+  const type = rawType;
   const amount = Number(formData.get("amount"));
   const categoryId = formData.get("category_id") as string;
   const walletId = formData.get("wallet_id") as string;
@@ -49,8 +53,9 @@ async function createTransaction(formData: FormData) {
   if (type !== "transfer") {
     const { data: category, error: categoryError } = await supabase
       .from("categories")
-      .select("id")
+      .select("id, type")
       .eq("id", categoryId)
+      .eq("type", type)
       .or(`user_id.eq.${user.id},user_id.is.null`)
       .is("archived_at", null)
       .single();
@@ -229,19 +234,23 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
       .maybeSingle();
 
     if (!sourceError && sourceTransaction) {
-      const safeType = sourceTransaction.type === "income" ? "income" : "expense";
-      const categoryStillValid = categories?.some(
-        (category) => category.id === sourceTransaction.category_id && category.type === safeType,
-      );
-      initialValues = {
-        type: safeType,
-        categoryId: categoryStillValid ? sourceTransaction.category_id : null,
-        amountIDR: Number.isFinite(Number(sourceTransaction.amount))
-          ? Number(sourceTransaction.amount)
-          : null,
-        note: typeof sourceTransaction.note === "string" ? sourceTransaction.note : null,
-      };
-      infoMessage = "Form sudah diisi dari transaksi sebelumnya. Tanggal otomatis di-set ke hari ini.";
+      if (sourceTransaction.type === "income" || sourceTransaction.type === "expense") {
+        const safeType = sourceTransaction.type;
+        const categoryStillValid = categories?.some(
+          (category) => category.id === sourceTransaction.category_id && category.type === safeType,
+        );
+        initialValues = {
+          type: safeType,
+          categoryId: categoryStillValid ? sourceTransaction.category_id : null,
+          amountIDR: Number.isFinite(Number(sourceTransaction.amount))
+            ? Number(sourceTransaction.amount)
+            : null,
+          note: typeof sourceTransaction.note === "string" ? sourceTransaction.note : null,
+        };
+        infoMessage = "Form sudah diisi dari transaksi sebelumnya. Tanggal otomatis di-set ke hari ini.";
+      } else {
+        infoMessage = "Duplikat hanya tersedia untuk transaksi pemasukan atau pengeluaran.";
+      }
     } else if (!sourceError) {
       infoMessage = "Transaksi sumber tidak ditemukan. Form dibuka dengan mode manual.";
     }
@@ -253,8 +262,8 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
       .eq("user_id", user.id)
       .maybeSingle();
 
-    if (!templateError && template?.is_active) {
-      const safeType = template.type === "income" ? "income" : "expense";
+    if (!templateError && template?.is_active && (template.type === "income" || template.type === "expense")) {
+      const safeType = template.type;
       const categoryStillValid = categories?.some(
         (category) => category.id === template.category_id && category.type === safeType,
       );
@@ -266,7 +275,7 @@ export default async function NewTransactionPage({ searchParams }: NewTransactio
       };
       infoMessage = "Form sudah diisi dari template. Silakan cek lagi lalu simpan transaksi.";
     } else if (!templateError) {
-      infoMessage = "Template tidak aktif atau tidak ditemukan. Form dibuka dengan mode manual.";
+      infoMessage = "Template tidak aktif, tidak ditemukan, atau memiliki tipe tidak valid. Form dibuka dengan mode manual.";
     }
   }
 

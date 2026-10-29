@@ -204,6 +204,46 @@ begin
 end;
 $$;
 
+create or replace function public.prevent_referenced_category_type_change()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $
+begin
+  if new.type is distinct from old.type then
+    if exists (
+      select 1 from public.transactions t
+      where t.category_id = old.id
+    ) then
+      raise exception 'A category type cannot change while transactions reference it.';
+    end if;
+
+    if exists (
+      select 1 from public.budgets b
+      where b.category_id = old.id
+    ) then
+      raise exception 'A category type cannot change while budgets reference it.';
+    end if;
+
+    if exists (
+      select 1 from public.quick_add_templates t
+      where t.category_id = old.id
+    ) then
+      raise exception 'A category type cannot change while quick-add templates reference it.';
+    end if;
+  end if;
+
+  return new;
+end;
+$;
+
+drop trigger if exists categories_prevent_referenced_type_change on public.categories;
+create trigger categories_prevent_referenced_type_change
+before update of type on public.categories
+for each row
+execute function public.prevent_referenced_category_type_change();
+
 drop trigger if exists transactions_enforce_related_ownership on public.transactions;
 create trigger transactions_enforce_related_ownership
 before insert or update on public.transactions

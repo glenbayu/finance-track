@@ -101,7 +101,7 @@ async function editCategory(formData: FormData) {
   const categoryId = parseId(formData, "id");
   if (!categoryId) throw new Error("ID kategori tidak valid.");
 
-  const { supabase, user } = await getOwnedCategoryOrThrow(categoryId);
+  const { supabase, user, category } = await getOwnedCategoryOrThrow(categoryId);
 
   const name = String(formData.get("name") || "").trim();
   const rawType = formData.get("type");

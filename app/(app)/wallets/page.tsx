@@ -4,6 +4,7 @@ import AppShell from "@/components/layout/app-shell";
 import { requireUser } from "@/lib/supabase/auth";
 import WalletManager from "@/components/wallets/wallet-manager";
 import { isRolloverTransaction } from "@/lib/transactions/rollover";
+import { getWalletTransactionDelta, getWalletTransactionDeltas } from "@/lib/transactions/wallet-balance";
 
 async function revalidateWalletRelatedPaths() {
   revalidatePath("/wallets");
@@ -14,7 +15,7 @@ async function revalidateWalletRelatedPaths() {
 }
 
 import MonthFilter from "@/components/ui/month-filter";
-import { getCurrentMonth, getMonthRange } from "@/lib/utils/date";
+import { getCurrentDate, getCurrentMonth, getMonthRange } from "@/lib/utils/date";
 
 export type WalletsPageProps = {
   searchParams?: Promise<{
@@ -60,7 +61,6 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     });
     
     txData?.forEach(tx => {
-      const amt = Number(tx.amount);
       const isRollover = isRolloverTransaction(tx.note);
       const isUpToMonth = tx.transaction_date < end;
       const isInMonth = tx.transaction_date >= start && tx.transaction_date < end;
@@ -83,21 +83,13 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
         }
       }
 
-      // Hitung saldo kumulatif riil tanpa rollover ganda
+      // Hitung saldo kumulatif riil tanpa rollover ganda.
       if (isUpToMonth && !isRollover) {
-        if (tx.type === 'income' && tx.wallet_id) {
-          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) + amt);
-        } else if (tx.type === 'expense' && tx.wallet_id) {
-          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) - amt);
-        } else if (tx.type === 'adjustment' && tx.wallet_id) {
-          balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) + amt);
-        } else if (tx.type === 'transfer') {
-          if (tx.wallet_id) {
-            balanceMap.set(tx.wallet_id, (balanceMap.get(tx.wallet_id) || 0) - amt);
-          }
-          if (tx.destination_wallet_id) {
-            balanceMap.set(tx.destination_wallet_id, (balanceMap.get(tx.destination_wallet_id) || 0) + amt);
-          }
+        for (const change of getWalletTransactionDeltas(tx)) {
+          balanceMap.set(
+            change.walletId,
+            (balanceMap.get(change.walletId) || 0) + change.delta,
+          );
         }
       }
     });
@@ -146,20 +138,12 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
       throw new Error("Saldo dompet belum dapat dihitung. Coba lagi.");
     }
 
-    let currentBalance = 0;
-    for (const transaction of transactions ?? []) {
-      if (isRolloverTransaction(transaction.note)) continue;
-
-      const amount = Number(transaction.amount);
-      if (transaction.type === "transfer") {
-        if (transaction.wallet_id === id) currentBalance -= amount;
-        if (transaction.destination_wallet_id === id) currentBalance += amount;
-      } else if (transaction.wallet_id === id) {
-        if (transaction.type === "income") currentBalance += amount;
-        else if (transaction.type === "expense") currentBalance -= amount;
-        else if (transaction.type === "adjustment") currentBalance += amount;
-      }
-    }
+    const currentBalance = (transactions ?? [])
+      .filter((transaction) => !isRolloverTransaction(transaction.note))
+      .reduce(
+        (balance, transaction) => balance + getWalletTransactionDelta(transaction, id),
+        0,
+      );
 
     const difference = newBalance - currentBalance;
     if (difference === 0) return;
@@ -170,7 +154,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
       amount: difference,
       wallet_id: id,
       note: "Penyesuaian Saldo (Adjust Balance)",
-      transaction_date: new Date().toISOString().split("T")[0],
+      transaction_date: getCurrentDate(),
     });
 
     if (error) throw new Error(error.message);

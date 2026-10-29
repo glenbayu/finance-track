@@ -23,11 +23,11 @@ begin
     where type in ('income', 'expense')
       and note like '%(Rollover)%'
       and wallet_id is not null
-    group by user_id, wallet_id, transaction_date
+    group by user_id, wallet_id, to_char(transaction_date, 'YYYY-MM')
     having count(*) > 1
   ) then
     raise exception
-      'Rollover migration stopped: duplicate rollover rows exist for the same user, wallet, and date. Reconcile these rows manually, then rerun the migration.';
+      'Rollover migration stopped: duplicate rollover rows exist for the same user, wallet, and month. Reconcile these rows manually, then rerun the migration.';
   end if;
 end
 $;

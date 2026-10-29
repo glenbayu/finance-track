@@ -370,44 +370,43 @@ export default function TransactionEditForm({
               />
             </div>
 
-            {/* Quick Amount Steppers + Frozen Reset button (if not negative adjustment) */}
+            {/* Quick amount steppers and reset button */}
             <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5">
-                <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                  {QUICK_AMOUNTS.map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddAmount(preset.value);
-                      }}
-                      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
-                      style={{ minHeight: "32px" }}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-
-                {hasAmount && (
-                  <div className="flex items-center gap-1.5 shrink-0 pl-1.5 border-l border-slate-200 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClearAmount();
-                      }}
-                      className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 active:scale-95 transition-all"
-                      style={{ minHeight: "32px" }}
-                      title="Reset nominal"
-                    >
-                      <RotateCcw size={12} />
-                    </button>
-                  </div>
+              <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                {QUICK_AMOUNTS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddAmount(preset.value);
+                    }}
+                    className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
+                    style={{ minHeight: "32px" }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
 
+              {hasAmount && (
+                <div className="flex items-center gap-1.5 shrink-0 pl-1.5 border-l border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClearAmount();
+                    }}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 active:scale-95 transition-all"
+                    style={{ minHeight: "32px" }}
+                    title="Reset nominal"
+                  >
+                    <RotateCcw size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── CARD 2: DETAIL TRANSAKSI ── */}

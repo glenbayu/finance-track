@@ -53,10 +53,40 @@ create unique index if not exists transactions_user_system_key_unique
   on public.transactions (user_id, system_key)
   where system_key is not null;
 
+
+-- The internal identity column is not accepted from ordinary authenticated writes.
+-- The recalculation RPC is SECURITY DEFINER and is constrained to auth.uid().
+create or replace function public.protect_transaction_system_key()
+returns trigger
+language plpgsql
+security invoker
+set search_path = public, pg_temp
+as $$
+begin
+  if current_user <> 'postgres' then
+    if tg_op = 'INSERT' and new.system_key is not null then
+      raise exception 'system_key is reserved for internal rollover processing.';
+    end if;
+
+    if tg_op = 'UPDATE' and new.system_key is distinct from old.system_key then
+      raise exception 'system_key is reserved for internal rollover processing.';
+    end if;
+  end if;
+
+  return new;
+end;
+$$;
+
+drop trigger if exists transactions_protect_system_key on public.transactions;
+create trigger transactions_protect_system_key
+before insert or update on public.transactions
+for each row
+execute function public.protect_transaction_system_key();
+
 create or replace function public.recalculate_monthly_rollovers(p_user_id uuid)
 returns void
 language plpgsql
-security invoker
+security definer
 set search_path = public, pg_temp
 as $$
 declare

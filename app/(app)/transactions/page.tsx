@@ -592,11 +592,13 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           className="rounded-none"
                           actions={
                             <div className="flex h-full items-stretch">
-                              <DuplicateTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" label="" />
+                              {(transaction.type === "income" || transaction.type === "expense") && (
+                                <DuplicateTransactionButton id={transaction.id} className="flex items-center justify-center h-full w-16 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors" label="" />
+                              )}
                               <DeleteTransactionButton id={transaction.id} action={deleteTransaction} className="flex items-center justify-center h-full w-16 bg-rose-500 text-white hover:bg-rose-600 transition-colors" label="" />
                             </div>
                           }
-                          actionWidth={128}
+                          actionWidth={transaction.type === "income" || transaction.type === "expense" ? 128 : 64}
                         >
                           <Link href={`/transactions/${transaction.id}/edit`} className="block group">
                             <article className="px-4 py-3 transition-colors active:opacity-80"
@@ -722,7 +724,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                         </td>
                         <td className="p-4 align-middle text-right">
                           <div className="flex justify-end gap-1.5 opacity-0 group-hover:opacity-100 [&:focus-within]:opacity-100 transition-opacity duration-150">
-                            <DuplicateTransactionButton id={transaction.id} />
+                            {(transaction.type === "income" || transaction.type === "expense") && <DuplicateTransactionButton id={transaction.id} />}
                             <EditTransactionButton id={transaction.id} />
                             <DeleteTransactionButton id={transaction.id} action={deleteTransaction} />
                           </div>

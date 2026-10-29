@@ -14,7 +14,7 @@ async function revalidateWalletRelatedPaths() {
 }
 
 import MonthFilter from "@/components/ui/month-filter";
-import { getCurrentMonth, getMonthRange } from "@/lib/utils/date";
+import { getCurrentDate, getCurrentMonth, getMonthRange } from "@/lib/utils/date";
 
 export type WalletsPageProps = {
   searchParams?: Promise<{
@@ -170,7 +170,7 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
       amount: difference,
       wallet_id: id,
       note: "Penyesuaian Saldo (Adjust Balance)",
-      transaction_date: new Date().toISOString().split("T")[0],
+      transaction_date: getCurrentDate(),
     });
 
     if (error) throw new Error(error.message);

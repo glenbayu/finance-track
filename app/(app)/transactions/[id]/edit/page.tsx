@@ -20,7 +20,16 @@ async function updateTransaction(formData: FormData) {
   const { supabase, user } = await requireUser();
 
   const id = formData.get("id") as string;
-  const type = formData.get("type") as "income" | "expense" | "transfer" | "adjustment";
+  const rawType = formData.get("type");
+  if (
+    rawType !== "income" &&
+    rawType !== "expense" &&
+    rawType !== "transfer" &&
+    rawType !== "adjustment"
+  ) {
+    throw new Error("Tipe transaksi tidak valid.");
+  }
+  const type = rawType;
   const amount = Number(formData.get("amount"));
   const categoryId = formData.get("category_id") as string;
   const walletId = formData.get("wallet_id") as string;
@@ -60,8 +69,9 @@ async function updateTransaction(formData: FormData) {
   if (type !== "transfer" && type !== "adjustment") {
     const { data: category, error: categoryError } = await supabase
       .from("categories")
-      .select("id")
+      .select("id, type")
       .eq("id", categoryId)
+      .eq("type", type)
       .or(`user_id.eq.${user.id},user_id.is.null`)
       .is("archived_at", null)
       .single();

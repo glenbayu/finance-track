@@ -655,7 +655,7 @@ export default function TransactionEditForm({
           </SubmitButton>
 
           {/* Secondary Actions Grid (Batal, Duplikat, Hapus) */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className={`grid ${transaction.type === "income" || transaction.type === "expense" ? "grid-cols-3" : "grid-cols-2"} gap-2`}>
             <TransactionReturnLink
               className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border text-xs sm:text-sm font-semibold transition-colors hover:bg-slate-100 dark:hover:bg-slate-800"
               style={{
@@ -667,18 +667,20 @@ export default function TransactionEditForm({
               Batal
             </TransactionReturnLink>
 
-            <Link
-              href={`/transactions/new?duplicateId=${encodeURIComponent(transaction.id)}`}
-              className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border text-xs sm:text-sm font-semibold transition-colors shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800/60"
-              style={{
-                borderColor: "var(--lk-border)",
-                background: "var(--lk-surface)",
-                color: "var(--lk-text)",
-              }}
-            >
-              <Copy size={15} />
-              <span>Duplikat</span>
-            </Link>
+            {(transaction.type === "income" || transaction.type === "expense") && (
+              <Link
+                href={`/transactions/new?duplicateId=${encodeURIComponent(transaction.id)}`}
+                className="inline-flex h-11 items-center justify-center gap-1.5 rounded-xl border text-xs sm:text-sm font-semibold transition-colors shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                style={{
+                  borderColor: "var(--lk-border)",
+                  background: "var(--lk-surface)",
+                  color: "var(--lk-text)",
+                }}
+              >
+                <Copy size={15} />
+                <span>Duplikat</span>
+              </Link>
+            )}
 
             <DeleteTransactionButton
               id={transaction.id}

@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { normalizeTransactionDate } from "../lib/transactions/quick-add-validation.ts";
+import { normalizeTransactionDate } from "../lib/utils/date.ts";
 
 test("uses the supplied valid calendar date", () => {
   assert.equal(normalizeTransactionDate("2024-02-29"), "2024-02-29");

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useRef, useState, useTransition } from "react";
+import { useEffect, useId, useMemo, useRef, useState, useSyncExternalStore, useTransition } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { CalendarDays, ChevronDown, LoaderCircle } from "lucide-react";
 import { formatMonthLabel } from "@/lib/utils/format";
@@ -14,6 +14,21 @@ type MonthFilterProps = {
 
 function isMonthValue(value: string) {
   return /^\d{4}-(0[1-9]|1[0-2])$/.test(value);
+}
+
+function subscribeToNoChanges() {
+  return () => {};
+}
+
+function getMonthInputSupport() {
+  if (typeof document === "undefined") return true;
+  const input = document.createElement("input");
+  input.setAttribute("type", "month");
+  return input.type === "month";
+}
+
+function getServerMonthInputSupport() {
+  return true;
 }
 
 function toMonthParts(value: string) {
@@ -42,13 +57,20 @@ export default function MonthFilter({
   const rootRef = useRef<HTMLDivElement | null>(null);
   const compactInputRef = useRef<HTMLInputElement | null>(null);
   const [displayMonth, setDisplayMonth] = useState(selectedMonth);
-  const [supportsMonthInput, setSupportsMonthInput] = useState(true);
+  const [previousSelectedMonth, setPreviousSelectedMonth] = useState(selectedMonth);
+  const supportsMonthInput = useSyncExternalStore(
+    subscribeToNoChanges,
+    getMonthInputSupport,
+    getServerMonthInputSupport,
+  );
   const [isCoarsePointer, setIsCoarsePointer] = useState(false);
   const [isCompactOpen, setIsCompactOpen] = useState(false);
 
-  useEffect(() => {
+  // Reset picker state during render if navigation changes the selected month.
+  if (selectedMonth !== previousSelectedMonth) {
+    setPreviousSelectedMonth(selectedMonth);
     setDisplayMonth(selectedMonth);
-  }, [selectedMonth]);
+  }
 
   useEffect(() => {
     if (!isCompactOpen) return;
@@ -74,12 +96,6 @@ export default function MonthFilter({
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, [isCompactOpen]);
-
-  useEffect(() => {
-    const input = document.createElement("input");
-    input.setAttribute("type", "month");
-    setSupportsMonthInput(input.type === "month");
-  }, []);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(pointer: coarse)");

@@ -144,7 +144,6 @@ export default function WalletManager({ wallets, isCurrentMonth = true, createAc
     try {
       if (walletToAdjust) {
         formData.append("id", walletToAdjust.id);
-        formData.append("current_balance", String(walletToAdjust.balance));
         await adjustAction(formData);
       }
       closeAdjustModal();

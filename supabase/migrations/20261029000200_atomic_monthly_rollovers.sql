@@ -253,7 +253,7 @@ begin
       note = excluded.note,
       transaction_date = excluded.transaction_date,
       category_id = excluded.category_id
-    where public.transactions.user_id = p_user_id;
+    ;
   end loop;
 end;
 $$;

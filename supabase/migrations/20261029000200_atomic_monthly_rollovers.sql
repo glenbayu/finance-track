@@ -30,7 +30,7 @@ begin
       'Rollover migration stopped: duplicate rollover rows exist for the same user, wallet, and month. Reconcile these rows manually, then rerun the migration.';
   end if;
 end
-$;
+$$;
 
 alter table public.transactions
   add column if not exists system_key text;

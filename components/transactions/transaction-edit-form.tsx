@@ -206,13 +206,11 @@ export default function TransactionEditForm({
   const hasAmount = Number.isFinite(amountValue) && amountValue > 0;
 
   let missingHint: string | null = null;
-  if (!isNegativeAdjustment) {
-    if (!hasAmount) missingHint = "Isi nominal dulu";
-    else if (!walletId) missingHint = "Pilih dompet dulu";
-    else if (needsCategory && !categoryId) missingHint = "Pilih kategori dulu";
-    else if (isTransfer && !effectiveDestination) missingHint = "Pilih dompet tujuan dulu";
-  }
-  const canSubmit = !isNegativeAdjustment && !missingHint;
+  if (!hasAmount) missingHint = "Isi nominal dulu";
+  else if (!walletId) missingHint = "Pilih dompet dulu";
+  else if (needsCategory && !categoryId) missingHint = "Pilih kategori dulu";
+  else if (isTransfer && !effectiveDestination) missingHint = "Pilih dompet tujuan dulu";
+  const canSubmit = !missingHint;
   const submitLabel = missingHint ?? "Simpan Perubahan";
 
   const setDateOffset = (daysAgo: number) => {
@@ -253,7 +251,11 @@ export default function TransactionEditForm({
           <input type="hidden" name="destination_wallet_id" value={effectiveDestination} />
         )}
         {needsCategory && <input type="hidden" name="category_id" value={categoryId} />}
-        <input type="hidden" name="amount" value={amountDigits} />
+        <input
+          type="hidden"
+          name="amount"
+          value={isNegativeAdjustment ? String(-Math.abs(amountValue)) : amountDigits}
+        />
 
         {/* ── CARD 1: HERO AMOUNT & TYPE SWITCHER ── */}
         <div
@@ -333,7 +335,7 @@ export default function TransactionEditForm({
               backgroundColor: "var(--lk-surface-raised)",
               borderColor: "var(--lk-border)",
             }}
-            onClick={() => !isNegativeAdjustment && amountInputRef.current?.focus()}
+            onClick={() => amountInputRef.current?.focus()}
           >
             <div className="flex items-center justify-between mb-2">
               <span className="text-[11px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
@@ -346,14 +348,13 @@ export default function TransactionEditForm({
 
             <div className="flex items-center justify-center gap-1.5 py-2 cursor-text overflow-hidden">
               <span className={`text-base sm:text-xl font-bold ${cfg.amountColor} select-none shrink-0 self-center`}>
-                {cfg.prefix} Rp
+                {isAdjustment ? (isNegativeAdjustment ? "-" : "+") : cfg.prefix} Rp
               </span>
               <input
                 id="edit-amount"
                 ref={amountInputRef}
                 type="text"
                 inputMode="numeric"
-                readOnly={isNegativeAdjustment}
                 placeholder="0"
                 value={amountDisplay}
                 onChange={(e) => {
@@ -369,51 +370,43 @@ export default function TransactionEditForm({
               />
             </div>
 
-            {/* Quick Amount Steppers + Frozen Reset button (if not negative adjustment) */}
-            {!isNegativeAdjustment && (
-              <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5">
-                <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
-                  {QUICK_AMOUNTS.map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleAddAmount(preset.value);
-                      }}
-                      className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
-                      style={{ minHeight: "32px" }}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-
-                {hasAmount && (
-                  <div className="flex items-center gap-1.5 shrink-0 pl-1.5 border-l border-slate-200 dark:border-slate-800">
-                    <button
-                      type="button"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleClearAmount();
-                      }}
-                      className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 active:scale-95 transition-all"
-                      style={{ minHeight: "32px" }}
-                      title="Reset nominal"
-                    >
-                      <RotateCcw size={12} />
-                    </button>
-                  </div>
-                )}
+            {/* Quick amount steppers and reset button */}
+            <div className="mt-3 pt-3 border-t border-slate-200/60 dark:border-slate-800/60 flex items-center justify-between gap-1.5">
+              <div className="flex-1 min-w-0 flex items-center gap-1.5 overflow-x-auto no-scrollbar py-0.5">
+                {QUICK_AMOUNTS.map((preset) => (
+                  <button
+                    key={preset.label}
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddAmount(preset.value);
+                    }}
+                    className="inline-flex shrink-0 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-700/80 bg-white dark:bg-slate-800/80 px-2.5 py-1 text-xs font-semibold text-slate-700 dark:text-slate-200 shadow-2xs hover:bg-slate-50 dark:hover:bg-slate-700/80 active:scale-95 transition-all"
+                    style={{ minHeight: "32px" }}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
               </div>
-            )}
-          </div>
 
-          {isNegativeAdjustment && (
-            <p className="ui-alert mt-4">
-              Transaksi koreksi negatif belum dapat diubah nominalnya melalui formulir ini.
-            </p>
-          )}
+              {hasAmount && (
+                <div className="flex items-center gap-1.5 shrink-0 pl-1.5 border-l border-slate-200 dark:border-slate-800">
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleClearAmount();
+                    }}
+                    className="shrink-0 inline-flex items-center gap-1 rounded-lg border border-rose-200 dark:border-rose-800/60 bg-rose-50 dark:bg-rose-950/40 px-2.5 py-1 text-xs font-semibold text-rose-600 dark:text-rose-400 hover:bg-rose-100 dark:hover:bg-rose-900/40 active:scale-95 transition-all"
+                    style={{ minHeight: "32px" }}
+                    title="Reset nominal"
+                  >
+                    <RotateCcw size={12} />
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
 
         {/* ── CARD 2: DETAIL TRANSAKSI ── */}

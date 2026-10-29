@@ -629,7 +629,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                                     transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" :
                                     "text-slate-900 dark:text-slate-100"
                                   }`}>
-                                    {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
+                                    {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : transaction.type === "adjustment" ? (Number(transaction.amount) < 0 ? "-" : "+") : ""}
                                     <CurrencyAmount amountIDR={amountValue} absolute />
                                   </p>
                                   <span className="text-[10px] font-semibold tracking-wider text-slate-400 dark:text-slate-500 uppercase">
@@ -717,7 +717,7 @@ export default async function TransactionsPage({ searchParams }: TransactionsPag
                           transaction.type === "transfer" ? "text-blue-600 dark:text-blue-400" :
                           "text-slate-900 dark:text-slate-100"
                         }`}>
-                          {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : ""}
+                          {transaction.type === "income" ? "+" : transaction.type === "expense" ? "-" : transaction.type === "adjustment" ? (Number(transaction.amount) < 0 ? "-" : "+") : ""}
                           <CurrencyAmount amountIDR={Number(transaction.amount)} absolute />
                         </td>
                         <td className="p-4 align-middle text-right">

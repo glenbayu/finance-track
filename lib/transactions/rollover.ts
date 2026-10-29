@@ -44,19 +44,25 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
   const lastDayOfPreviousMonth = getLastDayOfMonth(previousMonth);
 
   // 1. Ambil semua wallet user
-  const { data: wallets } = await supabase
+  const { data: wallets, error: walletsError } = await supabase
     .from("wallets")
     .select("id, name, type, is_rollover_enabled, admin_fee_amount, created_at")
     .eq("user_id", userId);
 
+  if (walletsError) {
+    throw new Error(`Gagal memuat dompet untuk rollover: ${walletsError.message}`);
+  }
   if (!wallets || wallets.length === 0) return;
 
   // 2. Ambil semua kategori
-  const { data: categories } = await supabase
+  const { data: categories, error: categoriesError } = await supabase
     .from("categories")
     .select("id, name, type")
     .or(`user_id.eq.${userId},user_id.is.null`);
 
+  if (categoriesError) {
+    throw new Error(`Gagal memuat kategori untuk rollover: ${categoriesError.message}`);
+  }
   if (!categories) return;
 
   const bonusCategory = categories.find(
@@ -81,13 +87,17 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
 
   // --- STAGE 1: BUAT BIAYA ADMIN REKENING DI AKHIR BULAN LALU ---
   // Pertama, cek apakah admin fee sudah ada
-  const { data: existingAdminFees } = await supabase
+  const { data: existingAdminFees, error: existingAdminFeesError } = await supabase
     .from("transactions")
     .select("id, wallet_id")
     .eq("user_id", userId)
     .eq("transaction_date", lastDayOfPreviousMonth)
     .eq("note", "Biaya Admin Rekening")
     .eq("type", "expense");
+
+  if (existingAdminFeesError) {
+    throw new Error(`Gagal memeriksa biaya admin: ${existingAdminFeesError.message}`);
+  }
 
   const existingAdminWalletIds = new Set(
     (existingAdminFees ?? []).map((tx) => tx.wallet_id)
@@ -100,7 +110,7 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
     if (new Date(wallet.created_at) >= new Date(currentMonthStart)) continue;
 
     if (wallet.is_rollover_enabled && Number(wallet.admin_fee_amount) > 0 && !existingAdminWalletIds.has(wallet.id)) {
-      await supabase
+      const { error: adminFeeInsertError } = await supabase
         .from("transactions")
         .insert({
           user_id: userId,
@@ -111,25 +121,37 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
           transaction_date: lastDayOfPreviousMonth,
           category_id: adminCategoryId,
         });
+
+      if (adminFeeInsertError) {
+        throw new Error(`Gagal menyimpan biaya admin: ${adminFeeInsertError.message}`);
+      }
     }
   }
 
   // --- STAGE 2: QUERY ULANG TRANSAKSI BULAN LALU (TERMASUK ADMIN FEE BARU) ---
   // Pakai range query (gte/lt) yang aman untuk kolom DATE, bukan .like()
-  const { data: prevMonthTxs } = await supabase
+  const { data: prevMonthTxs, error: prevMonthTxsError } = await supabase
     .from("transactions")
     .select("id, type, amount, note, transaction_date, wallet_id, destination_wallet_id, category_id")
     .eq("user_id", userId)
     .gte("transaction_date", previousMonthStart)
     .lte("transaction_date", lastDayOfPreviousMonth);
 
+  if (prevMonthTxsError) {
+    throw new Error(`Gagal memuat transaksi bulan sebelumnya: ${prevMonthTxsError.message}`);
+  }
+
   // Query rollover yang sudah ada di tanggal 1 bulan ini
-  const { data: existingRollovers } = await supabase
+  const { data: existingRollovers, error: existingRolloversError } = await supabase
     .from("transactions")
     .select("id, type, amount, note, wallet_id, category_id")
     .eq("user_id", userId)
     .eq("transaction_date", currentMonthDateStr)
     .in("note", ["Sisa uang bulan kemarin (Rollover)", "Defisit uang bulan kemarin (Rollover)"]);
+
+  if (existingRolloversError) {
+    throw new Error(`Gagal memeriksa rollover yang sudah ada: ${existingRolloversError.message}`);
+  }
 
   const prevTxs = prevMonthTxs ?? [];
   const rollovers = existingRollovers ?? [];
@@ -168,10 +190,14 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
     // Jika rollover tidak aktif pada wallet ini, hapus rollover yang ada lalu lewati
     if (!wallet.is_rollover_enabled) {
       if (existingRollover) {
-        await supabase
+        const { error: rolloverDeleteError } = await supabase
           .from("transactions")
           .delete()
           .eq("id", existingRollover.id);
+
+        if (rolloverDeleteError) {
+          throw new Error(`Gagal menghapus rollover lama: ${rolloverDeleteError.message}`);
+        }
       }
       continue;
     }
@@ -187,7 +213,7 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
     if (balance !== 0) {
       if (!existingRollover) {
         // Buat rollover baru
-        await supabase
+        const { error: rolloverInsertError } = await supabase
           .from("transactions")
           .insert({
             user_id: userId,
@@ -198,6 +224,10 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
             transaction_date: currentMonthDateStr,
             category_id: expectedCategoryId,
           });
+
+        if (rolloverInsertError) {
+          throw new Error(`Gagal membuat rollover baru: ${rolloverInsertError.message}`);
+        }
       } else {
         // Update rollover jika nominalnya berubah
         if (
@@ -205,7 +235,7 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
           Number(existingRollover.amount) !== expectedAmount ||
           existingRollover.category_id !== expectedCategoryId
         ) {
-          await supabase
+          const { error: rolloverUpdateError } = await supabase
             .from("transactions")
             .update({
               type: expectedType,
@@ -214,15 +244,23 @@ export async function forceRecalculateRollovers(supabase: SupabaseClient, userId
               category_id: expectedCategoryId,
             })
             .eq("id", existingRollover.id);
+
+          if (rolloverUpdateError) {
+            throw new Error(`Gagal memperbarui rollover: ${rolloverUpdateError.message}`);
+          }
         }
       }
     } else {
       // Saldo 0 → hapus rollover jika ada
       if (existingRollover) {
-        await supabase
+        const { error: rolloverDeleteError } = await supabase
           .from("transactions")
           .delete()
           .eq("id", existingRollover.id);
+
+        if (rolloverDeleteError) {
+          throw new Error(`Gagal menghapus rollover lama: ${rolloverDeleteError.message}`);
+        }
       }
     }
   }

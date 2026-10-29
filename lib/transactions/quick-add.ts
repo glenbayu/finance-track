@@ -2,6 +2,13 @@ import type { CurrencyCode } from "@/lib/utils/currency";
 
 export type QuickAddTemplateType = "income" | "expense";
 
+export function isCompatibleQuickAddCategory(
+  category: { type?: unknown } | null | undefined,
+  templateType: QuickAddTemplateType,
+) {
+  return category?.type === templateType;
+}
+
 export const QUICK_ADD_TEMPLATE_NAME_MAX = 40;
 export const QUICK_ADD_TEMPLATE_NOTE_MAX = 120;
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { getCurrentDate, isDateValue } from "@/lib/utils/date";
+import { normalizeTransactionDate } from "@/lib/transactions/quick-add-validation";
 import { requireUser } from "@/lib/supabase/auth";
 
 type QuickAddResult = {
@@ -16,12 +16,6 @@ function revalidateQuickAddPaths() {
   revalidatePath("/reports");
   revalidatePath("/budgets");
   revalidatePath("/settings/templates");
-}
-
-function normalizeTransactionDate(value?: string) {
-  const raw = String(value ?? "").trim();
-  if (!raw) return getCurrentDate();
-  return isDateValue(raw) ? raw : getCurrentDate();
 }
 
 function normalizeTemplateType(value: unknown): "income" | "expense" | null {
@@ -39,6 +33,11 @@ export async function createTransactionFromTemplate(input: {
 
   if (!templateId) {
     return { ok: false, error: "Template tidak valid." };
+  }
+
+  const transactionDate = normalizeTransactionDate(input.transactionDate);
+  if (!transactionDate) {
+    return { ok: false, error: "Tanggal transaksi tidak valid." };
   }
 
   const { data: template, error: templateError } = await supabase
@@ -79,8 +78,6 @@ export async function createTransactionFromTemplate(input: {
       categoryId = null;
     }
   }
-
-  const transactionDate = normalizeTransactionDate(input.transactionDate);
 
   // Fallback ke wallet pertama user jika template tidak menyimpan preferensi dompet.
   const { data: firstWallet } = await supabase

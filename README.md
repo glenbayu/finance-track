@@ -1,144 +1,142 @@
-<div align="center">
+# Finance Track
 
-# 💰 Finance Journal
+Finance Track adalah aplikasi manajemen keuangan pribadi untuk mencatat transaksi, memantau saldo berdasarkan wallet, mengelola anggaran, dan melihat ringkasan arus kas.
 
-### *Personal Wealth, Smart Allocation & Cashflow Manager*
+Aplikasi ini menggunakan Next.js App Router dan Supabase. Operasi finansial penting divalidasi di sisi server dan data pengguna dipisahkan melalui autentikasi serta Row Level Security (RLS).
 
-Aplikasi manajemen keuangan pribadi modern berkonsep **Wealth & Allocation Management**. Dirancang bukan sekadar mencatat uang masuk dan keluar, tetapi membantu Anda memantau saldo riil berdasarkan sebaran dompet fisik, bank, dan piutang, serta mengontrol arus kas bulanan dengan sistem **Auto-Rollover** yang akurat.
+## Fitur utama
 
----
+- Manajemen wallet untuk uang tunai, rekening bank, dan e-wallet.
+- Transaksi income, expense, transfer antar-wallet, dan balance adjustment.
+- Kategori transaksi dengan validasi tipe dan status archive.
+- Budget bulanan berdasarkan kategori.
+- Quick-add templates untuk transaksi berulang.
+- Monthly rollover untuk memindahkan saldo ke periode berikutnya.
+- Admin fee pada wallet yang dikonfigurasi.
+- Dashboard, laporan bulanan, tren pengeluaran, dan forecast.
+- Mode penyamaran nominal untuk menjaga privasi saat aplikasi digunakan di tempat umum.
+- Tampilan responsif dan dukungan Progressive Web App (PWA).
+- Perhitungan business date menggunakan timezone `Asia/Jakarta`.
 
-[![Next.js](https://img.shields.io/badge/Next.js-16.1-black?style=for-the-badge&logo=next.js&logoColor=white)](https://nextjs.org/)
-[![React](https://img.shields.io/badge/React-19-0ea5e9?style=for-the-badge&logo=react&logoColor=white)](https://react.dev/)
-[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v4-38bdf8?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
-[![Supabase](https://img.shields.io/badge/Supabase-Database%20%26%20Auth-3ecf8e?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
-[![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178c6?style=for-the-badge&logo=typescript&logoColor=white)](https://www.typescriptlang.org/)
+## Teknologi
 
-</div>
+| Area | Teknologi |
+| --- | --- |
+| Framework | Next.js 16.4.3 dengan App Router |
+| UI | React 19 dan Tailwind CSS 4 |
+| Bahasa | TypeScript |
+| Backend dan database | Supabase, PostgreSQL, dan Supabase SSR |
+| Visualisasi | Recharts |
+| Ikon | Lucide React |
+| Testing | Node.js built-in test runner |
 
----
+## Persyaratan
 
-## 🌟 Fitur Unggulan (Key Features)
+- Node.js 22 atau versi yang kompatibel dengan Next.js 16.
+- npm.
+- Project Supabase untuk development.
 
-### 1. 💼 Multi-Wallet & Smart Allocation
-- **3 Kategori Dompet Utama:** Pantau saldo Anda secara terpisah di **Cash on Hand** (Uang Tunai), **Bank & E-Wallet** (BCA, Mandiri, GoPay, OVO), dan **Saldo Tertahan** (Piutang / Titipan).
-- **One-Click Transfer (Pindah Saldo):** Transfer antar-dompet tidak tercatat sebagai pengeluaran/pemasukan, sehingga grafik *cash flow* bulanan tetap suci dan akurat.
-- **Koreksi Saldo Cepat:** Sesuaikan saldo fisik kapan pun tanpa merusak riwayat transaksi pengeluaran.
+Gunakan project Supabase non-production untuk pengembangan dan pengujian.
 
-### 2. 🔄 Automatic Monthly Rollover
-- **Sisa Saldo Otomatis Pindah:** Berapa pun sisa saldo di akhir bulan, sistem otomatis memindahkannya ke tanggal 1 bulan berikutnya sebagai transaksi *"Pemasukan: Sisa uang bulan kemarin (Rollover)"*.
-- **Auto Admin Fee:** Opsi pemotongan biaya admin bank secara otomatis di setiap akhir bulan untuk rekening yang ditentukan.
+## Menjalankan project secara lokal
 
-### 3. 📊 Dasbor Analitik & Visualisasi Arus Kas
-- **Status Finansial Real-time:** Pantau status bulan berjalan apakah sedang *Surplus* atau *Defisit*.
-- **Grafik Interaktif (Recharts):** Visualisasi *Pie Chart* pengeluaran per kategori dan tren pengeluaran bulanan (*Monthly Trend*).
-- **Riwayat Bulanan:** Komparasi pemasukan, pengeluaran, dan net cashflow beberapa bulan terakhir.
+### 1. Clone repository
 
-### 4. 🎯 Anggaran & Batas Pengeluaran (Budgets)
-- Tetapkan limit anggaran bulanan untuk setiap kategori pengeluaran (misal: *Makan & Minum*, *Transportasi*, *Belanja*).
-- Indikator progres dinamis dengan kode warna visual: **Aman (Hijau)**, **Peringatan (Kuning)**, dan **Overbudget (Merah)**.
-
-### 5. ⚡ Quick Add & Template Cepat
-- Buat template pengeluaran harian (misal: *Kopi Pagi Rp 15.000*, *Bensin Rp 30.000*).
-- Catat transaksi harian berulang hanya dalam 1 klik dari dashboard utama, lengkap dengan opsi *Undo*.
-
-### 6. 📱 UI Modern, Mobile-First & Privacy Friendly
-- **Glassmorphism & Dual Theme:** Tampilan clean minimalis untuk *Light Mode*, dan *OLED Deep Glassmorphism* yang mewah untuk *Dark Mode*.
-- **Mobile Swipeable Rows:** Geser baris transaksi ke kiri pada smartphone untuk mengakses tombol aksi *Duplikat* dan *Hapus*.
-- **Masked Currency (Privacy Mode):** Tombol intip/sembunyikan nominal saldo untuk kenyamanan saat membuka aplikasi di ruang publik.
-
----
-
-## 🛠️ Tech Stack & Arsitektur
-
-| Komponen | Teknologi | Keterangan |
-| :--- | :--- | :--- |
-| **Framework** | [Next.js 16 (Turbopack)](https://nextjs.org/) | App Router, React Server Components (RSC), Server Actions |
-| **UI Library** | [React 19](https://react.dev/) | Concurrent Features, Modern Hooks |
-| **Styling** | [Tailwind CSS v4](https://tailwindcss.com/) | Theme Token Variables, Modern Glassmorphism Utilities |
-| **Backend & DB** | [Supabase](https://supabase.com/) | PostgreSQL, Row Level Security (RLS), Supabase SSR Auth |
-| **Charts** | [Recharts](https://recharts.org/) | Visualisasi tren dan distribusi kategori pengeluaran |
-| **Icons** | [Lucide React](https://lucide.dev/) | Set ikon modern dan konsisten |
-| **Language** | [TypeScript](https://www.typescriptlang.org/) | Strict Type Safety |
-
----
-
-## 🚀 Panduan Instalasi (Getting Started)
-
-Ikuti langkah-langkah di bawah untuk menjalankan **Finance Journal** di komputer lokal Anda:
-
-### 1. Clone Repository
 ```bash
 git clone https://github.com/glenbayu/finance-track.git
 cd finance-track
 ```
 
-### 2. Install Dependencies
+### 2. Install dependency
+
 ```bash
-npm install
+npm ci
 ```
 
-### 3. Konfigurasi Environment Variables
-Buat file bernama `.env.local` (atau salin dari template `.env`):
+Gunakan `npm install` jika lockfile perlu diperbarui secara sengaja.
+
+### 3. Konfigurasi environment
+
+Buat file `.env.local` di root project:
+
 ```env
-NEXT_PUBLIC_SUPABASE_URL=https://[YOUR_PROJECT_ID].supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=[YOUR_SUPABASE_ANON_KEY]
+NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 ```
 
-### 4. Setup Database Supabase
-Jalankan file migrasi SQL di folder `supabase/migrations/` secara berurutan pada menu **SQL Editor** di Dashboard Supabase Anda:
-1. `20260501000000_create_categories.sql` (Tabel kategori pengeluaran & pemasukan beserta archive & timestamp)
-2. `20260501010000_create_wallets.sql` (Tabel dompet fisik & rekening bank dengan default auto-rollover)
-3. `20260501020000_create_transactions.sql` (Tabel transaksi lengkap dengan foreign key wallet, transfer, koreksi & timestamps)
-4. `20260526090000_create_budgets.sql` (Tabel batas anggaran bulanan per kategori)
-5. `20260528100000_create_quick_add_templates.sql` (Tabel template cepat transaksi 1-klik)
-6. `20260901000000_user_onboarding_trigger.sql` (Trigger auto-setup dompet cash & 10 kategori awal saat user registrasi)
+Jangan memasukkan service-role key atau credential production ke source code, repository, maupun log.
 
-### 5. Jalankan Development Server
+### 4. Terapkan database migration
+
+Jalankan migration di `supabase/migrations/` secara berurutan berdasarkan nama file pada project Supabase development. Migration mencakup:
+
+1. Schema kategori, wallet, transaksi, budget, dan quick-add template.
+2. Onboarding user dan default data.
+3. Signed balance adjustment.
+4. Atomic monthly rollover.
+5. Ownership validation untuk related finance records.
+6. Penguatan privilege dan `search_path` pada database function.
+
+Migration dapat dijalankan melalui Supabase CLI atau SQL Editor. Jangan menjalankannya pada database production tanpa prosedur backup dan persetujuan yang sesuai.
+
+### 5. Jalankan development server
+
 ```bash
 npm run dev
 ```
-Buka browser di **[http://localhost:3000](http://localhost:3000)**.
 
----
+Buka [http://localhost:3000](http://localhost:3000) di browser.
 
-## 📂 Struktur Direktori
+## Perintah development
+
+```bash
+npm run dev                         # Development server
+npm run lint                        # ESLint
+npm run typecheck                   # TypeScript type checking
+npm test                            # Unit dan regression tests
+npm run build                       # Production build
+npm run start                       # Menjalankan hasil production build
+npm audit --audit-level=low         # Dependency security audit
+```
+
+Test yang tersedia berada di folder `tests/` dan dijalankan oleh script `npm test`. Test tersebut memverifikasi business date, validasi quick-add, serta perhitungan saldo wallet.
+
+## Struktur project
 
 ```text
 finance-track/
-├── app/                        # Next.js App Router
-│   ├── (app)/                  # Rute berotentikasi (Protected Pages)
-│   │   ├── page.tsx            # Dashboard Utama (Ringkasan)
-│   │   ├── transactions/       # Daftar & Form Transaksi
-│   │   ├── wallets/            # Manajemen Dompet & Saldo
-│   │   ├── budgets/            # Manajemen Batas Anggaran
-│   │   ├── categories/         # Manajemen Kategori
-│   │   ├── reports/            # Laporan Finansial Bulanan
-│   │   └── settings/           # Pengaturan & Profil
-│   ├── login/                  # Halaman Masuk
-│   └── signup/                 # Halaman Daftar Akun Baru
-├── components/                 # Komponen Modular Reusable
-│   ├── dashboard/              # Komponen widget & grafik dashboard
-│   ├── layout/                 # AppShell, DesktopSidebar, MobileDock
-│   ├── transactions/           # Komponen tabel, form, dan tombol aksi
-│   ├── ui/                     # Primitif UI (Dialog, Modal, MaskedCurrency, dll)
-│   └── wallets/                # Komponen manajemen & koreksi saldo dompet
-├── lib/                        # Utilitas & Business Logic
-│   ├── supabase/               # Client & Server Supabase helpers
-│   ├── transactions/           # Logika Rollover, Quick Add, Filter
-│   └── utils/                  # Currency formatter, Date parser
-└── supabase/                   # Database Migrations (SQL Scripts)
+├── app/                 # Route, page, layout, API route, dan server action Next.js
+├── components/          # Komponen UI dan fitur yang dapat digunakan kembali
+├── hooks/               # React hooks untuk state dan tampilan aplikasi
+├── lib/                 # Business logic, Supabase helper, dan utility
+├── public/              # Asset PWA, manifest, favicon, dan service worker
+├── supabase/migrations/ # Database schema, policy, trigger, dan function
+├── tests/               # Unit dan regression tests
+├── package.json         # Script dan dependency project
+├── package-lock.json    # Lockfile dependency npm
+└── tsconfig.json        # Konfigurasi TypeScript
 ```
 
----
+## Keamanan dan isolasi data
 
-## 🔒 Keamanan Data & Privasi
-- **Row Level Security (RLS):** Seluruh tabel di PostgreSQL dilindungi dengan RLS, memastikan setiap pengguna hanya memiliki akses ke data keuangannya sendiri.
-- **Server Actions & CSRF Protected:** Mutasi data divalidasi langsung di sisi server dengan sesi terotentikasi.
-- **Zero Third-Party Tracking:** Privasi keuangan pengguna terjaga penuh tanpa script analitik pihak ketiga.
+- Autentikasi menggunakan Supabase Auth dan server-side session helper.
+- Akses data dibatasi berdasarkan user ownership.
+- RLS, trigger, foreign key, constraint, dan database function digunakan untuk memperkuat integritas data.
+- Validasi input finansial dilakukan di server, termasuk validasi wallet, kategori, tanggal, dan tipe transaksi.
+- Transfer dan balance adjustment diproses sebagai tipe transaksi khusus agar tidak berubah menjadi income atau expense melalui manipulasi request.
+- Data sensitif tidak boleh ditampilkan dalam error response, log, atau commit.
 
----
+## Kontribusi
 
-<div align="center">
-  <sub>Dibangun dengan dedikasi untuk kebebasan dan ketenangan finansial pribadi. 🌿</sub>
-</div>
+Sebelum membuat perubahan:
+
+1. Pastikan perubahan berada pada branch development.
+2. Jalankan lint, typecheck, test, dan build yang relevan.
+3. Periksa `git diff` dan `git diff --check`.
+4. Jangan mengubah atau menguji database production.
+
+Untuk perubahan schema, sertakan migration baru dan regression test yang menjelaskan perilaku yang dilindungi.
+
+## Lisensi
+
+Project ini bersifat privat sesuai konfigurasi `package.json`.

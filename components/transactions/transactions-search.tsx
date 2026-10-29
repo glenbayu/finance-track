@@ -24,11 +24,14 @@ export default function TransactionsSearch({
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [value, setValue] = useState(defaultValue);
+  const [previousDefaultValue, setPreviousDefaultValue] = useState(defaultValue);
   const [isSmallScreen, setIsSmallScreen] = useState(false);
 
-  useEffect(() => {
+  // Reset local input state during render when navigation changes the prop.
+  if (defaultValue !== previousDefaultValue) {
+    setPreviousDefaultValue(defaultValue);
     setValue(defaultValue);
-  }, [defaultValue]);
+  }
 
   useEffect(() => {
     if (!useSmallScreenPlaceholder) return;

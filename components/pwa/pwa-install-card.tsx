@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useSyncExternalStore } from "react";
 import { Download, LoaderCircle, Smartphone } from "lucide-react";
 
 type BeforeInstallPromptEvent = Event & {
@@ -19,24 +19,54 @@ function isAndroidDevice() {
   return /Android/i.test(window.navigator.userAgent);
 }
 
+function subscribeToNoChanges() {
+  return () => {};
+}
+
+function getAndroidSnapshot() {
+  return typeof window !== "undefined" && isAndroidDevice();
+}
+
+function getServerAndroidSnapshot() {
+  return false;
+}
+
+function subscribeToStandalone(callback: () => void) {
+  if (typeof window === "undefined") return () => {};
+  const media = window.matchMedia("(display-mode: standalone)");
+  media.addEventListener("change", callback);
+  return () => media.removeEventListener("change", callback);
+}
+
+function getStandaloneSnapshot() {
+  return typeof window !== "undefined" && isStandaloneMode();
+}
+
+function getServerStandaloneSnapshot() {
+  return false;
+}
+
 export default function PwaInstallCard() {
   const [installPromptEvent, setInstallPromptEvent] =
     useState<BeforeInstallPromptEvent | null>(null);
-  const [isInstalled, setIsInstalled] = useState(false);
-  const [isAndroid, setIsAndroid] = useState(false);
+  const [wasInstalled, setWasInstalled] = useState(false);
   const [isInstalling, setIsInstalling] = useState(false);
+  const isAndroid = useSyncExternalStore(
+    subscribeToNoChanges,
+    getAndroidSnapshot,
+    getServerAndroidSnapshot,
+  );
+  const isStandalone = useSyncExternalStore(
+    subscribeToStandalone,
+    getStandaloneSnapshot,
+    getServerStandaloneSnapshot,
+  );
+  const isInstalled = wasInstalled || isStandalone;
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
-
-    const updateInstalledState = () => {
-      setIsInstalled(isStandaloneMode());
-    };
-
-    setIsAndroid(isAndroidDevice());
-    updateInstalledState();
 
     const handleBeforeInstallPrompt = (event: Event) => {
       event.preventDefault();
@@ -44,7 +74,7 @@ export default function PwaInstallCard() {
     };
 
     const handleAppInstalled = () => {
-      setIsInstalled(true);
+      setWasInstalled(true);
       setInstallPromptEvent(null);
     };
 

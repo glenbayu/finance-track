@@ -91,3 +91,13 @@ export function getRecentMonths(count: number, fromMonth = getCurrentMonth()) {
 
   return months;
 }
+
+/**
+ * Uses today's business date when no date is supplied, but rejects invalid
+ * non-empty values instead of silently converting them to today's date.
+ */
+export function normalizeTransactionDate(value?: string): string | null {
+  const raw = String(value ?? "").trim();
+  if (!raw) return getCurrentDate();
+  return isDateValue(raw) ? raw : null;
+}

@@ -2,9 +2,6 @@
 -- Existing generated rows are tagged with stable keys. If the existing data has
 -- ambiguous duplicates, abort instead of deleting or silently choosing a row.
 
-alter table public.transactions
-  add column if not exists system_key text;
-
 do $$
 begin
   if exists (
@@ -33,7 +30,10 @@ begin
       'Rollover migration stopped: duplicate rollover rows exist for the same user, wallet, and date. Reconcile these rows manually, then rerun the migration.';
   end if;
 end
-$$;
+$;
+
+alter table public.transactions
+  add column if not exists system_key text;
 
 update public.transactions
 set system_key = 'admin_fee:' || transaction_date::text || ':' || wallet_id::text

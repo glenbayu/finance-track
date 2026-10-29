@@ -1,5 +1,14 @@
 import { SupabaseClient } from "@supabase/supabase-js";
 
+export function isRolloverTransaction(note: string | null | undefined): boolean {
+  if (!note) return false;
+  return (
+    note.includes("(Rollover)") ||
+    note === "Sisa uang bulan kemarin (Rollover)" ||
+    note === "Defisit uang bulan kemarin (Rollover)"
+  );
+}
+
 /**
  * Recalculate the current month's wallet rollovers.
  *

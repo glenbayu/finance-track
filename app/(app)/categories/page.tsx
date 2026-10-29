@@ -104,10 +104,57 @@ async function editCategory(formData: FormData) {
   const { supabase, user } = await getOwnedCategoryOrThrow(categoryId);
 
   const name = String(formData.get("name") || "").trim();
-  const type = formData.get("type") as CategoryType;
+  const rawType = formData.get("type");
+  if (rawType !== "income" && rawType !== "expense") {
+    throw new Error("Tipe kategori tidak valid.");
+  }
+  const type: CategoryType = rawType;
 
-  if (!name || !type) {
-    throw new Error("Nama kategori dan tipe wajib diisi.");
+  if (!name) {
+    throw new Error("Nama kategori wajib diisi.");
+  }
+
+  // Changing a category's type would reinterpret historical transactions and
+  // make existing budgets/templates inconsistent. Renames remain supported.
+  if (type !== category.type) {
+    const [transactionUsage, budgetUsage, templateUsage] = await Promise.all([
+      supabase
+        .from("transactions")
+        .select("id", { head: true, count: "exact" })
+        .eq("user_id", user.id)
+        .eq("category_id", categoryId),
+      supabase
+        .from("budgets")
+        .select("id", { head: true, count: "exact" })
+        .eq("user_id", user.id)
+        .eq("category_id", categoryId),
+      supabase
+        .from("quick_add_templates")
+        .select("id", { head: true, count: "exact" })
+        .eq("user_id", user.id)
+        .eq("category_id", categoryId),
+    ]);
+
+    if (transactionUsage.error) {
+      throw new Error(transactionUsage.error.message);
+    }
+    if (budgetUsage.error && !isMissingTableError(budgetUsage.error)) {
+      throw new Error(budgetUsage.error.message);
+    }
+    if (templateUsage.error && !isMissingTableError(templateUsage.error)) {
+      throw new Error(templateUsage.error.message);
+    }
+
+    const usageCount =
+      (transactionUsage.count ?? 0) +
+      (budgetUsage.error ? 0 : budgetUsage.count ?? 0) +
+      (templateUsage.error ? 0 : templateUsage.count ?? 0);
+
+    if (usageCount > 0) {
+      throw new Error(
+        "Tipe kategori tidak bisa diubah karena masih dipakai transaksi, anggaran, atau template. Kamu masih bisa mengganti namanya.",
+      );
+    }
   }
 
   const { error } = await supabase

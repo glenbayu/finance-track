@@ -19,6 +19,7 @@ import { mapQuickAddTemplateRow, byTemplateSort } from "@/lib/transactions/quick
 import { requireUser } from "@/lib/supabase/auth";
 import { ArrowUpRight, Wallet, Settings, LayoutDashboard, BookOpen } from "lucide-react";
 import { forceRecalculateRollovers, isRolloverTransaction } from "@/lib/transactions/rollover";
+import { getWalletTransactionDeltas } from "@/lib/transactions/wallet-balance";
 import SwipeableRow from "@/components/ui/swipeable-row";
 import EditTransactionButton from "@/components/transactions/edit-transaction-button";
 import DeleteTransactionButton from "@/components/transactions/delete-transaction-button";
@@ -213,20 +214,11 @@ export default async function Home({ searchParams }: HomeProps) {
   wallets?.forEach((wallet) => walletBalanceMap.set(wallet.id, 0));
 
   allTransactions?.forEach((transaction) => {
-    const amount = Number(transaction.amount);
-    if (transaction.type === "income" && transaction.wallet_id) {
-      walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) + amount);
-    } else if (transaction.type === "expense" && transaction.wallet_id) {
-      walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) - amount);
-    } else if (transaction.type === "adjustment" && transaction.wallet_id) {
-      walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) + amount);
-    } else if (transaction.type === "transfer") {
-      if (transaction.wallet_id) {
-        walletBalanceMap.set(transaction.wallet_id, (walletBalanceMap.get(transaction.wallet_id) ?? 0) - amount);
-      }
-      if (transaction.destination_wallet_id) {
-        walletBalanceMap.set(transaction.destination_wallet_id, (walletBalanceMap.get(transaction.destination_wallet_id) ?? 0) + amount);
-      }
+    for (const change of getWalletTransactionDeltas(transaction)) {
+      walletBalanceMap.set(
+        change.walletId,
+        (walletBalanceMap.get(change.walletId) ?? 0) + change.delta,
+      );
     }
   });
 

@@ -1,7 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { normalizeTransactionDate } from "@/lib/transactions/quick-add-validation";
+import { normalizeTransactionDate } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 
 type QuickAddResult = {

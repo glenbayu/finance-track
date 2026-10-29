@@ -1,4 +1,4 @@
-import { getCurrentDate, isDateValue } from "@/lib/utils/date";
+import { getCurrentDate, isDateValue } from "../utils/date.ts";
 
 /**
  * Returns the current business date when no date is supplied.

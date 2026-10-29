@@ -114,18 +114,60 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     "use server";
     const { supabase, user } = await requireUser();
     const id = String(formData.get("id") || "").trim();
-    const newBalance = Number(formData.get("balance") || 0);
-    const currentBalance = Number(formData.get("current_balance") || 0);
+    const rawBalance = String(formData.get("balance") ?? "").trim();
+    const newBalance = Number(rawBalance);
 
     if (!id) throw new Error("ID dompet tidak valid.");
+    if (!rawBalance || !Number.isFinite(newBalance)) {
+      throw new Error("Saldo baru tidak valid.");
+    }
+
+    // Never trust a hidden current_balance field from the browser.
+    const { data: wallet, error: walletError } = await supabase
+      .from("wallets")
+      .select("id")
+      .eq("id", id)
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    if (walletError || !wallet) {
+      throw new Error("Dompet tidak valid atau bukan milik user ini.");
+    }
+
+    // Recalculate from persisted transactions using the same rollover rule as the page.
+    const { end } = getMonthRange(getCurrentMonth());
+    const { data: transactions, error: transactionsError } = await supabase
+      .from("transactions")
+      .select("type, amount, wallet_id, destination_wallet_id, note")
+      .eq("user_id", user.id)
+      .lt("transaction_date", end);
+
+    if (transactionsError) {
+      throw new Error("Saldo dompet belum dapat dihitung. Coba lagi.");
+    }
+
+    let currentBalance = 0;
+    for (const transaction of transactions ?? []) {
+      if (isRolloverTransaction(transaction.note)) continue;
+
+      const amount = Number(transaction.amount);
+      if (transaction.type === "transfer") {
+        if (transaction.wallet_id === id) currentBalance -= amount;
+        if (transaction.destination_wallet_id === id) currentBalance += amount;
+      } else if (transaction.wallet_id === id) {
+        if (transaction.type === "income") currentBalance += amount;
+        else if (transaction.type === "expense") currentBalance -= amount;
+        else if (transaction.type === "adjustment") currentBalance += amount;
+      }
+    }
 
     const difference = newBalance - currentBalance;
-    if (difference === 0) return; // Nothing to adjust
+    if (difference === 0) return;
 
     const { error } = await supabase.from("transactions").insert({
       user_id: user.id,
       type: "adjustment",
-      amount: difference, // Can be negative
+      amount: difference,
       wallet_id: id,
       note: "Penyesuaian Saldo (Adjust Balance)",
       transaction_date: new Date().toISOString().split("T")[0],

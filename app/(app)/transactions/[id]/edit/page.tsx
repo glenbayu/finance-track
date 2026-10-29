@@ -41,8 +41,15 @@ async function updateTransaction(formData: FormData) {
     throw new Error("Dompet tujuan tidak valid.");
   }
 
-  if (!Number.isFinite(amount) || amount <= 0) {
-    throw new Error("Jumlah transaksi harus lebih dari 0.");
+  if (
+    !Number.isFinite(amount) ||
+    (type === "adjustment" ? amount === 0 : amount <= 0)
+  ) {
+    throw new Error(
+      type === "adjustment"
+        ? "Nominal koreksi saldo tidak boleh 0."
+        : "Jumlah transaksi harus lebih dari 0.",
+    );
   }
 
   if (!isDateValue(transactionDate)) {

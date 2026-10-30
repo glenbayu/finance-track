@@ -1,6 +1,6 @@
 # Edit Profile review — 10 September 2026
 
-Hallmark component scope: retain the application's typography, spacing, native dialog, buttons and teal design tokens. No page redesign or database migration.
+Review scope: retain the application's typography, spacing, native dialog, buttons and teal design tokens. No page redesign or database migration.
 
 ## Architecture and field decisions
 

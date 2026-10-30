@@ -1,5 +1,4 @@
-<!-- Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · in-place remediation, existing app identity retained -->
-# Hallmark UI remediation
+# UI remediation
 
 Date: 9 September 2026
 
@@ -7,7 +6,7 @@ Date: 9 September 2026
 
 App-wide UI repairs, prioritizing misleading financial presentation, inaccessible controls, dialog placement, mobile usability, and shared consistency. The existing teal identity, route structure, data model, financial calculations, authentication rules, and financial server actions are retained. Existing unrelated worktree changes were preserved.
 
-Hallmark informed the use of native controls, browser-top-layer dialogs, clearer hierarchy, reduced decoration, explicit focus states, and narrow-screen layout checks. This is an in-place repair, not a replacement theme or a claim that every legacy component passes all 58 Hallmark gates.
+The review informed the use of native controls, browser-top-layer dialogs, clearer hierarchy, reduced decoration, explicit focus states, and narrow-screen layout checks. This is an in-place repair, not a replacement theme or a claim that every legacy component passes every accessibility and usability check.
 
 ## Route inventory
 

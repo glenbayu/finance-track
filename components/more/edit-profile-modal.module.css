@@ -1,4 +1,3 @@
-/* Hallmark · component: profile form · existing system · P5 H4 E4 S5 R5 V3 */
 .form :is(input, select, textarea):focus {
   border-color: var(--lk-primary);
 }

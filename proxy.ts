@@ -6,7 +6,7 @@ import {
   MAX_IDLE_MS,
 } from "@/lib/auth/idle-session";
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({
     request,
   });

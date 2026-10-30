@@ -1,112 +1,12 @@
-import { redirect } from "next/navigation";
 import Link from "next/link";
 import TransactionForm from "@/components/transactions/transaction-form";
-import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import QuickAddTemplateCard from "@/components/quick-add/quick-add-template-card";
 import type { QuickAddTemplateType } from "@/lib/transactions/quick-add";
 import { byTemplateSort, mapQuickAddTemplateRow } from "@/lib/transactions/quick-add";
-import { getCurrentDate, isDateValue } from "@/lib/utils/date";
+import { getCurrentDate } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
-
-const NOTE_MAX_LENGTH = 140;
-
-async function createTransaction(formData: FormData) {
-  "use server";
-
-  const { supabase, user } = await requireUser();
-
-  const rawType = formData.get("type");
-  if (rawType !== "income" && rawType !== "expense" && rawType !== "transfer") {
-    throw new Error("Tipe transaksi tidak valid.");
-  }
-  const type = rawType;
-  const amount = Number(formData.get("amount"));
-  const categoryId = formData.get("category_id") as string;
-  const walletId = formData.get("wallet_id") as string;
-  const destinationWalletId = formData.get("destination_wallet_id") as string;
-  const rawNote = String(formData.get("note") || "").trim();
-  const note = rawNote ? rawNote.slice(0, NOTE_MAX_LENGTH) : null;
-  const transactionDate = formData.get("transaction_date") as string;
-
-  if (!type || !transactionDate || !walletId) {
-    throw new Error("Data transaksi belum lengkap.");
-  }
-
-  if (type !== "transfer" && !categoryId) {
-    throw new Error("Kategori harus dipilih.");
-  }
-
-  if (type === "transfer" && (!destinationWalletId || walletId === destinationWalletId)) {
-    throw new Error("Dompet tujuan tidak valid.");
-  }
-
-  if (!Number.isFinite(amount) || amount <= 0) {
-    throw new Error("Jumlah transaksi harus lebih dari 0.");
-  }
-
-  if (!isDateValue(transactionDate)) {
-    throw new Error("Tanggal transaksi tidak valid.");
-  }
-
-  let validCategoryId: string | null = categoryId;
-  if (type !== "transfer") {
-    const { data: category, error: categoryError } = await supabase
-      .from("categories")
-      .select("id, type")
-      .eq("id", categoryId)
-      .eq("type", type)
-      .or(`user_id.eq.${user.id},user_id.is.null`)
-      .is("archived_at", null)
-      .single();
-
-    if (categoryError || !category) {
-      throw new Error("Kategori tidak valid.");
-    }
-    validCategoryId = category.id;
-  } else {
-    validCategoryId = null;
-  }
-
-  const walletIdsToValidate = type === "transfer" ? [walletId, destinationWalletId] : [walletId];
-  const { data: ownedWallets, error: walletError } = await supabase
-    .from("wallets")
-    .select("id")
-    .eq("user_id", user.id)
-    .in("id", walletIdsToValidate);
-
-  if (walletError || (ownedWallets?.length ?? 0) !== walletIdsToValidate.length) {
-    throw new Error("Dompet tidak valid atau bukan milik user ini.");
-  }
-
-  const { data: inserted, error } = await supabase
-    .from("transactions")
-    .insert({
-      user_id: user.id,
-      type,
-      amount,
-      category_id: validCategoryId,
-      wallet_id: walletId,
-      destination_wallet_id: type === "transfer" ? destinationWalletId : null,
-      note,
-      transaction_date: transactionDate,
-    })
-    .select("id")
-    .single();
-
-  if (error || !inserted) {
-    throw new Error(error?.message ?? "Transaksi gagal tersimpan.");
-  }
-
-  revalidatePath("/");
-  revalidatePath("/transactions");
-  revalidatePath("/transactions/new");
-  revalidatePath("/wallets");
-  revalidatePath("/reports");
-  revalidatePath("/budgets");
-
-  redirect("/transactions?toast=transaction_created");
-}
+import { createTransaction } from "@/app/(app)/transactions/actions";
 
 type NewTransactionPageProps = {
   searchParams?: Promise<{

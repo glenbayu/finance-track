@@ -62,6 +62,7 @@ type QuickAddTemplateRow = {
 
 type QuickAddCategoryRow = {
   type?: unknown;
+  archived_at?: string | null;
 };
 
 type QuickAddWalletRow = {
@@ -127,14 +128,18 @@ export async function createTransactionFromTemplateForUser(
   if (categoryId) {
     const { data: categoryData, error: categoryError } = await supabase
       .from("categories")
-      .select("id, type")
+      .select("id, type, archived_at")
       .eq("id", categoryId)
       .or(`user_id.eq.${user.id},user_id.is.null`)
       .is("archived_at", null)
       .maybeSingle();
 
     const category = categoryData as QuickAddCategoryRow | null;
-    if (categoryError || !isCompatibleQuickAddCategory(category, type)) {
+    if (
+      categoryError ||
+      category?.archived_at ||
+      !isCompatibleQuickAddCategory(category, type)
+    ) {
       return { ok: false, error: "Kategori template tidak valid atau sudah tidak tersedia." };
     }
   }
@@ -172,7 +177,7 @@ export async function createTransactionFromTemplateForUser(
 
   const inserted = insertedData as QuickAddInsertedRow | null;
   if (insertError || !inserted?.id) {
-    return { ok: false, error: insertError?.message ?? "Gagal menambah transaksi." };
+    return { ok: false, error: "Gagal menambah transaksi." };
   }
 
   // Best effort usage tracking: transaction success is the source of truth.

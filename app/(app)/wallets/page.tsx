@@ -1,21 +1,18 @@
 import Link from "next/link";
-import { revalidatePath } from "next/cache";
 import AppShell from "@/components/layout/app-shell";
 import { requireUser } from "@/lib/supabase/auth";
 import WalletManager from "@/components/wallets/wallet-manager";
 import { isRolloverTransaction } from "@/lib/transactions/rollover";
-import { getWalletTransactionDelta, getWalletTransactionDeltas } from "@/lib/transactions/wallet-balance";
-
-async function revalidateWalletRelatedPaths() {
-  revalidatePath("/wallets");
-  revalidatePath("/");
-  revalidatePath("/transactions");
-  revalidatePath("/transactions/new");
-  revalidatePath("/reports");
-}
+import { getWalletTransactionDeltas } from "@/lib/transactions/wallet-balance";
+import {
+  adjustWalletBalance,
+  createWallet,
+  deleteWallet,
+  editWallet,
+} from "@/app/(app)/wallets/actions";
 
 import MonthFilter from "@/components/ui/month-filter";
-import { getCurrentDate, getCurrentMonth, getMonthRange } from "@/lib/utils/date";
+import { getCurrentMonth, getMonthRange } from "@/lib/utils/date";
 
 export type WalletsPageProps = {
   searchParams?: Promise<{
@@ -101,117 +98,6 @@ export default async function WalletsPage({ searchParams }: WalletsPageProps) {
     monthlyCount: monthlyCountMap.get(w.id) || 0,
     balance: balanceMap.get(w.id) || 0
   }));
-
-  async function adjustWalletBalance(formData: FormData) {
-    "use server";
-    const { supabase, user } = await requireUser();
-    const id = String(formData.get("id") || "").trim();
-    const rawBalance = String(formData.get("balance") ?? "").trim();
-    const newBalance = Number(rawBalance);
-
-    if (!id) throw new Error("ID dompet tidak valid.");
-    if (!rawBalance || !Number.isFinite(newBalance)) {
-      throw new Error("Saldo baru tidak valid.");
-    }
-
-    // Never trust a hidden current_balance field from the browser.
-    const { data: wallet, error: walletError } = await supabase
-      .from("wallets")
-      .select("id")
-      .eq("id", id)
-      .eq("user_id", user.id)
-      .maybeSingle();
-
-    if (walletError || !wallet) {
-      throw new Error("Dompet tidak valid atau bukan milik user ini.");
-    }
-
-    // Recalculate from persisted transactions using the same rollover rule as the page.
-    const { end } = getMonthRange(getCurrentMonth());
-    const { data: transactions, error: transactionsError } = await supabase
-      .from("transactions")
-      .select("type, amount, wallet_id, destination_wallet_id, note")
-      .eq("user_id", user.id)
-      .lt("transaction_date", end);
-
-    if (transactionsError) {
-      throw new Error("Saldo dompet belum dapat dihitung. Coba lagi.");
-    }
-
-    const currentBalance = (transactions ?? [])
-      .filter((transaction) => !isRolloverTransaction(transaction.note))
-      .reduce(
-        (balance, transaction) => balance + getWalletTransactionDelta(transaction, id),
-        0,
-      );
-
-    const difference = newBalance - currentBalance;
-    if (difference === 0) return;
-
-    const { error } = await supabase.from("transactions").insert({
-      user_id: user.id,
-      type: "adjustment",
-      amount: difference,
-      wallet_id: id,
-      note: "Penyesuaian Saldo (Adjust Balance)",
-      transaction_date: getCurrentDate(),
-    });
-
-    if (error) throw new Error(error.message);
-    await revalidateWalletRelatedPaths();
-  }
-
-  async function createWallet(formData: FormData) {
-    "use server";
-    const { supabase, user } = await requireUser();
-    const name = String(formData.get("name") || "").trim();
-    const type = String(formData.get("type") || "").trim();
-
-    if (!name || !type) throw new Error("Nama dan tipe dompet wajib diisi.");
-
-    const { error } = await supabase.from("wallets").insert({
-      user_id: user.id,
-      name,
-      type,
-      is_rollover_enabled: formData.get("is_rollover_enabled") === "on",
-      admin_fee_amount: Number(formData.get("admin_fee_amount") || 0)
-    });
-    if (error) throw new Error(error.message);
-    await revalidateWalletRelatedPaths();
-  }
-
-  async function editWallet(formData: FormData) {
-    "use server";
-    const { supabase, user } = await requireUser();
-    const id = String(formData.get("id") || "").trim();
-    const name = String(formData.get("name") || "").trim();
-    const type = String(formData.get("type") || "").trim();
-
-    if (!id || !name || !type) throw new Error("ID, nama, dan tipe dompet wajib diisi.");
-
-    const { error } = await supabase.from("wallets").update({
-      name,
-      type,
-      is_rollover_enabled: formData.get("is_rollover_enabled") === "on",
-      admin_fee_amount: Number(formData.get("admin_fee_amount") || 0),
-      updated_at: new Date().toISOString()
-    }).eq("id", id).eq("user_id", user.id);
-    
-    if (error) throw new Error(error.message);
-    await revalidateWalletRelatedPaths();
-  }
-
-  async function deleteWallet(formData: FormData) {
-    "use server";
-    const { supabase, user } = await requireUser();
-    const id = String(formData.get("id") || "").trim();
-
-    if (!id) throw new Error("ID dompet tidak valid.");
-
-    const { error } = await supabase.from("wallets").delete().eq("id", id).eq("user_id", user.id);
-    if (error) throw new Error(error.message);
-    await revalidateWalletRelatedPaths();
-  }
 
   return (
     <AppShell

@@ -147,7 +147,7 @@ test("rejects a missing category without querying the wallet or inserting", asyn
 });
 
 test("rejects an archived category without querying the wallet or inserting", async () => {
-  const supabase = createSupabaseMock({ category: null });
+  const supabase = createSupabaseMock({ category: { type: "expense", archived_at: "2026-10-01T00:00:00Z" } });
   const result = await createTransactionFromTemplateForUser(supabase, USER, {
     templateId: "template-a",
     transactionDate: "2026-10-29",
@@ -210,7 +210,7 @@ test("returns database errors without reporting success or inserting", async () 
   const insertResult = await createTransactionFromTemplateForUser(insertErrorClient, USER, {
     templateId: "template-a",
   });
-  assert.deepEqual(insertResult, { ok: false, error: "insert failed" });
+  assert.deepEqual(insertResult, { ok: false, error: "Gagal menambah transaksi." });
 });
 
 test("keeps the category compatibility helper behavior", () => {

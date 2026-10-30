@@ -1,151 +1,18 @@
-import { notFound, redirect } from "next/navigation";
-import { revalidatePath } from "next/cache";
+import { notFound } from "next/navigation";
 import TransactionEditForm from "@/components/transactions/transaction-edit-form";
 import AppShell from "@/components/layout/app-shell";
-import { isDateValue } from "@/lib/utils/date";
 import { requireUser } from "@/lib/supabase/auth";
 import { TransactionReturnLink } from "@/components/transactions/transaction-list-context";
-
-const NOTE_MAX_LENGTH = 140;
+import {
+  deleteTransactionAndRedirect,
+  updateTransaction,
+} from "@/app/(app)/transactions/actions";
 
 type EditPageProps = {
   params: Promise<{
     id: string;
   }>;
 };
-
-async function updateTransaction(formData: FormData) {
-  "use server";
-
-  const { supabase, user } = await requireUser();
-
-  const id = formData.get("id") as string;
-  const rawType = formData.get("type");
-  if (
-    rawType !== "income" &&
-    rawType !== "expense" &&
-    rawType !== "transfer" &&
-    rawType !== "adjustment"
-  ) {
-    throw new Error("Tipe transaksi tidak valid.");
-  }
-  const type = rawType;
-  const amount = Number(formData.get("amount"));
-  const categoryId = formData.get("category_id") as string;
-  const walletId = formData.get("wallet_id") as string;
-  const destinationWalletId = formData.get("destination_wallet_id") as string;
-  const rawNote = String(formData.get("note") || "").trim();
-  const note = rawNote ? rawNote.slice(0, NOTE_MAX_LENGTH) : null;
-  const transactionDate = formData.get("transaction_date") as string;
-
-  if (!id || !type || !transactionDate || !walletId) {
-    throw new Error("Data transaksi belum lengkap.");
-  }
-
-  if (type !== "transfer" && type !== "adjustment" && !categoryId) {
-    throw new Error("Kategori harus dipilih.");
-  }
-
-  if (type === "transfer" && (!destinationWalletId || walletId === destinationWalletId)) {
-    throw new Error("Dompet tujuan tidak valid.");
-  }
-
-  if (
-    !Number.isFinite(amount) ||
-    (type === "adjustment" ? amount === 0 : amount <= 0)
-  ) {
-    throw new Error(
-      type === "adjustment"
-        ? "Nominal koreksi saldo tidak boleh 0."
-        : "Jumlah transaksi harus lebih dari 0.",
-    );
-  }
-
-  if (!isDateValue(transactionDate)) {
-    throw new Error("Tanggal transaksi tidak valid.");
-  }
-
-  let validCategoryId: string | null = categoryId;
-  if (type !== "transfer" && type !== "adjustment") {
-    const { data: category, error: categoryError } = await supabase
-      .from("categories")
-      .select("id, type")
-      .eq("id", categoryId)
-      .eq("type", type)
-      .or(`user_id.eq.${user.id},user_id.is.null`)
-      .is("archived_at", null)
-      .single();
-
-    if (categoryError || !category) {
-      throw new Error("Kategori tidak valid.");
-    }
-    validCategoryId = category.id;
-  } else {
-    validCategoryId = null;
-  }
-
-  const walletIdsToValidate = type === "transfer" ? [walletId, destinationWalletId] : [walletId];
-  const { data: ownedWallets, error: walletError } = await supabase
-    .from("wallets")
-    .select("id")
-    .eq("user_id", user.id)
-    .in("id", walletIdsToValidate);
-
-  if (walletError || (ownedWallets?.length ?? 0) !== walletIdsToValidate.length) {
-    throw new Error("Dompet tidak valid atau bukan milik user ini.");
-  }
-
-  const { error } = await supabase
-    .from("transactions")
-    .update({
-      type,
-      amount,
-      category_id: validCategoryId,
-      wallet_id: walletId,
-      destination_wallet_id: type === "transfer" ? destinationWalletId : null,
-      note,
-      transaction_date: transactionDate,
-    })
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  revalidatePath("/");
-  revalidatePath("/transactions");
-  revalidatePath("/wallets");
-
-  redirect("/transactions?toast=transaction_updated");
-}
-
-async function deleteTransaction(formData: FormData) {
-  "use server";
-
-  const { supabase, user } = await requireUser();
-  const id = formData.get("id") as string;
-
-  if (!id) {
-    throw new Error("ID transaksi tidak valid.");
-  }
-
-  const { error } = await supabase
-    .from("transactions")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) {
-    throw new Error(error.message);
-  }
-
-  revalidatePath("/");
-  revalidatePath("/transactions");
-  revalidatePath("/wallets");
-
-  redirect("/transactions?toast=transaction_deleted");
-}
 
 export default async function EditTransactionPage({ params }: EditPageProps) {
   const { supabase, user } = await requireUser();
@@ -228,7 +95,7 @@ export default async function EditTransactionPage({ params }: EditPageProps) {
         categories={categoryOptions}
         wallets={wallets ?? []}
         action={updateTransaction}
-        deleteAction={deleteTransaction}
+        deleteAction={deleteTransactionAndRedirect}
       />
     </AppShell>
   );

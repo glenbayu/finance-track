@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { groupAdjacentDates } from "@/lib/ui/presentation";
-import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { ChevronLeft, ChevronRight, SearchX, ReceiptText } from "lucide-react";
 import { Suspense } from "react";
@@ -18,7 +17,7 @@ import { requireUser } from "@/lib/supabase/auth";
 import TransactionMobileFilter from "@/components/transactions/transaction-mobile-filter";
 import SwipeableRow from "@/components/ui/swipeable-row";
 import SubmitButton from "@/components/ui/submit-button";
-import { runMonthlyRollover } from "@/app/(app)/transactions/actions";
+import { deleteTransaction, runMonthlyRollover } from "@/app/(app)/transactions/actions";
 import { getCategoryVisuals } from "@/lib/utils/icons";
 
 type TransactionsPageProps = {
@@ -184,26 +183,6 @@ function getMobilePaginationItems(currentPage: number, totalPages: number) {
   }
 
   return [1, null, currentPage - 1, currentPage, currentPage + 1, null, totalPages];
-}
-
-async function deleteTransaction(formData: FormData) {
-  "use server";
-
-  const { supabase, user } = await requireUser();
-  const id = String(formData.get("id") ?? "");
-
-  const { error } = await supabase
-    .from("transactions")
-    .delete()
-    .eq("id", id)
-    .eq("user_id", user.id);
-
-  if (error) throw new Error(error.message);
-
-  revalidatePath("/");
-  revalidatePath("/transactions");
-  revalidatePath("/reports");
-  revalidatePath("/budgets");
 }
 
 export default async function TransactionsPage({ searchParams }: TransactionsPageProps) {

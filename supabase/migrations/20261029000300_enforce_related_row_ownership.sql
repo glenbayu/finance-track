@@ -82,6 +82,8 @@ declare
   v_wallet_user_id uuid;
   v_category_user_id uuid;
   v_category_type text;
+  v_category_archived_at timestamptz;
+  v_category_reference_changed boolean;
 begin
   if new.wallet_id is null then
     raise exception 'A transaction must reference one of your own wallets.';
@@ -113,8 +115,8 @@ begin
 
   if new.type in ('income', 'expense') then
     if new.category_id is not null then
-      select c.user_id, c.type
-      into v_category_user_id, v_category_type
+      select c.user_id, c.type, c.archived_at
+      into v_category_user_id, v_category_type, v_category_archived_at
       from public.categories c
       where c.id = new.category_id;
 
@@ -128,6 +130,16 @@ begin
 
       if v_category_type is distinct from new.type then
         raise exception 'The category type must match the transaction type.';
+      end if;
+
+      if tg_op = 'INSERT' then
+        v_category_reference_changed := true;
+      else
+        v_category_reference_changed := new.category_id is distinct from old.category_id;
+      end if;
+
+      if v_category_archived_at is not null and v_category_reference_changed then
+        raise exception 'Archived categories cannot be assigned to new transactions.';
       end if;
     end if;
   elsif new.category_id is not null then
@@ -147,9 +159,11 @@ as $$
 declare
   v_category_user_id uuid;
   v_category_type text;
+  v_category_archived_at timestamptz;
+  v_category_reference_changed boolean;
 begin
-  select c.user_id, c.type
-  into v_category_user_id, v_category_type
+  select c.user_id, c.type, c.archived_at
+  into v_category_user_id, v_category_type, v_category_archived_at
   from public.categories c
   where c.id = new.category_id;
 
@@ -165,6 +179,16 @@ begin
     raise exception 'Budgets may only reference expense categories.';
   end if;
 
+  if tg_op = 'INSERT' then
+    v_category_reference_changed := true;
+  else
+    v_category_reference_changed := new.category_id is distinct from old.category_id;
+  end if;
+
+  if v_category_archived_at is not null and v_category_reference_changed then
+    raise exception 'Archived categories cannot be assigned to budgets.';
+  end if;
+
   return new;
 end;
 $$;
@@ -178,13 +202,15 @@ as $$
 declare
   v_category_user_id uuid;
   v_category_type text;
+  v_category_archived_at timestamptz;
+  v_category_reference_changed boolean;
 begin
   if new.category_id is null then
     return new;
   end if;
 
-  select c.user_id, c.type
-  into v_category_user_id, v_category_type
+  select c.user_id, c.type, c.archived_at
+  into v_category_user_id, v_category_type, v_category_archived_at
   from public.categories c
   where c.id = new.category_id;
 
@@ -198,6 +224,16 @@ begin
 
   if v_category_type is distinct from new.type then
     raise exception 'The category type must match the template type.';
+  end if;
+
+  if tg_op = 'INSERT' then
+    v_category_reference_changed := true;
+  else
+    v_category_reference_changed := new.category_id is distinct from old.category_id;
+  end if;
+
+  if v_category_archived_at is not null and v_category_reference_changed then
+    raise exception 'Archived categories cannot be assigned to quick-add templates.';
   end if;
 
   return new;
